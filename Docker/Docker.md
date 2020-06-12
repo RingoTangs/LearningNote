@@ -418,5 +418,6 @@ drwxr-xr-x. 3 root root   60 Jun 11 10:20 java
 -rw-r--r--. 1 root root 2078 Sep 10  2018 profile
 drwxr-xr-x. 2 root root    6 Oct 31  2018 rh
 drwxr-xr-x. 3 root root   61 Jun 11 10:23 zookeeper
+
 ```
 
