@@ -418,6 +418,18 @@ drwxr-xr-x. 3 root root   60 Jun 11 10:20 java
 -rw-r--r--. 1 root root 2078 Sep 10  2018 profile
 drwxr-xr-x. 2 root root    6 Oct 31  2018 rh
 drwxr-xr-x. 3 root root   61 Jun 11 10:23 zookeeper
+```
 
+### 2.5.小结
+
+```shell
+attach	Attach to a running container					# 当前shell下进入到指定的正在运行的container中
+build 	Build an image from a Dockerfile				# 通过Dockerfile构建镜像
+commit	Create a new image from a container‘s changes	# 提交当前容器为新的镜像
+cp		Copy files/folders between a container and the local filesystem	# 从容器中拷贝文件到宿主机指定路径
+create	Create a new container							# 创建一个新的容器,同run，但是不会启动容器
+diff	Inspect changes to file on container 			# 查看容器文件的变化
+events 	Get real time events from the server			# 从docker服务获取容器实时事件
+exec	Run a command in a running container			# 在一个已经运行的容器内执行命令
 ```
 
