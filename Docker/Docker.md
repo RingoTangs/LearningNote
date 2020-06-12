@@ -104,13 +104,11 @@ sudo rm -rf /var/lib/docker
 
 1、登录 [阿里云--->控制台] 找到容器服务。
 
-<img src="C:\Users\14666\AppData\Roaming\Typora\typora-user-images\image-20200612163401160.png" alt="image-20200612163401160"  />
-
-
+![image-20200612163401160](D:\git_workspace\LearningNote\Docker\images\image-20200612163401160.png)
 
 2、找到镜像加速地址。
 
-![image-20200612163621219](C:\Users\14666\AppData\Roaming\Typora\typora-user-images\image-20200612163621219.png)
+![image-20200612163621219](D:\git_workspace\LearningNote\Docker\images\image-20200612163621219.png)
 
 3、配置加速器使用
 
@@ -132,4 +130,4 @@ sudo systemctl restart docker
 
 > docker run 的运行流程图
 
-![image-20200612164518264](C:\Users\14666\AppData\Roaming\Typora\typora-user-images\image-20200612164518264.png)
+![image-20200612164518264](D:\git_workspace\LearningNote\Docker\images\image-20200612164518264.png)
