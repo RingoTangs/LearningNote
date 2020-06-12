@@ -431,5 +431,21 @@ create	Create a new container							# 创建一个新的容器,同run，但是�
 diff	Inspect changes to file on container 			# 查看容器文件的变化
 events 	Get real time events from the server			# 从docker服务获取容器实时事件
 exec	Run a command in a running container			# 在一个已经运行的容器内执行命令
+export	Export a container’s filesystem as a tar archive	# 导出容器的内容流作为一个tar归档文件[对应 import]
+history	show the history of an image					# 展示一个镜像形成历史
+images	List images										# 列出系统中当前的镜像
+import	Import the contents form a tarball to create a filesystem image	# 从tar包中的内容创建一个新的文件系统镜像[对应 export]
+info	Display system-wide information					# 展示出系统相关信息
+inspect	Return low-level information on a container		# 查看容器详细信息
+kill	kill one or more running containers				# 强制停止一个或多个正在运行的容器
+load	load an image from a tar archive				# 从一个tar包中加载镜像[对应 save]
+login	Registy or login to the docker registry server	# 注册或者登陆一个docker源服务器
+logout	Logout from a Docker registy server				# 从当前的docker registry server退出
+logs	Fetch the logs of a container					# 显示容器的日志
+port	show port mappings for a container				# 查看容器端口的映射
+pause	Pause all process within the container			# 暂停容器
+ps		List containers									# 列出当前系统中的容器列表
+pull	Pull an image from a registry					# 从docker源服务器中拉取镜像
+push	Push an image or repository to a registry 		# 推送指定镜像或镜像库到docker源服务器
 ```
 
