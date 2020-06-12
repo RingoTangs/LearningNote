@@ -104,7 +104,7 @@ sudo rm -rf /var/lib/docker
 
 1、登录 [阿里云--->控制台] 找到容器服务。
 
-![image-20200612163401160](D:\git_workspace\LearningNote\Docker\images\image-20200612163401160.png)
+<img src="https://github.com/yangmingyu1314/LearningNote/blob/master/Docker/images/image-20200612163401160.png"/>
 
 2、找到镜像加速地址。
 
