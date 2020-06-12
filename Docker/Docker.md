@@ -104,7 +104,7 @@ sudo rm -rf /var/lib/docker
 
 1、登录 [阿里云--->控制台] 找到容器服务。
 
-![image-20200612163401160](D:\git_workspace\LearningNote\Docker\images\image-20200612163401160.png)
+![Image](https://raw.githubusercontent.com/yangmingyu1314/LearningNote/master/Docker/images/image-20200612163401160.png)
 
 2、找到镜像加速地址。
 
@@ -131,3 +131,9 @@ sudo systemctl restart docker
 > docker run 的运行流程图
 
 ![image-20200612164518264](D:\git_workspace\LearningNote\Docker\images\image-20200612164518264.png)
+
+### 底层原理
+
+> docker是怎么工作的？
+
+Docker是一个Client—Server结构的系统
