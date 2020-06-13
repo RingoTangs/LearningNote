@@ -423,10 +423,10 @@ drwxr-xr-x. 3 root root   61 Jun 11 10:23 zookeeper
 ### 2.5.小结
 
 ```shell
-attach	Attach to a running container					# 当前shell下进入到指定的正在运行的container中
-build 	Build an image from a Dockerfile				# 通过Dockerfile构建镜像
-commit	Create a new image from a container‘s changes	# 提交当前容器为新的镜像
-cp		Copy files/folders between a container and the local filesystem	# 从容器中拷贝文件到宿主机指定路径
+attach	Attach to a running container            		# 当前shell下进入到指定的正在运行的container中
+build 	Build an image from a Dockerfile           		# 通过Dockerfile构建镜像
+commit	Create a new image from a container‘s changes		# 提交当前容器为新的镜像
+cp   	Copy files/folders between a container and the local filesystem		# 从容器中拷贝文件到宿主机指定路径
 create	Create a new container							# 创建一个新的容器,同run，但是不会启动容器
 diff	Inspect changes to file on container 			# 查看容器文件的变化
 events 	Get real time events from the server			# 从docker服务获取容器实时事件
@@ -444,8 +444,15 @@ logout	Logout from a Docker registy server				# 从当前的docker registry serv
 logs	Fetch the logs of a container					# 显示容器的日志
 port	show port mappings for a container				# 查看容器端口的映射
 pause	Pause all process within the container			# 暂停容器
-ps		List containers									# 列出当前系统中的容器列表
+ps  	List containers									# 列出当前系统中的容器列表
 pull	Pull an image from a registry					# 从docker源服务器中拉取镜像
 push	Push an image or repository to a registry 		# 推送指定镜像或镜像库到docker源服务器
+restart	Restart one or more containers					# 重启一个或多个容器
+stop	Stop one or more running containers				# 停止一个或多个正在运行的容器
+tag		Tag an image into a repository					# 给源镜像中打标签
+top		Display the running process of a container		# 展示容器中正在运行的进程列表
+unpause	Unpause all processes within a container		# 取消暂停容器
+version	Show the docker version information     		# 展示Docker版本信息
+wait	Block until one or more containers stop,then print their exit codes		# 截取容器停止时的退出状态
 ```
 
