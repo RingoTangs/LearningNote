@@ -449,8 +449,8 @@ pull	Pull an image from a registry					# 从docker源服务器中拉取镜像
 push	Push an image or repository to a registry 		# 推送指定镜像或镜像库到docker源服务器
 restart	Restart one or more containers					# 重启一个或多个容器
 stop	Stop one or more running containers				# 停止一个或多个正在运行的容器
-tag		Tag an image into a repository					# 给源镜像中打标签
-top		Display the running process of a container		# 展示容器中正在运行的进程列表
+tag   	Tag an image into a repository             		# 给源镜像中打标签
+top   	Display the running process of a container		# 展示容器中正在运行的进程列表
 unpause	Unpause all processes within a container		# 取消暂停容器
 version	Show the docker version information     		# 展示Docker版本信息
 wait	Block until one or more containers stop,then print their exit codes		# 截取容器停止时的退出状态
