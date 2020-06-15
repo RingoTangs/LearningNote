@@ -64,15 +64,15 @@
 
 ### 2.4.AMQP核心概念是什么？
 
-- **Server：**又称作Broker，接受客户端的连接，实现AMQP实体服务。
-- **Connection：**连接，应用程序与Broker的网络连接。
-- **Channel：**网络信道，几乎所有的操作都在Channel中进行，Channel是进行消息读写的通道。客户端可以建立多个Channel，每个Channel代表一个会话任务。
-- **Message：**消息。服务器和应用程序之间传送的数据，由Properties和Body组成。Properties可以对消息进行修饰，比如消息的优先级、延迟等高级特性；Body就是消息体内容。
-- **Virtual Host：**虚拟主机，用于进行逻辑隔离，最上层的消息路由。一个Virtual Host里面可以有若干个Exchange和Queue，同一个Virtual Host里面不能有相同名称的Exchange和Queue。
-- **Exchange：**交换机，接收消息。根据Routing Key转发消息到绑定的队列。
-- **Binding：**Exchange和Queue之间的虚拟连接，Binding中可以包含Routing Key。
-- **Routing Key：**一个路由规则，虚拟机可以用它来确定如何路由一个特点消息。
-- **Queue：**也成为了Message Queue，消息队列，保存消息并转发给消费者。
+- Server：又称作Broker，接受客户端的连接，实现AMQP实体服务。
+- Connection：连接，应用程序与Broker的网络连接。
+- Channel：网络信道，几乎所有的操作都在Channel中进行，Channel是进行消息读写的通道。客户端可以建立多个Channel，每个Channel代表一个会话任务。
+- Message：消息。服务器和应用程序之间传送的数据，由Properties和Body组成。Properties可以对消息进行修饰，比如消息的优先级、延迟等高级特性；Body就是消息体内容。
+- Virtual Host：虚拟主机，用于进行逻辑隔离，最上层的消息路由。一个Virtual Host里面可以有若干个Exchange和Queue，同一个Virtual Host里面不能有相同名称的Exchange和Queue。
+- Exchange：交换机，接收消息。根据Routing Key转发消息到绑定的队列。
+- Binding：Exchange和Queue之间的虚拟连接，Binding中可以包含Routing Key。
+- Routing Key：一个路由规则，虚拟机可以用它来确定如何路由一个特点消息。
+- Queue：也成为了Message Queue，消息队列，保存消息并转发给消费者。
 
 ### 2.5.RabbitMQ整体架构模型
 
@@ -359,16 +359,16 @@ RabbitMQ生产者投递消息如果**不指定Exchange**，那么就会默认使
 
 #### 2.10.1.Exchange的概念
 
-**Exchange：**接收消息，并根据RoutingKey转发消息所绑定的队列。
+Exchange：接收消息，并根据RoutingKey转发消息所绑定的队列。
 
 #### 2.10.2.Exchange属性
 
-- **Name：**Exchange名称。
-- **Type：**Exchange的类型。direct、topic、fanout、headers。
-- **Durability：**是否需要持久化，true为持久化。
-- **Auto Delete：**当最后一个绑定到Exchange上的队列删除后，自动删除该Exchange。
-- **Internal：**当前Exchange是否用于RabbitMQ内部使用，默认为false。**(很少使用)**
-- **Arguments：**扩展参数，用于扩展AMQP协议自制定化使用。
+- Name：Exchange名称。
+- Type：Exchange的类型。direct、topic、fanout、headers。
+- Durability：是否需要持久化，true为持久化。
+- Auto Delete：当最后一个绑定到Exchange上的队列删除后，自动删除该Exchange。
+- Internal：当前Exchange是否用于RabbitMQ内部使用，默认为false。**(很少使用)**
+- Arguments：扩展参数，用于扩展AMQP协议自制定化使用。
 
 #### 2.10.3.Direct Exchange
 
@@ -494,8 +494,8 @@ public class ProducerDirectExchange {
 
 > Topic Exchange基本概念
 
-- **所有发送到Topic Exchange的消息被转发到所有关心Routing Key中指定Topic的Queue上。**
-- **Exchange将Routing Key和某个Topic进行模糊匹配，此时队列需要绑定一个Topic。**
+- 所有发送到Topic Exchange的消息被转发到所有关心Routing Key中指定Topic的Queue上。
+- Exchange将Routing Key和某个Topic进行模糊匹配，此时队列需要绑定一个Topic。
 - **一句话：Topic Exchange和Queue绑定Routing Key可以使用通配符，生产者发送消息的Routing Key只要和Topic Exchange的Routing Key匹配就能路由到Topic Exchange绑定的队列。**
 
 > 模糊匹配可以使用通配符
@@ -738,22 +738,22 @@ public class ProducerFanoutExchange {
 
 > Binding基本概念
 
-- **Exchange和Exchange、Queue之间的绑定关系。**
-- **Binding中可以包含Routing Key或者参数。**
+- Exchange和Exchange、Queue之间的绑定关系。
+- Binding中可以包含Routing Key或者参数。
 
 #### 2.11.2.Queue(队列)
 
 > Queue基本概念
 
-- **消息队列，实际存储消息数据。**
-- **Durability：是否持久化。Durable：是，Transient：否。**
-- **Auto Delete：如果选true，代表当最后一个监听被移除之后，该Queue会自动删除。**
+- 消息队列，实际存储消息数据。
+- Durability：是否持久化。Durable：是，Transient：否。
+- Auto Delete：如果选true，代表当最后一个监听被移除之后，该Queue会自动删除。
 
 #### 2.11.3.Message(消息)
 
 > Message基本概念
 
-- **Message是服务器和应用程序之前传送的数据。**
+- Message是服务器和应用程序之前传送的数据。
 - **Message本质上就是一段数据，由Properties和Payload(Body)组成。**
 
 > Message的属性
@@ -906,9 +906,9 @@ public class MessageProducer {
 
 > Virtual Host基本概念
 
-- **虚拟地址，用于进行逻辑隔离，最上层的消息路由。**
-- **一个Virtual Host里面可以有若干个Exchange和Queue。**
-- **同一个Virtual Host里面不能有相同名称的Exchange和Queue。**
+- 虚拟地址，用于进行逻辑隔离，最上层的消息路由。
+- 一个Virtual Host里面可以有若干个Exchange和Queue。
+- 同一个Virtual Host里面不能有相同名称的Exchange和Queue。
 
 
 
@@ -918,10 +918,10 @@ public class MessageProducer {
 
 #### 3.1.1.什么是消息的可靠性传递？
 
-- **保障消息的成功发出。**
-- **保障MQ节点的成功接收。**
-- **发送端收到MQ节点（Broker）的应答。**
-- **完善的消息补偿机制。**
+- 保障消息的成功发出。
+- 保障MQ节点的成功接收。
+- 发送端收到MQ节点（Broker）的应答。
+- 完善的消息补偿机制。
 
 #### 3.1.2.生产端—可靠性投递解决方案
 
