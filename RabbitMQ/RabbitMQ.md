@@ -90,12 +90,12 @@
 
 ### 2.7.RabbitMQ安装和使用
 
-**官网地址：**https://www.rabbitmq.com/
+**官网地址：https://www.rabbitmq.com/**
 
-**Erlang和RabbitMQ版本对照表：**https://www.rabbitmq.com/which-erlang.html
+**Erlang和RabbitMQ版本对照表：https://www.rabbitmq.com/which-erlang.html**
 
-**相关软件包和资料：**链接：https://pan.baidu.com/s/1uFP2YU7xPK2KBkaP4gXvLw 
-**提取码：**s6z8
+**相关软件包和资料：链接：https://pan.baidu.com/s/1uFP2YU7xPK2KBkaP4gXvLw** 
+**提取码：s6z8**
 
 > 安装Rabbitmq
 
