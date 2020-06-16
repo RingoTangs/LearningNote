@@ -1,5 +1,3 @@
-[TOC]
-
 ## 1.主流消息中间件的介绍
 
 ### 1.1.ActiveMQ
@@ -78,7 +76,7 @@
 
 ### 2.5.RabbitMQ整体架构模型
 
-![RabbitMQ的整体架构图](D:\git_workspace\LearningNote\RabbitMQ\image\2.5-1-RabbitMQ的整体架构图.jpg)
+![2.5-1-RabbitMQ的整体架构图](D:\git_workspace\LearningNote\RabbitMQ\image\2.5-1-RabbitMQ的整体架构图.jpg)
 
 
 
@@ -86,7 +84,7 @@
 
 ### 2.6.RabbitMQ消息是如何进行流转的？
 
-![RabbitMQ消息流转图](D:\git_workspace\LearningNote\RabbitMQ\image\2.6-1-RabbitMQ消息流转图.jpg)
+![2.6-1-RabbitMQ消息流转图](D:\git_workspace\LearningNote\RabbitMQ\image\2.6-1-RabbitMQ消息流转图.jpg)
 
 
 
@@ -931,7 +929,7 @@ public class MessageProducer {
 
 > 消息落库图示
 
-![消息落库](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-1-消息落库.jpg)
+![3.1.2-1-消息落库](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-1-消息落库.jpg)
 
 
 
@@ -943,7 +941,7 @@ public class MessageProducer {
 
 > 消息回调检查图示
 
-![消息延迟投递回调检查](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-2-消息的回调检查.jpg)
+![3.1.2-2-消息延迟投递回调检查](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-2-消息的回调检查.jpg)
 
 
 
@@ -957,7 +955,7 @@ public class MessageProducer {
 
 #### 3.3.1.消费端的幂等性
 
-- **消费端实现幂等性，就意味着，我们的消息永远不会消费多次，即使我们收到了多条一样的消息。**
+- 消费端实现幂等性，就意味着，我们的消息永远不会消费多次，即使我们收到了多条一样的消息。
 
 #### 3.3.2.业界主流的幂等性操作
 
@@ -977,22 +975,815 @@ public class MessageProducer {
 
 ### 3.4.两种消息投递方式：Confirm确认消息、Return返回消息
 
+#### 3.4.1.Confirm确认消息（生产端）
 
+> Confirm消息确认机制
 
-### 3.5.自定义消费者
+- 消息的确认，是指生产者投递消息后，如果Broker收到消息，会给生产者一个应答。
+- 生产者进行接收应答，用来确认这条消息是否发送到Broker，这种方式也是消息的可靠性投递的核心保障。
 
+#### 3.4.2.实现Confirm确认消息
 
+>消费者
 
-### 3.6.消息的ACK与重回队列
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.QueueingConsumer;
 
+/**
+ * 消费者 用来测试Rabbitmq的Confirm机制
+ */
+public class Consumer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_confirm_exchange";
+    public static final String EXCHANGE_TYPE = "direct";
+    public static final String ROUTING_KEY = "test.confirm";
+    public static final String QUEUE_NAME = "test_confirm_queue";
 
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST);
 
-### 3.7.消息的限流
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+
+        // 7、创建消费者
+        QueueingConsumer queueingConsumer = new QueueingConsumer(channel);
+
+        /**
+         * 8、channel的设置
+         * basicConsume(String queue, boolean autoAck, Consumer callback)
+         */
+        channel.basicConsume(QUEUE_NAME, true, queueingConsumer);
+
+        while (true) {
+            //9、接收消息
+            QueueingConsumer.Delivery delivery = queueingConsumer.nextDelivery();
+            String msg = new String(delivery.getBody());
+            System.out.println("*******消费端接收到的消息为=====>" + msg);
+        }
+    }
+}
+```
+
+> 生产者设置消息的确认模式和监听
+
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmListener;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+
+/**
+ * 生产者 测试消息发送到Broker的Confirm机制
+ * 第一步：声明消息的确认模式 channel.confirmSelect();
+ * 第二步：添加监听 channel.addConfirmListener();
+ */
+public class Producer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_confirm_exchange";
+    public static final String ROUTING_KEY = "test.confirm";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST);
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        // 4、指定消息的确认模式：Confirm
+        channel.confirmSelect();
+
+        /**
+         * 5、发送消息
+         * basicPublish(String exchange, String routingKey, BasicProperties props, byte[] body)
+         */
+        String msg = "Hello Message Confirm...";
+        channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, null, msg.getBytes());
+
+        /**
+         * 6、添加一个确认监听
+         */
+        channel.addConfirmListener(new ConfirmListener() {
+            @Override
+            public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+                System.out.println("***********消息成功发送到Broker！***************");
+            }
+
+            @Override
+            public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+                System.out.println("**************消息发送失败！********************");
+            }
+        });
+    }
+}
+```
+
+#### 3.4.3.Return返回消息（生产端）
+
+> Return消息返回机制
+
+- Return Listener用于处理一些不可路由的消息。
+- 在某些情况下，如果我们在发送消息的时候，当前的Exchange不存在或者指定的Routing Key不存在，这个时候我们需要监听这种不可达的消息，就要使用Return Listener！
+
+> Return机制基础API的关键配置项
+
+- Mandatory：如果为true，则监听器会收到路由不可达的消息，然后进行后续处理；如果为false，那么Broker会自动删除该消息。
+
+#### 3.4.4.实现Return 消息返回
+
+> 生产者测试Return机制
+
+```java
+import com.rabbitmq.client.*;
+
+import java.io.IOException;
+/**
+ * 生产者 测试消息的Return机制
+ * 当有不可路由的消息时候发送到Broker，来监听这些不可达的消息。
+ * 第一步：mandatory设置为true监听不可达的消息。
+ * 第二步：channel.addReturnListener()添加消息返回机制的监听者。
+ */
+public class Producer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_confirm_exchange";
+    public static final String ROUTING_KEY = "TangShi"; //不存在的Routing Key
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST);
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、发送消息
+         * basicPublish(String exchange, String routingKey, boolean mandatory, BasicProperties props, byte[] body)
+         * mandatory：如果为true，则监听器会收到路由不可达的消息，然后进行后续处理；如果为false，那么Broker会自动删除该消息。
+         */
+        String msg = "Hello Message Return....";
+        channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, true, null, msg.getBytes());
+
+        /**
+         * 5、监控不可路由的消息
+         * handleReturn(int replyCode, String replyText, String exchange, String routingKey, AMQP.BasicProperties properties, byte[] body)
+         * replyCode：响应码
+         * replyText：文本
+         * exchange：具体的Exchange
+         * routingKey：具体的Routing Key
+         * properties：消息的属性
+         * body：实际的消息体的内容。
+         */
+        channel.addReturnListener(new ReturnListener() {
+            @Override
+            public void handleReturn(int replyCode, String replyText, String exchange, String routingKey, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                String msg = new String(body);
+                System.out.println("replyCode：" + replyCode);
+                System.out.println("replyText：" + replyText);
+                System.out.println("exchange：" + exchange);
+                System.out.println("routingKey：" + routingKey);
+                System.out.println("body：" + msg);
+            }
+        });
+    }
+}
+
+// 控制台打印结果为：
+replyCode：312
+replyText：NO_ROUTE
+exchange：test_confirm_exchange
+routingKey：TangShi
+body：Hello Message Return....
+```
+
+### 3.5.自定义消费者监听
+
+> 自定义消费者
+
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import java.io.IOException;
+
+/**
+ * 自定义的消费者
+ * 需要继承 com.rabbitmq.client.DefaultConsumer 
+ * 重写handleDelivery()方法
+ */
+public class CustomConsumer extends DefaultConsumer {
+    public CustomConsumer(Channel channel) {
+        super(channel);
+    }
+
+    @Override
+    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        String msg = new String(body);
+        System.out.println("consumerTag：" + consumerTag);
+        System.out.println("envelope：" + envelope.toString());
+        System.out.println("body：" + msg);
+    }
+}
+```
+
+>消费端
+
+```java
+package com.ymy.rabbitmq.custom;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+/**
+ * 消费者 测试自定义的消费者
+ */
+public class Consumer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_custom_consumer_exchange";
+    public static final String EXCHANGE_TYPE = "direct";
+    public static final String ROUTING_KEY = "test.custom";
+    public static final String QUEUE_NAME = "test_custom_consumer_queue";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+
+        /**
+         * 7、channel的设置
+         * basicConsume(String queue, boolean autoAck, Consumer callback)
+         */
+        channel.basicConsume(QUEUE_NAME, true, new CustomConsumer(channel)); //这里的消费端用我们自定义的消费者
+    }
+}
+
+// 控制台打印结果：
+consumerTag：amq.ctag-hDLldSV5KZuRFkdGJLoYng
+envelope：Envelope(deliveryTag=1, redeliver=false, exchange=test_custom_consumer_exchange, routingKey=test.custom)
+body：Hello Custom Consumer...
+```
+
+### 3.6.消息的限流
+
+> 什么是消费端的限流？
+
+- 假设一个场景，首先我们的Rabbitmq服务器上有上万条未处理的消息，我们随便打开一个消费者客户端，会出现以下情况：
+  - 巨量的消息瞬间全部推送过来，但是我们单个客户端无法同时处理这么多数据！
+- **RabbitMQ提供一种qos（服务质量保证）功能，即在非自动确认消息（一定不能设置AutoACK）的前提下，如果一定数目的消息（通过基于consume或者channel设置Qos的值）未被确认前，不进行消费新的消息。**
+
+> void basicQos(int prefetchSize, int prefetchCount, boolean global)
+
+```java
+/**
+* prefetchSize：0 不做限制。
+* prefetchCount：会告诉RabbitMQ不要同时给一个消费者推送多于N个消息，即一旦有N个消息还没有ACK，则该consumer将block， * 直到有消息ACK。
+* global：true应用与channel，false应用于单个consumer。一个channel可以有多个consumer监听。
+*/
+void basicQos(int prefetchSize, int prefetchCount, boolean global)
+```
+
+- **注意：在AutoACK的情况下，Qos是不会生效的，一定要设置手动签收。**
+
+> 自定义消费者手动ACK
+
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import java.io.IOException;
+
+/**
+ * 自定义的消费者
+ * 需要继承 com.rabbitmq.client.DefaultConsumer
+ * 重写handleDelivery()方法
+ */
+public class CustomConsumer extends DefaultConsumer {
+
+    private Channel channel;
+
+    public CustomConsumer(Channel channel) {
+        super(channel);
+        this.channel = channel;
+    }
+
+    @Override
+    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        String msg = new String(body);
+        System.out.println("-----------------------------------------------");
+        System.out.println("consumerTag：" + consumerTag);
+        System.out.println("envelope：" + envelope.toString());
+        System.out.println("body：" + msg);
+        System.out.println("-----------------------------------------------");
+
+        // 设置2S的延迟
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+
+        /**
+         * 手动ACK
+         * basicAck(long deliveryTag, boolean multiple)
+         * multiple：false。因为我们是逐条消息ACK的所以设置为false，不批量签收。
+         */
+        channel.basicAck(envelope.getDeliveryTag(), false);
+    }
+}
+```
+
+> 消费端
+
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.ymy.rabbitmq.custom.CustomConsumer;
+
+/**
+ * 消费端 测试消费端消息的限流
+ * 注意：消息限流的前提是设置手动ACK！
+ */
+public class QosConsumer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_qos_exchange";
+    public static final String EXCHANGE_TYPE = "direct";
+    public static final String ROUTING_KEY = "test.qos";
+    public static final String QUEUE_NAME = "test_qos_queue";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+
+        /**
+         * 7、消息限流
+         * ACK一定要设置为false！
+         * prefetchCount设置为1，消费端处理完一条消息之后Broker再推送一条消息
+         */
+        channel.basicQos(0, 1, false);
+        channel.basicConsume(QUEUE_NAME, false, new CustomConsumer(channel));
+    }
+}
+```
+
+### 3.7.消费端的ACK与重回队列机制
+
+#### 3.7.1.消费端的手工ACK和NACK
+
+- 消费端进行消费的时候，如果由于业务异常我们可以进行日志记录，然后进行补偿！
+- 如果由于服务器宕机等严重问题，那我们就需要手工进行ACK保障消费端消费成功。
+
+#### 3.7.2.消费端的重回队列
+
+- 消费端重回队列是为了对没有处理成功的消息，把消息重新会递给Broker！
+- **一般在实际应用中，都会关闭重回队列，也就是设置为false。**
+
+> 自定义消费者ACK、NACK和重回队列
+
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import java.io.IOException;
+
+/**
+ * 自定义消费者 测试ACK和NACK
+ */
+public class CstConsumer extends DefaultConsumer {
+
+    private Channel channel;
+
+    public CstConsumer(Channel channel) {
+        super(channel);
+        this.channel = channel;
+    }
+
+    @Override
+    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        String msg = new String(body);
+        System.out.println("---------------------------------------");
+        System.out.println("consumerTag：" + consumerTag);
+        System.out.println("envelope：" + envelope.toString());
+        System.out.println("body：" + msg);
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if ((Integer) properties.getHeaders().get("flag") == 0) {
+            System.out.println("********NACK***************");
+            /**
+             * basicNack(long deliveryTag, boolean multiple, boolean requeue)
+             * multiple：是否批量NACK
+             * requeue：是否重回队列
+             */
+            channel.basicNack(envelope.getDeliveryTag(), false, true);
+        } else {
+            System.out.println("********ACK***************");
+            // basicAck(long deliveryTag, boolean multiple)
+            channel.basicAck(envelope.getDeliveryTag(), false);
+        }
+    }
+}
+```
+
+> 消费端
+
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+public class AckConsumer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_ack_exchange";
+    public static final String EXCHANGE_TYPE = "direct";
+    public static final String ROUTING_KEY = "test.ack";
+    public static final String QUEUE_NAME = "test_ack_queue";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+
+        /**
+         * 7、消息消费
+         * ACK一定要设置为false！
+         * basicConsume(String queue, boolean autoAck, Consumer callback)
+         */
+        channel.basicConsume(QUEUE_NAME, false, new CstConsumer(channel));
+    }
+}
+```
+
+> 生产端
+
+```java
+import com.rabbitmq.client.*;
+import java.util.HashMap;
+import java.util.Map;
+
+public class AckProducer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "test_ack_exchange";
+    public static final String ROUTING_KEY = "test.ack";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        for (int i = 0; i < 5; i++) {
+            /**
+             * 4、发送消息
+             * basicPublish(String exchange, String routingKey, BasicProperties props, byte[] body)
+             */
+            String msg = "Hello Rabbitmq Ack Test..." + i;
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("flag", i);
+            AMQP.BasicProperties properties = new AMQP.BasicProperties().builder()
+                    .headers(headers)
+                    .build();
+            channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, properties, msg.getBytes());
+        }
+    }
+}
+```
 
 
 
 ### 3.8.TTL消息
 
+> TTL是什么？
 
+- TTL：Time To Live，也就是生存时间。
+- RabbitMQ支持消息的过期时间，在消息发送时可以指定。
+- RabbitMQ支持队列的过期时间，从消息入队开始计算，只要超过了队列的超时时间配置，那么消息会自动清除。
 
 ### 3.9.死信队列
+
+#### 3.9.1.DLE(Dead-Letter-Exchange)
+
+- 利用DLX，当消息在一个队列中变成Dead Message后，它会被重新publish到另一个Exchange，这个Exchange就是DLX。
+- **DLX也是一个正常的Exchange，和一般的Exchange没有区别，它能在任何的队列上被指定，实际上就是设置某个队列的属性。**
+- 当这个队列中有Dead Message时，RabbitMQ就会自动的将这个消息重新发布到设置的Exchange上去，进而被路由到另一个队列。
+- 可以监听这个死信队列中消息做相应的处理，这个特性可以弥补RabbitMQ3.0以前支持的immediate参数的功能。
+
+#### **3.9.2.消息变成Dead Message的情况**
+
+- 消息被消费者拒绝（basicReject/basicNack）并且不能重回队列requeue=false。
+- 消息TTL过期。
+- 队列达到最大长度。
+
+#### **3.9.3.死信队列的代码实现**
+
+> 定义DLX
+
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+/**
+ * 死信队列：DLX其实是正常的Exchange
+ * 注：DLX的Exchange Type必须是topic。Routing Key为"#"表示全部匹配。
+ */
+public class DLX {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "dlx_exchange";
+    public static final String EXCHANGE_TYPE = "topic";
+    public static final String ROUTING_KEY = "#";
+    public static final String QUEUE_NAME = "dlx_queue";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+    }
+}
+```
+
+> 消费端
+
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.ymy.rabbitmq.dlx.custom.NormalCustomConsume;
+import java.util.HashMap;
+import java.util.Map;
+/**
+ * 消费者 接收正常Queue的消息
+ * 声明队列的时候加上arguments属性指定DLX
+ */
+public class NormalConsumer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "normal_exchange";
+    public static final String DLX_EXCHANGE_NAME = "dlx_exchange";
+    public static final String EXCHANGE_TYPE = "direct";
+    public static final String ROUTING_KEY = "test.normal";
+    public static final String QUEUE_NAME = "normal_queue";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        /**
+         * 4、声明Exchange
+         * exchangeDeclare(String exchange,String type,boolean durable,boolean autoDelete,boolean internal,Map<String, Object> arguments)
+         */
+        channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false, false, null);
+
+        /**
+         * 5、声明队列 
+         * queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
+         */
+        // 在属性中添加DLX
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("x-dead-letter-exchange", DLX_EXCHANGE_NAME);
+        channel.queueDeclare(QUEUE_NAME, true, false, false, arguments);
+
+        /**
+         * 6、Exchange和Queue的绑定关系
+         * queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments)
+         */
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY, null);
+
+        /**
+         * 7、消费者
+         * basicConsume(String queue, boolean autoAck, Consumer callback)
+         */
+        channel.basicConsume(QUEUE_NAME, false, new NormalCustomConsume(channel));
+    }
+}
+```
+
+> 自定义的消费者
+
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+import java.io.IOException;
+/**
+ * 自定义的消费者
+ */
+public class NormalCustomConsume extends DefaultConsumer {
+
+    private Channel channel;
+
+    public NormalCustomConsume(Channel channel) {
+        super(channel);
+        this.channel = channel;
+    }
+
+    @Override
+    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        String msg = new String(body);
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println("********body*******：" + body);
+        if ((Integer) properties.getHeaders().get("flag") == 0) {
+            System.out.println("********NACK************");
+            // basicNack(long deliveryTag, boolean multiple, boolean requeue)
+            channel.basicNack(envelope.getDeliveryTag(), false, false);
+        } else {
+            System.out.println("********ACK************");
+            // basicAck(long deliveryTag, boolean multiple)
+            channel.basicAck(envelope.getDeliveryTag(), false);
+        }
+    }
+}
+```
+
+> 生产端
+
+```java
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import java.util.HashMap;
+import java.util.Map;
+/**
+ * 生产者 向正常的Exchange投递消息
+ */
+public class NormalProducer {
+    public static final String HOST = "192.168.110.133";
+    public static final String EXCHANGE_NAME = "normal_exchange";
+    public static final String ROUTING_KEY = "test.normal";
+
+    public static void main(String[] args) throws Exception {
+        // 1、创建ConnectionFactory
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost(HOST); // ConnectionFactory 默认端口是5672 virtualHost是"/"
+
+        // 2、通过创建ConnectionFactory创建Connection
+        Connection connection = connectionFactory.newConnection();
+
+        // 3、通过Connection创建Channel
+        Channel channel = connection.createChannel();
+
+        for (int i = 0; i < 5; i++) {
+            String msg = "Hello Rabbitmq Message.." + i;
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("flag", i);
+            AMQP.BasicProperties properties = new AMQP.BasicProperties().builder()
+                    .headers(headers)
+                    .expiration("10000") // 10S没有消费者处理该消息就过期
+                    .build();
+            // 发送消息 basicPublish(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body)
+            channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, properties, msg.getBytes());
+        }
+    }
+}
+```
+
+
+
