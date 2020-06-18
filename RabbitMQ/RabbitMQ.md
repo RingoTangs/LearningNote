@@ -60,7 +60,7 @@
 
 > AMQP协议模型
 
-<img src="D:\git_workspace\LearningNote\RabbitMQ\image\2.3-1-AMQP协议模型.jpg" alt="AMQP协议模型"  />
+<img src=".\image\2.3-1-AMQP协议模型.jpg" alt="AMQP协议模型"  />
 
 ### 2.4.AMQP核心概念是什么？
 
@@ -76,7 +76,7 @@
 
 ### 2.5.RabbitMQ整体架构模型
 
-![2.5-1-RabbitMQ的整体架构图](D:\git_workspace\LearningNote\RabbitMQ\image\2.5-1-RabbitMQ的整体架构图.jpg)
+![2.5-1-RabbitMQ的整体架构图](.\image\2.5-1-RabbitMQ的整体架构图.jpg)
 
 
 
@@ -84,7 +84,7 @@
 
 ### 2.6.RabbitMQ消息是如何进行流转的？
 
-![2.6-1-RabbitMQ消息流转图](D:\git_workspace\LearningNote\RabbitMQ\image\2.6-1-RabbitMQ消息流转图.jpg)
+![2.6-1-RabbitMQ消息流转图](.\image\2.6-1-RabbitMQ消息流转图.jpg)
 
 
 
@@ -929,7 +929,7 @@ public class MessageProducer {
 
 > 消息落库图示
 
-![3.1.2-1-消息落库](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-1-消息落库.jpg)
+![3.1.2-1-消息落库](.\image\3.1.2-1-消息落库.jpg)
 
 
 
@@ -941,7 +941,7 @@ public class MessageProducer {
 
 > 消息回调检查图示
 
-![3.1.2-2-消息延迟投递回调检查](D:\git_workspace\LearningNote\RabbitMQ\image\3.1.2-2-消息的回调检查.jpg)
+![3.1.2-2-消息延迟投递回调检查](.\image\3.1.2-2-消息的回调检查.jpg)
 
 
 
@@ -1781,6 +1781,914 @@ public class NormalProducer {
             // 发送消息 basicPublish(String exchange, String routingKey, AMQP.BasicProperties props, byte[] body)
             channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, properties, msg.getBytes());
         }
+    }
+}
+```
+
+
+
+## 4.RabbitMQ高级整合应用
+
+### 4.1.RabbitMQ整合Spring AMQP
+
+#### 4.1.1.RabbitAdmin
+
+- **注意：autoStartUp必须要设置为true，否则Spring容器不会加载RabbitAdmin类。**
+- RabbitAdmin底层实现就是从Spring容器中获取Exchange、Binding、RoutingKey以及Queue的@Bean声明。
+- 然后使用RabbitTemplate的execute()方法执行对应的声明、修改、删除等一系列RabbitMQ基础功能操作。例如：添加一个Exchange、删除一个Binding、清空队列里的消息等等。
+
+> pom
+
+```xml
+<!--踩坑记：amqp-client低版本和spring-amqp整合会报错-->
+
+<!--amqp-client version 5.4.3-->
+<dependency>
+    <groupId>com.rabbitmq</groupId>
+    <artifactId>amqp-client</artifactId>
+</dependency>
+
+<!--spring-amqp version 2.2.2-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+> 配置类
+
+```java
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConf {
+
+    private static final String ADDRESSES = "192.168.110.133:5672";
+    private static final int PORT = 5672;
+    private static final String USERNAME = "guest";
+    private static final String PASSWORD = "guest";
+    private static final String VIRTUAL_HOST = "/";
+
+    /**
+     * ConnectionFactory
+     */
+    @Bean
+    public ConnectionFactory connectionFactory() {
+        CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
+        cachingConnectionFactory.setAddresses(ADDRESSES);
+        cachingConnectionFactory.setPort(PORT);
+        cachingConnectionFactory.setUsername(USERNAME);
+        cachingConnectionFactory.setPassword(PASSWORD);
+        cachingConnectionFactory.setVirtualHost(VIRTUAL_HOST);
+        return cachingConnectionFactory;
+    }
+
+    /**
+     * RabbitAdmin
+     * 注意：该方法的参数要和上面ConnectionFactory的Bean名字一致
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        rabbitAdmin.setAutoStartup(true);  // autoStartUp要设置为true
+        return rabbitAdmin;
+    }
+}
+```
+
+> RabbitAdmin基础API
+
+```java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+/**
+ * RabbitMQ 测试类
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class RabbitMQTest {
+
+    @Autowired
+    private RabbitAdmin rabbitAdmin;
+
+    @Test
+    public void testAdmin() {
+        /**
+         * 1、RabbitAdmin声明Exchange
+         */
+        // DirectExchange(String name, boolean durable, boolean autoDelete, Map<String, Object> arguments)
+        rabbitAdmin.declareExchange(new DirectExchange("test.direct", false, false, null));
+        // TopicExchange(String name, boolean durable, boolean autoDelete, Map<String, Object> arguments)
+        rabbitAdmin.declareExchange(new TopicExchange("test.topic", false, false, null));
+        // FanoutExchange(String name, boolean durable, boolean autoDelete, Map<String, Object> arguments)
+        rabbitAdmin.declareExchange(new FanoutExchange("test.fanout", false, false, null));
+
+        /**
+         * 2、RabbitAdmin声明Queue
+         */
+        // Queue(String name, boolean durable, boolean exclusive, boolean autoDelete, @Nullable Map<String, Object> arguments)
+        rabbitAdmin.declareQueue(new Queue("test.direct.queue", false, false, false, null));
+        rabbitAdmin.declareQueue(new Queue("test.topic.queue", false, false, false, null));
+        rabbitAdmin.declareQueue(new Queue("test.fanout.queue", false, false, false, null));
+
+        /**
+         * 3、RabbitAdmin绑定Exchange和Queue
+         */
+        // Binding(String destination, DestinationType destinationType, String exchange, String routingKey, @Nullable Map<String, Object> arguments)
+        rabbitAdmin.declareBinding(new Binding("test.direct.queue", Binding.DestinationType.QUEUE, "test.direct", "admin.direct", null));
+
+
+        /**
+         * 4、RabbitAdmin声明Queue和Exchange并进行绑定
+         */
+        rabbitAdmin.declareBinding(BindingBuilder
+                .bind(new Queue("test.topic.queue", false, false, false, null))
+                .to(new TopicExchange("test.topic", false, false, null))
+                .with("user.#")); // Topic Exchange这里有Routing KeyAPI
+
+        // Fanout Exchange 这里没有Routing Key API
+        rabbitAdmin.declareBinding(BindingBuilder
+                .bind(new Queue("test.fanout.queue", false, false, false, null))
+                .to(new FanoutExchange("test.fanout", false, false, null)));
+
+        /**
+         * 5、RabbitAdmin 清空指定队列的消息
+         */
+        rabbitAdmin.purgeQueue("test.direct.queue", false);
+    }
+
+}
+```
+
+> Spring容器声明Exchange、Queue和Binding
+
+```java
+/**
+* 1、设置Exchange的类型
+* 	DirectExchange
+* 	TopicExchange
+* 	FanoutExchange
+* 2、将Queue绑定到Exchange
+* 
+* 3、在配置类中声明Exchange、Queue、Binding就可以直接使用了！！！
+*/
+@Bean
+public TopicExchange topicExchange01() {
+    // TopicExchange(String name, boolean durable, boolean autoDelete, Map<String, Object> arguments)
+    return new TopicExchange("topic01", true, false, null);
+}
+@Bean
+public Queue queue01() {
+    // Queue(String name, boolean durable, boolean exclusive, boolean autoDelete)
+    return new Queue("queue01", true, false, false);
+}
+@Bean
+public Binding binding01() {
+    return BindingBuilder.bind(queue01()).to(topicExchange01()).with("spring.*");
+}
+```
+
+#### 4.1.2.RabbitTemplate
+
+- RabbitTemplate是RabbitMQ在与SpringAMQP整合的时候进行发送消息的关键类。
+- RabbitTemplate提供了可靠性消息投递方法、回调监听消息接口ConfirmCallback、返回值确认接口ReturnCallback等等。同样我们需要进行注入到spring容器中，然后直接使用。
+- 在与Spring整合时需要实例化，但是在与SpringBoot整合时，在配置文件里添加配置即可。
+
+> 配置类
+
+```java
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConf {
+
+    private static final String ADDRESSES = "192.168.110.133:5672";
+    private static final int PORT = 5672;
+    private static final String USERNAME = "guest";
+    private static final String PASSWORD = "guest";
+    private static final String VIRTUAL_HOST = "/";
+
+    /**
+     * ConnectionFactory
+     */
+    @Bean
+    public ConnectionFactory connectionFactory() {
+        CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
+        cachingConnectionFactory.setAddresses(ADDRESSES);
+        cachingConnectionFactory.setPort(PORT);
+        cachingConnectionFactory.setUsername(USERNAME);
+        cachingConnectionFactory.setPassword(PASSWORD);
+        cachingConnectionFactory.setVirtualHost(VIRTUAL_HOST);
+        return cachingConnectionFactory;
+    }
+
+    /**
+     * RabbitAdmin
+     * 注意：该方法的参数要和上面ConnectionFactory的Bean名字一致
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+        rabbitAdmin.setAutoStartup(true);  // autoStartUp要设置为true
+        return rabbitAdmin;
+    }
+ 
+    /**
+     * RabbitTemplate
+     * 注意：该方法的参数要和上面ConnectionFactory的Bean名字一致
+     */
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        return new RabbitTemplate(connectionFactory);
+    }
+
+    /**
+     * 1、设置Exchange的类型
+     * DirectExchange
+     * TopicExchange
+     * FanoutExchange
+     * 2、将Queue绑定到Exchange
+     */
+    @Bean
+    public TopicExchange topicExchange01() {
+        // TopicExchange(String name, boolean durable, boolean autoDelete, Map<String, Object> arguments)
+        return new TopicExchange("topic01", true, false, null);
+    }
+    @Bean
+    public Queue queue01() {
+        // Queue(String name, boolean durable, boolean exclusive, boolean autoDelete)
+        return new Queue("queue01", true, false, false);
+    }
+    @Bean
+    public Binding binding01() {
+        return BindingBuilder.bind(queue01()).to(topicExchange01()).with("spring.*");
+    }
+}
+```
+
+> RabbitTemplate发送消息
+
+```java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class RabbitTemplateTest {
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    private static final String EXCHANGE_NAME = "topic01";
+    private static final String ROUTING_KEY = "spring.template";
+
+    @Test
+    public void testSendMessage() {
+        // 1、spring封装的消息属性
+        MessageProperties messageProperties = new MessageProperties();
+        messageProperties.getHeaders().put("describe", "信息描述");
+        messageProperties.getHeaders().put("type", "自定义信息类型");
+
+        // 2、创建消息
+        Message message = new Message("Hello RabbitMQ...".getBytes(), messageProperties);
+
+        /**
+         * 3、发送消息
+         * convertAndSend(String exchange, String routingKey, Object message, MessagePostProcessor messagePostProcessor)
+         * message：Object类型不是只能传Message，也可以传其他对象。
+         * messagePostProcessor：在消息发送到Broker之前対Message进行修改。
+         */
+        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message, new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                System.out.println("************消息发送到Broker之前再对消息进行额外的设置**************");
+                message.getMessageProperties().getHeaders().put("describe", "额外的信息修改描述");
+                message.getMessageProperties().getHeaders().put("attribute", "额外新加的attribute");
+                return message;
+            }
+        });
+    }
+}
+```
+
+#### 4.1.3.SimpleMessageListenerContainer
+
+- SimpleMessageListenerContainer这个类非常强大，可以监听队列（多个队列）、自动启动、自动声明功能。
+- 设置事务特性、事务管理器、事务属性、事务容量、是否开启事务、回滚消息等。
+- 设置消费者数量、最小最大数量、批量消费。
+- 设置消息确认和消息签收模式、是否重回队列、异常捕获Handler函数。
+- 设置消费者标签生成策略、是否独占模式、消费者属性等。
+- 设置具体的监听器、消息转换器等等。
+- **注意：SimpleMessageListenerContainer可以进行动态设置，比如在运行中的应用可以动态的修改其消费者数量的大小、接收消息的模式等。**
+- 很多基于RabbitMQ的自制定化后端管控台在进行动态设置的时候，也是根据这个动态设置特性去实现的。所以可以看出SpringAMQP非常的强大。
+
+> 配置
+
+```java
+/**
+* SimpleMessageListenerContainer
+* 配置好了之后启动SpringBoot主函数即可消费Message
+*/
+@Bean
+public SimpleMessageListenerContainer simpleMessageListenerContainer(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+
+    // setQueues(Queue... queues) 设置队列的监听！
+    container.setQueues(queue01());
+
+    // 设置消费者数量
+    container.setConcurrentConsumers(1);
+    container.setMaxConcurrentConsumers(5);
+
+    // 设置是否重回队列
+    container.setDefaultRequeueRejected(false);
+
+    // 设置消息的签收模式
+    container.setAcknowledgeMode(AcknowledgeMode.AUTO);
+
+    // 生成消费端的标签策略
+    container.setConsumerTagStrategy(new ConsumerTagStrategy() {
+        @Override
+        public String createConsumerTag(String queue) {
+            return queue + "_" + UUID.randomUUID().toString().substring(0, 6);
+        }
+    });
+
+    // 消息的监听
+    container.setMessageListener(new ChannelAwareMessageListener() {
+        @Override
+        public void onMessage(Message message, Channel channel) throws Exception {
+            String msg = new String(message.getBody());
+            System.out.println("*******消费者*******：" + msg);
+        }
+    });
+
+    return container;
+}
+```
+
+#### 4.1.4.MessageListenerAdapter
+
+- MessageListenerAdapter：消息监听适配器。
+
+> 自定义的消息委托者
+
+```java
+/**
+ * 这个类是我们自定义的，但是方法名都是固定的。
+ */
+public class MessageDelegate {
+    public void handleMessage(byte[] messageBody) {
+        System.out.println("默认方法，消息内容：" + new String(messageBody));
+    }
+}
+```
+
+> 配置
+
+```java
+/**
+* SimpleMessageListenerContainer
+* 配置好了之后启动SpringBoot主函数即可消费Message
+*/
+@Bean
+public SimpleMessageListenerContainer simpleMessageListenerContainer(ConnectionFactory connectionFactory) {
+    SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+
+    // setQueues(Queue... queues) 设置队列的监听！
+    container.setQueues(queue01());
+
+    // 设置消费者数量
+    container.setConcurrentConsumers(1);
+    container.setMaxConcurrentConsumers(5);
+
+    // 设置是否重回队列
+    container.setDefaultRequeueRejected(false);
+
+    // 设置消息的签收模式
+    container.setAcknowledgeMode(AcknowledgeMode.AUTO);
+
+    // 生成消费端的标签策略
+    container.setConsumerTagStrategy(new ConsumerTagStrategy() {
+        @Override
+        public String createConsumerTag(String queue) {
+            return queue + "_" + UUID.randomUUID().toString().substring(0, 6);
+        }
+    });
+
+    // 通过MessageListenerAdapter进行消息的监听
+    MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+    container.setMessageListener(adapter);
+    return container;
+}
+```
+
+#### 4.1.5.MessageConverter
+
+- 在进行发送消息的时候，正常情况下消息体为二进制的数据方式进行传输，如果希望内部帮我们进行转换，或者指定自定义的转换器，就需要用到MessageConverter。
+- **自定义常用转换器：MessageConverter，一般来讲都需要实现这个接口。**
+- **重写下面两个方法：**
+  - **toMessage()：java对象转换为Message。**
+  - **fromMessage()：Message对象转换为java对象。**
+- Json转换器：Jackson2JsonMessageConverter：可以将java对象转为json。
+- DefaultJackson2JavaTypeMapper映射器：可以进行Java对象的映射。
+- 自定义二进制转换器：比如图片类型、PDF、PPT、流媒体。
+
+### 4.2.RabbitMQ整合Spring Boot
+
+#### 4.2.1.生产端
+
+> pom
+
+```xml
+<!--amqp-client version 5.4.3-->
+<dependency>
+    <groupId>com.rabbitmq</groupId>
+    <artifactId>amqp-client</artifactId>
+</dependency>
+<!--spring-amqp version 2.2.2-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+> application.yml
+
+```yaml
+server:
+  port: 8801
+spring:
+  application:
+    name: spring-boot-rabbitmq-producer
+  rabbitmq:
+    host: 192.168.110.133
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    publisher-confirm-type: simple # 开启消息确认
+    publisher-returns: true # 开启消息返回
+    template:
+      mandatory: true # 设置true 监听器会收到路由不可达消息
+```
+
+> 配置类
+
+```java
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+    /**
+     * 消息序列化
+     */
+    @Bean
+    public MessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+}
+```
+
+> 发送消息并设置Confirm和Return
+
+```java
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
+import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
+
+@Component
+public class RabbitSender {
+
+    private static final String EXCHANGE_NAME = "exchange-1";
+    private static final String ROUTING_KEY = "springboot.hello";
+
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    final ConfirmCallback confirmCallback = new RabbitTemplate.ConfirmCallback() {
+        @Override
+        public void confirm(CorrelationData correlationData, boolean ack, String cause) {
+            System.out.println("*************消息发送成功**************");
+            System.out.println("correlationData：" + correlationData);
+            System.out.println("ack：" + ack);
+            System.out.println("cause：" + cause);
+        }
+    };
+
+    final ReturnCallback returnCallback = new ReturnCallback() {
+        @Override
+        public void returnedMessage(org.springframework.amqp.core.Message message,
+                                    int replyCode, String replyText,
+                                    String exchange, String routingKey) {
+            System.out.println("**************Return********************");
+            System.out.println("replyCode：" + replyCode);
+            System.out.println("replyText：" + replyText);
+            System.out.println("exchange：" + exchange);
+            System.out.println("routingKey：" + routingKey);
+        }
+    };
+
+    public void sendObject(Object message) {
+        // 设置消息确认
+        rabbitTemplate.setConfirmCallback(confirmCallback);
+
+        // 设置消息返回
+        rabbitTemplate.setReturnCallback(returnCallback);
+
+        // id + 时间戳 全局唯一
+        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString().substring(0, 6) + "_" + LocalDateTime.now());
+        // convertAndSend(String exchange, String routingKey, Object message, CorrelationData correlationData)
+        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message, correlationData);
+    }
+```
+
+> 测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class SendAndCallbackTest {
+
+    @Resource
+    private RabbitSender rabbitSender;
+    
+    @Test
+    public void sendObject() {
+        rabbitSender.sendObject(new Order("1", "订单"));
+    }
+}
+```
+
+#### 4.2.2.消费端
+
+> 消费端配置详解
+
+- 首先配置手工确认模式，用于ACK的手工处理，这样我们可以保证消息的可靠性送达，或者再消费端消费失败的时候可以做到重回队列、根据业务记录日志等处理。
+- 可以设置消费端的监听个数和最大个数，用于控制消费端的并发情况。
+- **消费端监听@RabbitMQListener注解，这个在实际工作中非常好用。**
+- @RabbitMQListener是一个组合注解，里面可以注解配置@QueueBinding、@Queue、@Exchange直接通过这个组合注解一次性搞定消费端Exchange、Queue、Binding、Routing Key，并且配置监听功能等。
+
+> pom
+
+```xml
+<!--web-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+
+<!--amqp-client version 5.4.3-->
+<dependency>
+    <groupId>com.rabbitmq</groupId>
+    <artifactId>amqp-client</artifactId>
+</dependency>
+
+<!--spring-amqp version 2.2.2-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+> application.yml
+
+```yaml
+server:
+  port: 8802
+spring:
+  application:
+    name: spring-boot-rabbitmq-consumer
+  rabbitmq:
+    host: 39.97.3.60
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual # 手工签收
+        concurrency: 5 # 最小的监听者数量
+        max-concurrency: 10 # 最大的监听者数量
+```
+
+> 配置类
+
+```java
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConf {
+    /**
+     * 消息序列化
+     */
+    @Bean
+    public MessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+}
+```
+
+> 消息的监听
+
+```java
+import com.rabbitmq.client.Channel;
+import com.ymy.spring.boot.rabbitmq.entity.Order;
+import org.springframework.amqp.core.ExchangeTypes;
+import org.springframework.amqp.rabbit.annotation.*;
+import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+/**
+ * 消费端监听队列 如果Message是java对象一定要写无参构造器！！
+ */
+@Component
+public class RabbitReceiverObject {
+
+    private static final String EXCHANGE_NAME = "exchange-object";
+    private static final String ROUTING_KEY = "springboot.*";
+    private static final String QUEUE_NAME = "queue-object";
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = QUEUE_NAME,
+                    durable = "true"),
+            exchange = @Exchange(value = EXCHANGE_NAME,
+                    type = ExchangeTypes.TOPIC,
+                    durable = Exchange.FALSE),
+            key = ROUTING_KEY
+    ))
+    @RabbitHandler
+    public void onOrderMessage(@Payload Order order,
+                               @Headers Map<String, Object> headers, Channel channel) throws Exception {
+        Long deliveryTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
+        System.out.println("order id---> " + order.getId());
+        System.out.println("order name---> " + order.getName());
+        System.out.println(" deliveryTag ----> " + deliveryTag);
+        channel.basicAck(deliveryTag, false);
+    }
+}
+```
+
+### 4.3.RabbitMQ整合Spring Cloud Stream
+
+#### 4.3.1.Stream的基本介绍
+
+- @Output：输出注解，用于定义消息生产者接口。
+- @Input：输入注解，用于定义消息的消费者接口。
+- @StreamListener：用于定义监听方法的注解。
+- Spring Cloud Stream框架在实现高性能消息的生产和消费的场景非常合适，但是有一个非常大的问题就是不能实现可靠性的投递，也就是没办法保证消息的100%可靠性，会存在少量消息丢失的问题。
+
+#### 4.3.2.生产端
+
+> pom
+
+```xml
+<dependencies>
+    <!--web-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!--监控-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--stream rabbit -->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+    </dependency>
+
+    <!--test-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+> application.yml
+
+```yaml
+server:
+  port: 8803
+spring:
+  application:
+    name: spring-cloud-stream-rabbitmq-producer
+  cloud:
+    stream:
+      binders:
+        rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 39.97.3.60
+                port: 5672
+                username: guest
+                password: guest
+                virtual-host: /
+      bindings:
+        output:
+          destination: exchange_stream
+          group: queue_stream
+          binder: rabbit # 这里和binders.rabbit对应
+```
+
+> 发送消息
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.messaging.Source;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
+
+@EnableBinding(Source.class) // 一定要启动绑定
+@Component
+public class RabbitSender {
+
+    @Autowired
+    private MessageChannel output;
+
+    /**
+     * 发送消息
+     */
+    public void send(Object message) {
+        output.send(MessageBuilder.withPayload(message).build());
+    }
+}
+```
+
+> 测试
+
+```java
+import com.ymy.spring.cloud.stream.sender.RabbitSender;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import javax.annotation.Resource;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class SendTest {
+    @Resource
+    private RabbitSender rabbitSender;
+
+    @Test
+    public void send() {
+        rabbitSender.send("hello rabbitmq!");
+    }
+}
+```
+
+#### 4.3.3.消费端
+
+> pom
+
+```xml
+<dependencies>
+    <!--web-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!--监控-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--stream rabbit -->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+    </dependency>
+
+    <!--test-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+> application.yml
+
+```yaml
+server:
+  port: 8804
+spring:
+  application:
+    name: spring-cloud-stream-rabbitmq-consumer
+  cloud:
+    stream:
+      binders:
+        rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 39.97.3.60
+                port: 5672
+                username: guest
+                password: guest
+                virtual-host: /
+      bindings:
+        input:
+          destination: exchange_stream
+          group: queue_stream
+          binder: rabbit # 这里和binders.rabbit对应
+          consumer:
+            concurrency: 1
+      rabbit:
+        bindings:
+          input:
+            consumer:
+              acknowledge-mode: MANUAL
+              max-concurrency: 5
+```
+
+> 消费端监听
+
+```java
+package com.ymy.spring.cloud.stream.receive;
+
+import com.rabbitmq.client.Channel;
+import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.cloud.stream.messaging.Sink;
+import org.springframework.messaging.Message;
+import org.springframework.stereotype.Component;
+
+@EnableBinding(Sink.class)
+@Component
+public class RabbitReceiver {
+
+    @StreamListener(Sink.INPUT)
+    public void receiver(Message message) throws Exception{
+        Channel channel = (Channel) message.getHeaders().get(AmqpHeaders.CHANNEL);
+        Long deliveryTag = (Long) message.getHeaders().get(AmqpHeaders.DELIVERY_TAG);
+        System.out.println(message.getPayload().getClass().getSimpleName());
+        channel.basicAck(deliveryTag, false);
     }
 }
 ```
