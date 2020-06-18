@@ -1,0 +1,15 @@
+server:
+  port: 8801
+spring:
+  application:
+    name: spring-boot-rabbitmq-producer
+  rabbitmq:
+    host: 39.97.3.60
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    publisher-confirm-type: simple # 开启消息确认
+    publisher-returns: true # 开启消息返回
+    template:
+      mandatory: true # 设置true 监听器会收到路由不可达消息
