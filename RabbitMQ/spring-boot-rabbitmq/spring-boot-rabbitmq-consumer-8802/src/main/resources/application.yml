@@ -1,0 +1,16 @@
+server:
+  port: 8802
+spring:
+  application:
+    name: spring-boot-rabbitmq-consumer
+  rabbitmq:
+    host: 39.97.3.60
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual # 手工签收
+        concurrency: 5 # 最小的监听者数量
+        max-concurrency: 10 # 最大的监听者数量
