@@ -1,0 +1,31 @@
+server:
+  port: 8804
+spring:
+  application:
+    name: spring-cloud-stream-rabbitmq-consumer
+  cloud:
+    stream:
+      binders:
+        rabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 39.97.3.60
+                port: 5672
+                username: guest
+                password: guest
+                virtual-host: /
+      bindings:
+        input:
+          destination: exchange_stream
+          group: queue_stream
+          binder: rabbit # 这里和binders.rabbit对应
+          consumer:
+            concurrency: 1
+      rabbit:
+        bindings:
+          input:
+            consumer:
+              acknowledge-mode: MANUAL
+              max-concurrency: 5
