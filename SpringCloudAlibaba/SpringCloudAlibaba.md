@@ -1,3 +1,5 @@
+
+
 ## 1.SpringCloudAlibaba简介
 
 ### 1.1.为什么会出现SpringCloudAlibaba？
@@ -694,7 +696,7 @@ total 56
  39     }
  40 
  41     server {
- 42         listen       80;
+ 42         listen       1111;
  43         server_name  localhost;
  44 
  45         #charset koi8-r;
@@ -712,7 +714,7 @@ total 56
 ./startup.sh -p 4444
 ./startup.sh -p 5555
 
-# 8、测试 http://39.97.3.60:80/nacos 通过nginx访问nacos集群
+# 8、测试 http://39.97.3.60:1111/nacos 通过nginx访问nacos集群
 ```
 
 ## 3.Sentinel实现服务熔断与限流
@@ -744,8 +746,494 @@ java -jar sentinel-dashboard-1.7.0.jar &
 
 # 4、访问Sentinel控制台
 http://39.97.3.60:8080/
-
-
 ```
 
 ### 3.3.Sentinel初始化监控
+
+> pom
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>spring-cloud-alibaba</artifactId>
+        <groupId>com.ymy</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>spring-cloud-alibaba-sentinel-service-8401</artifactId>
+
+    <dependencies>
+        <!--spring cloud alibaba sentinel 和服务熔断相关-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+
+        <!--spring cloud alibaba nacos discovery 和服务注册相关-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!--持久化会用到-->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-datasource-nacos</artifactId>
+        </dependency>
+
+        <!--web-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--actuator-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+> application.yml
+
+```yaml
+server:
+  port: 8401
+spring:
+  application:
+    name: cloud-alibaba-sentinel-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 39.97.3.60:1111 # Nginx地址反向代理到Nacos集群
+    sentinel:
+      transport:
+        dashboard: localhost:8080 # 配置Sentinel Dashboard浏览器控制台地址 8080会监控8401服务
+        port: 8719 # Sentinel默认端口8719
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+```
+
+> 主启动
+
+```java
+package com.ymy.spring.cloud.alibaba;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient // 开启服务的发现
+public class SentinelMain8401 {
+    public static void main(String[] args) {
+        SpringApplication.run(SentinelMain8401.class, args);
+    }
+}
+```
+
+> controller
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class FlowLimitController {
+
+    @GetMapping("/testA")
+    public String testA() {
+        return "*********test A*********";
+    }
+
+    @GetMapping("/testB")
+    public String testB() {
+        return "*********test B*********";
+    }
+}
+```
+
+> 测试
+
+```shell
+# 1、访问 http:localhost:8401/testA http:localhost:8401/testB
+
+# 2、访问Sentinel控制台 可以看到实时监控折线图
+```
+
+### 3.4.Sentinel流量控制规则
+
+#### 3.4.1.流控规则基本介绍
+
+- 资源名：唯一名称，默认请求路径。
+- 针对来源：Sentinel可以针对调用者进行限流，填写微服务名，默认default（不区分来源）。
+- 阈值类型/单机阈值：
+  - **QPS（每秒钟的请求数量）：当调用该api的QPS达到阈值的时候，进行限流。**
+  - **线程数：当调用该api的线程数达到阈值的时候，进行限流。**
+- 是否集群：不需要集群。
+- 流控模式：
+  - 直接：api达到限流条件时，直接限流。
+  - 关联：当关联的资源达到阈值时，就限流自己。
+  - 链路：只记录指定链路上的流量（指定资源从入口资源进来的流量，如果达到阈值，就进行限流）【api级别的针对来源】。
+- 流控效果：
+  - 快速失败：直接失败，抛异常。
+  - Warm Up：根据coldFactor（冷加载因子，默认3）的值，从阈值/coldFactor，经过预热时长，才达到设置的QPS阈值。
+  - 排队等待：匀速排队，让请求以均匀的速度通过，阈值类型必须为QPS，否则无效。
+
+#### 3.4.2.流控模式
+
+> 直接（默认）
+
+```shell
+# 1、直接 ---> 快速失败 系统默认的
+
+# 2、配置及说明
+在Sentinel控制台中点击【簇点链路】，在对应的请求路径上点击【流控】，阈值类型选【QPS】，单机阈值测试填写【1】，流控模式选择【直接】，流控效果选择【快速失败】。
+
+# 3、测试：快速点击http://localhost:8401/testA 结果 "Blocked by Sentinel (flow limiting)"
+
+# 4、思考：直接调用默认报错信息，技术方面OK，但是，是否应该有我们自己的后续处理？
+是否应该类似有fallback的兜底方法呢？？
+
+# 5、注意：思考QPS和线程数这两种模式有什么区别？
+QPS：看的是该接口的1秒被调用的次数。
+线程数：看的是有多少个线程在同时调用该接口。
+```
+
+> 关联
+
+```shell
+# 1、关联是什么？
+当关联的资源达到阈值时，就限流自己；当与A关联的资源B达到阈值后，就限流A自己。
+一句话：B惹事，A挂了。
+
+# 2、关联 ---> 直接失败 配置
+在Sentinel控制台中点击【簇点链路】，在【/testA】上点击【流控】，阈值类型选【QPS】，单机阈值测试填写【1】，流控模式选择【关联】，关联资源写【/testB】，流控效果选择【快速失败】。
+
+# 3、测试：用Postman等工具发送http://localhost:8401/testB请求，进行压力测试；然后刷新http://localhost:8401/testA，结果："Blocked by Sentinel (flow limiting)"。
+
+# 4、结果发现A挂了！！！
+```
+
+> 链路
+
+```shell
+# 1、链路是什么？
+链路的控制指的就是对一条链路的访问进行控制。
+
+# 2、配置
+/testA 和 /testB 都是从 sentinel_web_servlet_context（从Sentinel—Dashboard可以看到） 的节点，添加链路的时候，入口资源填写【sentinel_web_servlet_context】，就可以实现链路的限流。
+```
+
+#### 3.4.3.流控效果
+
+> Warm Up（预热）
+
+```shell
+# 1、说明
+阈值除以coldFactor（默认是3），经过预热时长后才会达到阈值。
+
+# 2、Warm Up配置      
+默认coldFactor为3，即请求QPS从(阈值/3)开始，经过多少【预热时长】才逐渐升至设定的QPS阈值。
+
+案例：阈值为10，预热时长为5S。
+系统初始化的阈值为10/3=3，即阈值刚开始为3，然后过了5S后阈值逐渐恢复到10。
+
+# 3、应用场景
+秒杀系统在开启的瞬间，会有很多流量上来，很可能把系统打死，预热方式就是为了保护系统，可以慢慢的把流量放进来，慢慢的把阈值增长到设置的阈值。
+```
+
+> 排队等待
+
+```shell
+# 1、说明
+匀速排队，让请求以均匀的速度通过，阈值类型必须为QPS，否则无效。
+
+# 2、设置
+/testA 每秒允许只有1次请求，超过的话就排队等待，等待的超时时间为20000毫秒。
+```
+
+### 3.5.Sentinel熔断降级
+
+#### 3.5.1.降级策略基本介绍
+
+- 平均响应时间 (`DEGRADE_GRADE_RT`)：当 1s 内持续进入 N 个请求，对应时刻的平均响应时间（秒级）均超过阈值（`count`，以 ms 为单位），那么在接下的时间窗口（`DegradeRule` 中的 `timeWindow`，以 s 为单位）之内，对这个方法的调用都会自动地熔断（抛出 `DegradeException`）。注意 Sentinel 默认统计的 RT 上限是 4900 ms，**超出此阈值的都会算作 4900 ms**，若需要变更此上限可以通过启动配置项 `-Dcsp.sentinel.statistic.max.rt=xxx` 来配置。
+- 异常比例 (`DEGRADE_GRADE_EXCEPTION_RATIO`)：当资源的每秒请求量 >= N（可配置），并且每秒异常总数占通过量的比值超过阈值（`DegradeRule` 中的 `count`）之后，资源进入降级状态，即在接下的时间窗口（`DegradeRule` 中的 `timeWindow`，以 s 为单位）之内，对这个方法的调用都会自动地返回。异常比率的阈值范围是 `[0.0, 1.0]`，代表 0% - 100%。
+- 异常数 (`DEGRADE_GRADE_EXCEPTION_COUNT`)：当资源近 1 分钟的异常数目超过阈值之后会进行熔断。注意由于统计时间窗口是分钟级别的，若 `timeWindow` 小于 60s，则结束熔断状态后仍可能再进入熔断状态。
+
+#### 3.5.2.対服务降级的进一步说明
+
+- `Sentinel`熔断降级会在调用链路中某个资源出现不稳定状态时（例如调用超时或异常比例升高），対这个资源的调用进行限制，让请求快速失败，避免影响到其他的资源而导致级联错误。
+- 当资源被降级后，在接下来的【降级时间窗】内，対该资源的调用都是自动熔断（默认行为是抛出`DegradeException`）。
+- `Sentinel`的断路器是没有半开的状态的，只有以下两种情况：
+  - 保险丝合上，可以通过。
+  - 保险丝关闭，不能通过。
+
+#### 3.5.3.服务降级策略
+
+> RT(平均响应时间)
+
+```shell
+# 1、是什么？
+1秒持续进入5个请求 ---> 触发降级(断路器打开) ---> 时间窗口结束 ---> 关闭降级
+
+# 2、配置
+降级策略【RT】，RT写【200】(单位：毫秒)，时间窗口写【1】(单位：秒)
+
+我们希望资源的处理速度在200ms内正常，当平均处理时长超过200ms，开启断路器，且该资源在【时间窗口】时间范围内不可用。
+```
+
+> 异常比例
+
+```shell
+# 1、是什么？
+QPS >= 5 && 异常比例(秒级统计)超过阈值 ---> 触发降级(断路器打开) ---> 时间窗口结束 ---> 关闭降级
+
+# 2、配置
+降级策略【异常比例】，异常比例写【0.2】(代表20%)，时间窗口写【1】(单位：秒)
+```
+
+> 异常数
+
+```shell
+# 1、是什么
+异常数(分钟统计)超过阈值 ---> 触发降级(断路器打开) ---> 时间窗口结束 ---> 关闭降级
+```
+
+### 3.6.热点参数限流
+
+#### 3.6.1.热点基本介绍
+
+何为热点？热点即经常访问的数据。很多时候我们希望统计某个热点数据中访问频次最高的 Top K 数据，并对其访问进行限制。比如：
+
+- 商品 ID 为参数，统计一段时间内最常购买的商品 ID 并进行限制
+- 用户 ID 为参数，针对一段时间内频繁访问的用户 ID 进行限制
+
+**热点参数限流会统计传入参数中的热点参数，并根据配置的限流阈值与模式，对包含热点参数的资源调用进行限流。热点参数限流可以看做是一种特殊的流量控制，仅对包含热点参数的资源调用生效。**
+
+#### 3.6.2.热点限流基本配置
+
+> @SentinelResource注解基本使用
+
+```java
+/**
+* 热点参数限流业务代码，出问题时，会到testHotKeyHandler()方法中返回友好提示
+* value = "testHotKey" 和 @GetMapping("/testHotKey") 区分！！！
+* 如果资源名是/testHotKey 那么表示是从URL获取资源！
+* 如果资源名是testHotKey 那么表示是热点参数限流了！
+*/
+@GetMapping("/testHotKey")
+@SentinelResource(value = "testHotKey", blockHandler = "testHotKeyHandler")
+public String testHotKey(@RequestParam(value = "p1", required = false) String p1,
+                         @RequestParam(value = "p2", required = false) String p2) {
+    return "*********testHotKey*********";
+}
+
+/**
+* 热点参数兜底方法
+*/
+public String testHotKeyHandler(String p1, String p2, BlockException e) {
+    return "*********testHotKeyHandler o(╥﹏╥)o*********";
+}
+```
+
+> SentinelDashboard热点参数配置
+
+```shell
+# 1、资源名：testHotKey(这里注意不加/)
+
+# 2、限流模式：只支持QPS模式
+
+# 3、参数索引：下标从0开始，填写【0】，对参数p1限流 	这里0指的是@SentinelResource添加的方法参数列表索引
+
+# 4、单机阈值：QPS每秒的请求次数。设为【1】。
+```
+
+> 测试
+
+```shell
+http://localhost:8401/testHotKey?p1=a&p2=b	# 触发限流
+
+http://localhost:8401/testHotKey?p1=a	# 触发限流
+
+http://localhost:8401/testHotKey	# 不会触发限流
+
+http://localhost:8401/testHotKey?p2=a	# 不会触发限流
+```
+
+#### 3.6.3.热点限流参数例外项
+
+> 特例情况
+
+- 普通情况：対`/testHotKey?p1=a`访问超过QPS阈值后，参数`p1`马上被限流。**但是我期望`p1`参数当它是某个特定值时，它的限流和平时不一样。**
+- 特例情况：假如当`p1`的值等于5时，它的阈值可以达到200。
+
+> SentinelDashboard参数例外项设置
+
+```shell
+# 1、打开【编辑热点规则】，展开高级设置。
+
+# 2、参数类型：java.lang.String
+
+# 3、参数值：5
+
+# 4、限流阈值：200
+
+上述配置的意思是：当参数 p1=5 时，阈值时200，是其他值，阈值是1，请求的URL不带p1参数，不会触发限流。
+```
+
+> 测试
+
+```shell
+http://localhost:8401/testHotKey?p1=5	# 阈值就变成了200
+
+http://localhost:8401/testHotKey?p1=1	# 阈值是1
+```
+
+#### 3.6.4.需要注意的问题
+
+- **@SentinelResource**处理的是Sentinel控制台配置的违规情况，有blockHandler()方法配置的兜底处理。
+- **RuntimeException**是Java运行时异常，@SentinelResource不管。
+- **一句话：@SentinelResource主管SentinelDashboard配置出错，Java代码运行出错该走异常就走异常。**
+
+### 3.7.系统自适应限流
+
+#### 3.7.1.系统规则的基本介绍
+
+系统保护规则是从应用级别的入口流量进行控制，从单台机器的 load、CPU 使用率、平均 RT、入口 QPS 和并发线程数等几个维度监控应用指标，让系统尽可能跑在最大吞吐量的同时保证系统整体的稳定性。
+
+系统保护规则是应用整体维度的，而不是资源维度的，并且**仅对入口流量生效**。入口流量指的是进入应用的流量（`EntryType.IN`），比如 Web 服务或 Dubbo 服务端接收的请求，都属于入口流量。
+
+系统规则支持以下的模式：
+
+- **Load 自适应**（仅对 Linux/Unix-like 机器生效）：系统的 load1 作为启发指标，进行自适应系统保护。当系统 load1 超过设定的启发值，且系统当前的并发线程数超过估算的系统容量时才会触发系统保护（BBR 阶段）。系统容量由系统的 `maxQps * minRt` 估算得出。设定参考值一般是 `CPU cores * 2.5`。
+- **CPU usage**（1.5.0+ 版本）：当系统 CPU 使用率超过阈值即触发系统保护（取值范围 0.0-1.0），比较灵敏。
+- **平均 RT**：当单台机器上所有入口流量的平均 RT 达到阈值即触发系统保护，单位是毫秒。
+- **并发线程数**：当单台机器上所有入口流量的并发线程数达到阈值即触发系统保护。
+- **入口 QPS**：当单台机器上所有入口流量的 QPS 达到阈值即触发系统保护。
+
+### 3.8.@SentinelResource注解
+
+#### 3.8.1.按资源名称进行限流
+
+> 测试代码
+
+```java
+@GetMapping("/byResource")
+@SentinelResource(value = "byResource", blockHandler = "byResourceHandler")
+public SimpleResponse byResource() {
+    return new SimpleResponse(200, "按资源名称限流OK！", new Payment("1", "serial01"));
+}
+
+/**
+* 这个就是兜底方法,自定义的限流友好提示
+*/
+public SimpleResponse byResourceHandler(BlockException e) {
+    return new SimpleResponse(444, e.getClass().getName() + "\t 服务不可用！");
+}
+```
+
+> SentinelDashboard配置
+
+- 资源名：byResource。
+- 阈值类型：QPS。
+- 单机阈值：1。
+
+> 额外问题
+
+关闭8401服务，刷新SentinelDashboard，发现流控规则消失了。？
+
+#### 3.8.2.按URL地址进行限流
+
+> 测试代码
+
+```java
+/**
+* 没有兜底方法 将采用系统默认的
+*/
+@GetMapping("/rateLimit/byUrl")
+@SentinelResource(value = "byUrl")
+public SimpleResponse byUrl() {
+    return new SimpleResponse(200, "按url限流OK！", new Payment("2", "serial02"));
+}
+```
+
+> SentinelDashboard配置
+
+- 资源名：/rateLimit/byUrl。
+- 阈值类型：QPS。
+- 单机阈值：1。
+
+#### 3.8.3.上面两种兜底方案面临的问题
+
+- 系统默认的，没有体现出我们自己的业务要求。
+- 依照现有条件，我们自定义的处理方法又和业务代码耦合在一起不直观。
+- 每个业务方法都添加一个兜底的，那代码膨胀加剧。
+- 全局统一的处理方法没有体现。
+
+#### 3.8.4.自定义限流处理逻辑
+
+> 写一个全局兜底类
+
+```java
+package com.ymy.spring.cloud.alibaba.handler;
+
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+
+public class CustomerBlockHandler {
+    /**
+     * 全局兜底方案
+     * 这里一定要static
+     */
+    public static SimpleResponse handlerException(BlockException e) {
+        return new SimpleResponse(444, "按用户自定义,全局兜底方案");
+    }
+}
+```
+
+> 测试代码
+
+```java
+/**
+* 用户自定义限流处理逻辑
+* 限流的时候会去全局兜底的类找指定的方法
+*/
+@GetMapping("/rateLimit/customerBlockHandler")
+@SentinelResource(value = "customerBlockHandler",
+                  blockHandlerClass = CustomerBlockHandler.class,
+                  blockHandler = "handlerException")
+public SimpleResponse customerBlockHandler() {
+    return new SimpleResponse(200, "按用户自定义限流OK！", new Payment("3", "serial03"));
+}
+```
+
+#### 3.8.5.@SentinelSource注解属性说明
+
+`@SentinelResource` 用于定义资源，并提供可选的异常处理和 fallback 配置项。 `@SentinelResource` 注解包含以下属性：
+
+- `value`：资源名称，必需项（不能为空）。
+- `entryType`：entry 类型，可选项（默认为 `EntryType.OUT`）。
+- `blockHandler` / `blockHandlerClass`: `blockHandler` 对应处理 `BlockException` 的函数名称，可选项。blockHandler 函数访问范围需要是 `public`，返回类型需要与原方法相匹配，参数类型需要和原方法相匹配并且最后加一个额外的参数，类型为 `BlockException`。blockHandler 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `blockHandlerClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 static 函数，否则无法解析。
+- `fallback`/`fallbackClass`：fallback 函数名称，可选项，用于在抛出异常的时候提供 fallback 处理逻辑。fallback 函数可以针对所有类型的异常（除了`exceptionsToIgnore`里面排除掉的异常类型）进行处理。fallback 函数签名和位置要求：
+  - 返回值类型必须与原函数返回值类型一致；
+  - 方法参数列表需要和原函数一致，或者可以额外多一个 `Throwable` 类型的参数用于接收对应的异常。
+  - fallback 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `fallbackClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 static 函数，否则无法解析。
+- `defaultFallback`（since 1.6.0）：默认的 fallback 函数名称，可选项，通常用于通用的 fallback 逻辑（即可以用于很多服务或方法）。默认 fallback 函数可以针对所有类型的异常（除了`exceptionsToIgnore`里面排除掉的异常类型）进行处理。若同时配置了 fallback 和 defaultFallback，则只有 fallback 会生效。defaultFallback 函数签名要求：
+  - 返回值类型必须与原函数返回值类型一致；
+  - 方法参数列表需要为空，或者可以额外多一个 `Throwable` 类型的参数用于接收对应的异常。
+  - defaultFallback 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `fallbackClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 static 函数，否则无法解析。
+- `exceptionsToIgnore`（since 1.6.0）：用于指定哪些异常被排除掉，不会计入异常统计中，也不会进入 fallback 逻辑中，而是会原样抛出。
+
