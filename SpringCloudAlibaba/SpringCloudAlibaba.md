@@ -965,7 +965,7 @@ QPS：看的是该接口的1秒被调用的次数。
 /testA 每秒允许只有1次请求，超过的话就排队等待，等待的超时时间为20000毫秒。
 ```
 
-### 3.5.Sentinel熔断降级
+### 3.5.Sentinel服务降级
 
 #### 3.5.1.降级策略基本介绍
 
@@ -1237,3 +1237,617 @@ public SimpleResponse customerBlockHandler() {
   - defaultFallback 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `fallbackClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 static 函数，否则无法解析。
 - `exceptionsToIgnore`（since 1.6.0）：用于指定哪些异常被排除掉，不会计入异常统计中，也不会进入 fallback 逻辑中，而是会原样抛出。
 
+### 3.9.Sentinel服务熔断
+
+#### 3.9.1.Ribbon系列
+
+> 环境准备
+
+- `spring-cloud-alibaba-nacos-provider-9003` 和`spring-cloud-alibaba-nacos-provider-9004`模块提供服务。
+- `spring-cloud-alibaba-nacos-consumer-84`模块使用Ribbon负载均衡来调用下游Provider服务。
+
+> 84业务代码无任何配置会返回ErrorPage
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+@RestController
+public class ConsumerController {
+
+    @Value("${service-url.nacos-user-service}")
+    private String url;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/consumer/{id}")
+    @SentinelResource(value = "fallback")
+    public SimpleResponse<Payment> consumer(@PathVariable("id") String id) {
+        SimpleResponse<Payment> ret = restTemplate.getForObject(url + "/payment/" + id, SimpleResponse.class);
+        if ("4".equals(id)) {
+            throw new IllegalArgumentException("非法参数异常" + id);
+        } else if (ret.getData() == null) {
+            throw new NullPointerException("空指针异常");
+        }
+        return ret;
+    }
+}
+```
+
+> 84业务代码只配置fallback会返回友好提示
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+@RestController
+public class ConsumerController {
+
+    @Value("${service-url.nacos-user-service}")
+    private String url;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/consumer/{id}")
+    @SentinelResource(value = "fallback", fallback = "fallbackHandler")   // fallback只负责业务异常
+    public SimpleResponse<Payment> consumer(@PathVariable("id") String id) {
+        SimpleResponse<Payment> ret = restTemplate.getForObject(url + "/payment/" + id, SimpleResponse.class);
+        if ("4".equals(id)) {
+            throw new IllegalArgumentException("非法参数异常" + id);
+        } else if (ret.getData() == null) {
+            throw new NullPointerException("空指针异常");
+        }
+        return ret;
+    }
+
+    /**
+     * 兜底异常处理方法
+     */
+    public SimpleResponse fallbackHandler(@PathVariable("id") String id, Throwable t) {
+        Payment payment = new Payment(id, null);
+        return new SimpleResponse<>(444, "兜底fallback方法fallbackHandler" + t.getMessage(), payment);
+    }
+}
+```
+
+> 84业务代码只配置blockHandler会返回ErrorPage不能处理业务异常
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+@RestController
+public class ConsumerController {
+
+    @Value("${service-url.nacos-user-service}")
+    private String url;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/consumer/{id}")
+    @SentinelResource(value = "fallback", blockHandler = "blockHandler") // blockHandler只负责SentinelDashboard控制台配置
+    public SimpleResponse<Payment> consumer(@PathVariable("id") String id) {
+        SimpleResponse<Payment> ret = restTemplate.getForObject(url + "/payment/" + id, SimpleResponse.class);
+        if ("4".equals(id)) {
+            throw new IllegalArgumentException("非法参数异常" + id);
+        } else if (ret.getData() == null) {
+            throw new NullPointerException("空指针异常");
+        }
+        return ret;
+    }
+
+    /**
+    * 兜底blockHandler方法
+    */
+    public SimpleResponse blockHandler(@PathVariable("id") String id, BlockException e) {
+        return new SimpleResponse(444, "兜底blockHandler方法 " + id);
+    }
+}
+```
+
+> 84业务代码fallback和blockHandler都配置各回各家 java异常找fallback 流控规则找blockHandler 
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+@RestController
+public class ConsumerController {
+
+    @Value("${service-url.nacos-user-service}")
+    private String url;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/consumer/{id}")
+    @SentinelResource(value = "fallback", blockHandler = "blockHandler", fallback = "fallbackHandler")
+    public SimpleResponse<Payment> consumer(@PathVariable("id") String id) {
+        SimpleResponse<Payment> ret = restTemplate.getForObject(url + "/payment/" + id, SimpleResponse.class);
+        if ("4".equals(id)) {
+            throw new IllegalArgumentException("非法参数异常" + id);
+        } else if (ret.getData() == null) {
+            throw new NullPointerException("空指针异常");
+        }
+        return ret;
+    }
+
+    // 兜底SentinelDashboard配置处理方法
+    public SimpleResponse blockHandler(@PathVariable("id") String id, BlockException e) {
+        return new SimpleResponse(445, "限流 " + id);
+    }
+
+    //兜底异常处理方法
+    public SimpleResponse fallbackHandler(@PathVariable("id") String id, Throwable t) {
+        Payment payment = new Payment(id, null);
+        return new SimpleResponse<>(444, "异常处理" + t.getMessage(), payment);
+    }
+}
+
+
+
+
+```
+
+#### 3.9.2.OpenFeign系列
+
+> 依赖
+
+```xml
+<!--open feign-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+> application.yml 激活Feign対Sentinel的支持
+
+````yaml
+# 激活Sentinel対Feign的支持
+feign:
+  sentinel:
+    enabled: true
+````
+
+> 主启动类添加@EnableFeignClients注解
+
+```java
+package com.ymy.spring.cloud.alibaba;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class ConsumerMain84 {
+    public static void main(String[] args) {
+        SpringApplication.run(ConsumerMain84.class, args);
+    }
+}
+```
+
+> 写OpenFeign接口
+
+```java
+package com.ymy.spring.cloud.alibaba.service;
+
+import com.ymy.spring.cloud.alibaba.service.impl.FeignServiceFallback;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@FeignClient(value = "cloud-alibaba-provider", fallback = FeignServiceFallback.class)
+public interface FeignService {
+
+    // 直接复制Provider的方法即可
+    @GetMapping("/payment/{id}")
+    public SimpleResponse<Payment> payment(@PathVariable("id") String id);
+}
+```
+
+> OpenFeign接口实现类fallback
+
+```java
+package com.ymy.spring.cloud.alibaba.service.impl;
+
+import com.ymy.spring.cloud.alibaba.service.FeignService;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FeignServiceFallback implements FeignService {
+    @Override
+    public SimpleResponse payment(String id) {
+        return new SimpleResponse(444444, "openFeign fallback");
+    }
+}
+```
+
+> Controller调用OpenFeign接口
+
+```java
+package com.ymy.spring.cloud.alibaba.controller;
+
+import com.ymy.spring.cloud.alibaba.service.FeignService;
+import com.ymy.spring.cloud.entity.Payment;
+import com.ymy.spring.cloud.entity.SimpleResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+
+@RestController
+public class OpenFeignController {
+
+    @Resource
+    private FeignService feignService;
+
+    @GetMapping("/openFeign/consumer/{id}")
+    public SimpleResponse<Payment> consumer(@PathVariable("id") String id) {
+        SimpleResponse<Payment> ret = feignService.payment(id);
+        return ret;
+    }
+}
+```
+
+> 测试
+
+当服务提供者9003、9004全挂了会触发服务降级兜底的方法fallback。
+
+### 3.10.Sentinel持久化
+
+> 依赖
+
+```xml
+<!--sentinel持久化相关-->
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-datasource-nacos</artifactId>
+</dependency>
+```
+
+> application.yml添加Nacos数据源
+
+```yaml
+server:
+  port: 8401
+spring:
+  application:
+    name: cloud-alibaba-sentinel-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 39.97.3.60:1111 # Nginx地址反向代理到Nacos集群
+    sentinel:
+      transport:
+        dashboard: localhost:8080 # 配置Sentinel Dashboard浏览器控制台地址 8080会监控8401服务
+        port: 8719 # Sentinel默认端口8719
+      # Sentinel持久化配置
+      datasource:
+        ds1:
+          nacos:
+            server-addr: 39.97.3.60:1111
+            data-id: ${spring.application.name}
+            group-id: DEFAULT_GROUP # 默认设置好了这里可以不写
+            data-type: json # 默认设置好了这里可以不写
+            rule-type: flow
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+```
+
+> Nacos的配置
+
+```json
+[
+    {
+        "resource": "/rateLimit/byUrl",
+        "limitApp": "default",  
+        "grade": 1,
+        "count": 1,
+        "strategy": 0,
+        "controlBehavior": 0,
+        "clusterMode": false
+    }
+]
+```
+
+- **resource**：资源名称。
+- **limitApp**：来源应用。
+- **grade**：阈值类型，0表示线程数，1表示QPS。
+- **count**：单机阈值。
+- **strategy**：流控模式，0表示直接，1表示关联，2表示链路。
+- **controlBehavior**：流控效果，0表示快速失败，1表示Warm Up，2表示排队等待。
+- **clusterMode**：是否集群。
+
+> 测试启动8401服务
+
+- 访问`http://localhost:8401/rateLimit/byUrl`SentinelDashboard就有流控规则了！！！
+
+## 4.Seata处理分布式事务
+
+### 4.1.分布式事务的由来
+
+- 分布式之前：单机单库没有这个问题，o(╥﹏╥)o。
+- 分布式之后：单体应用被拆分成微服务应用，原来的三个模块被拆分成三个独立的应用，分别使用三个独立的数据源，业务操作需要调用三个服务来完成。此时每个服务内部的数据一致性由本地事务来保证，但是全局的数据一致性问题没办法保证。
+- **一句话：一次业务操作需要跨多个数据源或需要跨多个系统进行远程调用，就产生分布式事务。**
+
+### 4.2.Seata简介
+
+#### 4.2.1.Seata是什么？
+
+- Seata是具有高性能和易用性的分布式事务解决方案。
+- **官网地址：http://seata.io。**
+- Seata术语：
+  - `Transaction ID`(XID)：全局唯一事务ID。
+  - `TransactionCoordinator(TC)`：事务协调器，维护全局和分支事务的状态，驱动全局事务提交或回滚。
+  - `TransactionManager(TM)`：事务管理器，定义全局事务的范围：开始全局事务、提交或回滚全局事务。
+  - `ResourceManager(RM)`：资源管理器，管理分支事务处理的资源，与TC交谈以注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚。
+- 处理过程：
+  - TM向TC申请开启一个全局事务，全局事务创建成功并生成一个全局唯一的XID。
+  - XID在微服务调用链路的上下文中传播。
+  - RM向TC注册分支服务，将其纳入XID对应全局事务的管辖。
+  - TM向TC发起针对XID的全局提交或回滚决议。
+  - TC调度XID下管辖的全部分支事务完成提交或回滚请求。
+
+![Seata分布式事务处理过程](https://camo.githubusercontent.com/0384806afd7c10544c258ae13717e4229942aa13/68747470733a2f2f63646e2e6e6c61726b2e636f6d2f6c61726b2f302f323031382f706e672f31383836322f313534353239363931373838312d32366661626562392d373166612d346633652d386137612d6663333137643333383966342e706e67)
+
+#### 4.2.2.去哪下载？怎么玩？
+
+- **下载地址：https://github.com/seata/seata/releases**
+- 怎么玩？
+  - 本地`@Transactional`。
+  - 全局`@GlobalTransactional`。
+
+- Seata的分布式交易解决方案，我们只需要使用`@GlobalTransactional`注解在业务方法上！
+
+![Seata的分布式交易解决方案](https://camo.githubusercontent.com/b3a71332ae0a91db7f8616286a69b879fcbea672/68747470733a2f2f63646e2e6e6c61726b2e636f6d2f6c61726b2f302f323031382f706e672f31383836322f313534353239363739313037342d33626365376263652d303235652d343563332d393338362d3762393531333564616465382e706e67)
+
+### 4.3.Seata-Server安装
+
+```shell
+# 1、seata-server-0.9.0.tar.gz 解压到指定目录并修改conf目录下的file.conf文件
+# 主要修改：自定义事务组名称 + 事务日志存储模式为db + 数据库连接信息。
+# 连接mySQL5.7把 lib目录下的 mysql驱动包换成 mysql-connector-java-8.0.18.jar
+
+# service模块：自定义事务组名称
+ 29 service {
+ 30   #vgroup->rgroup
+ 31   vgroup_mapping.my_test_tx_group = "fsp_tx_group"	# 这里默认是default改成工作中的工程名字
+ 32   #only support single node
+ 33   default.grouplist = "127.0.0.1:8091"
+ 34   #degrade current not support
+ 35   enableDegrade = false
+ 36   #disable
+ 37   disable = false
+ 38   #unit ms,s,m,h,d represents milliseconds, seconds, minutes, hours, days, default permanent
+ 39   max.commit.retry.timeout = "-1"
+ 40   max.rollback.retry.timeout = "-1"
+ 41 }
+
+ # store模块：事务日志存储模式为db + 数据库连接信息
+  55 store {
+ 56   ## store mode: file、db
+ 57   mode = "db"	# 这里默认是file改成db
+ 58 
+ 59   ## file store
+ 60   file {
+ 61     dir = "sessionStore"
+ 62 
+ 63     # branch session size , if exceeded first try compress lockkey, still exceeded throws exceptions
+ 64     max-branch-session-size = 16384
+ 65     # globe session size , if exceeded throws exceptions
+ 66     max-global-session-size = 512
+ 67     # file buffer size , if exceeded allocate new buffer
+ 68     file-write-buffer-cache-size = 16384
+ 69     # when recover batch read size
+ 70     session.reload.read_size = 100
+ 71     # async, sync
+ 72     flush-disk-mode = async
+ 73   }
+ 74 
+ 75   ## database store
+ 76   db {
+ 77     ## the implement of javax.sql.DataSource, such as DruidDataSource(druid)/BasicDataSource(dbcp) etc.
+ 78     datasource = "dbcp"
+ 79     ## mysql/oracle/h2/oceanbase etc.
+ 80     db-type = "mysql"
+ 81     driver-class-name = "com.mysql.cj.jdbc.Driver"	# 连接mySQL5.7需要修改一下
+ 82     url = "jdbc:mysql://127.0.0.1:3306/seata?useSSL=false&characterEncoding=utf-8&serverTimezone=UTC" 
+ 83     user = "root"		# 修改数据库的用户名
+ 84     password = "333"	# 修改数据库的密码
+ 85     min-conn = 1
+ 86     max-conn = 3
+ 87     global.table = "global_table"
+ 88     branch.table = "branch_table"
+ 89     lock-table = "lock_table"
+ 90     query-limit = 100
+ 91   }
+
+# 2、MySQL5.7数据库新建database名字是seata
+
+# 3、在seata库里建表 建表SQL路径conf/db_store.sql
+
+# 4、修改conf下的 registry.conf 配置文件
+  1 registry {
+  2   # file 、nacos 、eureka、redis、zk、consul、etcd3、sofa
+  3   type = "nacos"	# 默认是file 修改注册进Nacos
+  4 
+  5   nacos {
+  6     serverAddr = "localhost:1111"	# Nacos地址
+  7     namespace = ""
+  8     cluster = "default"
+  9   }
+  
+# 5、先启动Nacos再启动Seata-Server
+# 如果因为内存原因启动失败可以参考：https://www.cnblogs.com/kingxiaozi/p/8321025.html
+sh seata-server.sh -p 8091 -h 39.97.3.60
+```
+
+### 4.4.订单—库存—账户业务数据库准备
+
+**注：以下步骤都需要先启动Nacos再启动Seata，保证两个都OK！！**
+
+#### 4.4.1.分布式事务业务说明
+
+- 这里我们会创建三个微服务，一个订单服务，一个库存服务，一个账户服务。
+- 当用户下单时，会在订单服务中创建一个订单，然后通过远程调用库存服务来扣减下单商品的库存，再通过远程调用账户服务来扣减用户账户里面的余额，最后在订单服务中修改订单状态为已完成。
+- 该操作跨越三个数据库，有两次远程调用，很明显会有分布式事务问题。
+
+#### 4.4.2.创建业务数据库
+
+- seata_order：存储订单的数据库。
+
+- seata_storage：存储库存的数据库。
+
+- seata_account：存储账户信息的数据库。
+
+```sql
+create database seata_order;
+create database seata_storage;
+create database seata_account;
+```
+
+#### 4.4.3.按照上述的三个库分别建立对应的业务表
+
+> seata_order库下建t_order表
+
+```sql
+CREATE TABLE `t_order`(
+	`id` BIGINT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT(11) DEFAULT NULL COMMENT '用户id',
+    `product_id` BIGINT(11) DEFAULT NULL COMMENT '产品id',
+    `count` INT(11) DEFAULT NULL COMMENT '数量',
+    `money` DECIMAL(11,0) DEFAULT NULL COMMENT '金额',
+    `status` INT(1) DEFAULT NULL COMMENT '订单状态:0:创建中；1:已完结'
+)ENGINE=INNODB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+```
+
+> seata_storage库下建t_storage表
+
+```sql
+CREATE TABLE `t_storage`(
+	`id` BIGINT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `product_id` BIGINT(11) DEFAULT NULL COMMENT '产品id',
+    `total` INT(11) DEFAULT NULL COMMENT '总库存',
+    `used` INT(11) DEFAULT NULL COMMENT '已用库存',
+    `residue` INT(11) DEFAULT NULL COMMENT '剩余库存'
+)ENGINE=INNODB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+```
+
+> seata_account库下建t_account表
+
+```sql
+CREATE TABLE `t_account`(
+	`id` BIGINT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT(11) DEFAULT NULL COMMENT '用户id',
+    `total` DECIMAL(10,0) DEFAULT NULL COMMENT '总额度',
+    `used` DECIMAL(10,0) DEFAULT NULL COMMENT '已用余额',
+    `residue` DECIMAL(10,0) DEFAULT NULL COMMENT '剩余可用额度'
+)ENGINE=INNODB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+```
+
+#### 4.4.4.按照上述的三个库分别建立对应的回滚日志表
+
+```sql
+'订单-库存-账户3个库下都需要建立各自的回滚日志表'
+
+'seata的conf目录下db_undo_log.sql 就是回滚日志表的SQL'
+
+drop table `undo_log`;
+CREATE TABLE `undo_log` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `branch_id` bigint(20) NOT NULL,
+  `xid` varchar(100) NOT NULL,
+  `context` varchar(128) NOT NULL,
+  `rollback_info` longblob NOT NULL,
+  `log_status` int(11) NOT NULL,
+  `log_created` datetime NOT NULL,
+  `log_modified` datetime NOT NULL,
+  `ext` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ux_undo_log` (`xid`,`branch_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+```
+
+### 4.5.订单—库存—账户业务微服务准备
+
+#### 4.5.1.业务需求
+
+下订单—>减库存—>扣余额—>改订单状态。
+
+#### 4.5.2.订单-库存-账户模块步骤
+
+- 添加POM。
+
+- 修改application.yml。
+- 在resource路径下添加`file.conf`。
+- 在resource路径下添加`registry.conf`。
+- 写数据库映射的实体类。
+- Mapper接口和实现。
+- Service接口和实现。
+- Controller。
+- 配置类。
+- 主启动类。
+
+#### 4.5.3.Seata之@GlobalTransaction验证
+
+**http://localhost:2001/order/create?userId=1&productId=10&count=5&money=30**
+
+详情请看：spring-cloud-alibaba-seata-order-service-2001模块
+
+#### 4.5.4.Seata原理简介
+
+- TC：Seata服务器。
+- TM：`@GlobalTransactional`事务的发起方。
+- RM：一个数据库就是一个RM，事务的参与方。
