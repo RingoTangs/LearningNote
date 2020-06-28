@@ -134,7 +134,7 @@ sudo systemctl restart docker
 
 > docker run 的运行流程图
 
-![docker运行流程](.\images\image-20200612164518264.png)
+![docker运行流程](https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=4261535913,3068120869&fm=26&gp=0.jpg)
 
 ## 1.3.底层原理
 
@@ -142,9 +142,9 @@ sudo systemctl restart docker
 
 Docker是一个Client-Server结构的系统，Docker的守护进程运行在主机上，通过Socket从客户端访问。
 
-DockerServer接收到DockerClient的指令，就会执行这个命令。
+Docker-Server接收到Docker-Client的指令，就会执行这个命令。
 
-![docker底层原理](.\images\QQ截图20200612193602.jpg)
+![docker底层原理](https://img-blog.csdnimg.cn/20181105081912304.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2thaXp1aWRlYmFubGk=,size_16,color_FFFFFF,t_70)
 
 >docker为什么比VM快？
 
