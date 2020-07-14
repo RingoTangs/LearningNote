@@ -1144,3 +1144,1351 @@ public LocaleResolver localeResolver() {
 
 ## 5.5.登录拦截器
 
+> 拦截器
+
+```java
+/**
+ * 登录拦截器
+ */
+public class LoginHandlerInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        Object key = request.getSession().getAttribute(LoginConstant.LOGIN_SESSION_KEY);
+        if (key == null) {
+            // 未登录返回到登录页面
+            request.setAttribute("message", "没有权限,请先登录");
+            request.getRequestDispatcher("/index.html").forward(request, response);
+            return false;
+        }else {
+            // 已经登录,方向请求
+            return true;
+        }
+    }
+}
+```
+
+> 将拦截器加入容器
+
+```java
+/**
+ * SpringMVC的扩展配置
+ */
+@Configuration
+public class WebMvcConf implements WebMvcConfigurer {
+
+    /**
+     * 配置拦截器
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginHandlerInterceptor())
+                .addPathPatterns("/**")
+                // 排除登录、首页、静态资源路径
+                .excludePathPatterns("/","/index","/index.html", LoginConstant.LOGIN_PATH, "/asserts/**" );
+    }
+}
+```
+
+## 5.6.RESTfulAPI
+
+> 基本请求模板
+
+| 行为 | 请求方式 | URL       |
+| ---- | -------- | --------- |
+| 查询 | GET      | /emp      |
+| 添加 | POST     | /emp      |
+| 修改 | PUT      | /emp/{id} |
+| 删除 | DELETE   | /emp/{id} |
+
+> 实验请求架构
+
+| 行为         | 请求方式 | URL       |
+| ------------ | -------- | --------- |
+| 查询所有员工 | GET      | /emps     |
+| 查询某个员工 | GET      | /emp/{id} |
+| 来到添加页面 | GET      | /emp      |
+| 添加员工     | POST     | /emp/{id} |
+| 来到修改页面 | GET      | /emp/{id} |
+| 修改某个员工 | PUT      | /emp/{id} |
+| 删除员工     | DELETE   | /emp/{id} |
+
+## 5.7.数据列表展示
+
+### 5.7.1.thymeleaf公共元素抽取
+
+```html
+<!--1、抽取公共片段-->
+<div th:fragment="copy">      
+    &copy; 2011 The Good Thymes Virtual Grocery    
+</div> 
+
+<!--1、插入公共片段-->
+~{templatename::fragmentname} ：模板名，片段名
+
+<div th:insert="~{footer :: copy}"></div>
+```
+
+**三种引入公共片段的th属性：**
+
+- `th:insert` is the simplest: it will simply insert the specified fragment as the body of its host tag.
+  - 将公共片段整个插入到声明的元素中。
+- `th:replace` actually replaces its host tag with the specified fragment.
+  - 将声明的元素替换为公共片段。
+- `th:include` is similar to th:insert , but instead of inserting the fragment it only inserts the contents of this fragment.
+  - 将公共片段的内容包含到声明的元素中
+
+```html
+<!--抽取的公共片段-->
+<footer th:fragment="copy">  
+    &copy; 2011 The Good Thymes Virtual Grocery 
+</footer>
+
+<!--三种引入公共片段的方式-->
+<body>
+  ...
+  <div th:insert="footer :: copy"></div>
+  <div th:replace="footer :: copy"></div>
+  <div th:include="footer :: copy"></div> 
+</body>
+
+
+<!--三种方式的效果-->
+<body>
+  ...
+  <div>    
+      <footer>      
+          &copy; 2011 The Good Thymes Virtual Grocery    
+      </footer>  
+  </div>
+  <footer>    
+      &copy; 2011 The Good Thymes Virtual Grocery  
+  </footer>
+  <div>    
+      &copy; 2011 The Good Thymes Virtual Grocery  
+   </div>  
+</body
+```
+
+### 5.8.2.SideBar链接高亮
+
+```html
+<!--1、sidebar片段加入判断！-->
+<li class="nav-item">
+    <a th:href="@{/main.html}"
+       th:class="${activeUri=='main.html' ? 'nav-link active' : 'nav-link'}">
+       Dashboard
+    </a>
+</li>
+
+<li class="nav-item">
+    <a th:href="@{/emps}"
+       th:class="${activeUri=='emps' ? 'nav-link active' : 'nav-link'}">
+       员工管理
+    </a>
+</li>
+
+<!--2、DashBoard引入sidebar添加activeUri='main.html'-->
+<div th:replace="fragments/SideBar :: sidebar(activeUri='main.html')"></div>
+
+<!--3、list引入sidebar添加activeUri='emps'-->
+<div th:replace="fragments/SideBar :: sidebar(activeUri='emps')"></div>
+```
+
+## 5.8.日期格式
+
+日期格式有2020-7-10，2020/7/10，2020.7.10；SpringMVC将页面提交的值需要转换为指定的类型；
+
+**SpringMVC默认是使用2020/7/10的格式**。
+
+```yaml
+# 修改SpringMVC默认的日期格式 yaml修改即可
+spring:
+  mvc:
+    date-format: yyyy-MM-dd
+```
+
+# 6.错误处理机制
+
+## 6.1.SpringBoot默认错误处理机制
+
+- 浏览器访问，默认返回一个错误页面。
+- 如果是APP访问，默认响应一个json数据
+
+- 原理：参照`ErrorMvcAutoConfiguration`。给容器添加了以下组件
+
+     ```java
+     // DefaultErrorAttributes 帮我们在页面共享信息
+     @Bean
+     @ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
+     public DefaultErrorAttributes errorAttributes() {
+     return new DefaultErrorAttributes(this.serverProperties.getError().isIncludeException());
+     }
+     ```
+
+@Bean
+@ConditionalOnMissingBean(value = ErrorController.class, search = SearchStrategy.CURRENT)
+public BasicErrorController basicErrorController(ErrorAttributes errorAttributes,
+                                                 ObjectProvider<ErrorViewResolver> errorViewResolvers) {
+    return new BasicErrorController(errorAttributes, this.serverProperties.getError(),
+                                    errorViewResolvers.orderedStream().collect(Collectors.toList()));
+}
+
+@Bean
+public ErrorPageCustomizer errorPageCustomizer(DispatcherServletPath dispatcherServletPath) {
+    return new ErrorPageCustomizer(this.serverProperties, dispatcherServletPath);
+}
+
+@Bean
+@ConditionalOnBean(DispatcherServlet.class)
+@ConditionalOnMissingBean(ErrorViewResolver.class)
+DefaultErrorViewResolver conventionErrorViewResolver() {
+    return new DefaultErrorViewResolver(this.applicationContext, this.resourceProperties);
+}
+     ```
+
+- 执行步骤
+
+    ```java
+    // 1、一旦出现4xx或者5xx的错误ErrorPageCustomizer(定制错误的响应规则)就会生效。
+    // ErrorPageCustomizer会拿到path。
+    @Value("${error.path:/error}")
+    private String path = "/error";   // 系统出现错误后会来到/error请求进行处理
+    ```
+
+// 2、BasicErrorController处理默认/error请求
+@Controller
+@RequestMapping("${server.error.path:${error.path:/error}}")
+public class BasicErrorController extends AbstractErrorController {
+    
+    // MediaType.TEXT_HTML_VALUE = "text/html"
+    // 该方法就是产生HTML的数据
+    // 浏览器发送的请求来到这个方法处理
+    @RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
+    public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+        HttpStatus status = getStatus(request);
+        Map<String, Object> model = Collections
+            .unmodifiableMap(getErrorAttributes(request, isIncludeStackTrace(request, MediaType.TEXT_HTML)));
+        response.setStatus(status.value());
+        
+        // 去哪个页面作为错误页面，包含页面地址和页面内容
+        ModelAndView modelAndView = resolveErrorView(request, response, status, model);
+        return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
+    }
+    
+    protected ModelAndView resolveErrorView(HttpServletRequest request, HttpServletResponse response,   HttpStatus status,Map<String, Object> model) {
+        // 所有的ErrorViewResolver得到ModelAndView
+        for (ErrorViewResolver resolver : this.errorViewResolvers) {
+            ModelAndView modelAndView = resolver.resolveErrorView(request, status, model);
+            if (modelAndView != null) {
+                return modelAndView;
+            }
+        }
+        return null;
+    }
+    
+    // 产生json数据
+    // 其他客户端发送的请求来到这个方法处理
+    @RequestMapping
+    public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
+        HttpStatus status = getStatus(request);
+        if (status == HttpStatus.NO_CONTENT) {
+            return new ResponseEntity<>(status);
+        }
+        Map<String, Object> body = getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL));
+        return new ResponseEntity<>(body, status);
+    }
+}
+    
+// 3、DefaultErrorViewResolver来得到ModelAndview
+public class DefaultErrorViewResolver implements ErrorViewResolver, Ordered {
+
+	private static final Map<Series, String> SERIES_VIEWS;
+	
+	static {
+		Map<Series, String> views = new EnumMap<>(Series.class);
+		views.put(Series.CLIENT_ERROR, "4xx");
+		views.put(Series.SERVER_ERROR, "5xx");
+		SERIES_VIEWS = Collections.unmodifiableMap(views);
+	}
+	
+		@Override
+	public ModelAndView resolveErrorView(HttpServletRequest request, HttpStatus status, Map<String, Object> model) {
+		ModelAndView modelAndView = resolve(String.valueOf(status.value()), model);
+		if (modelAndView == null && SERIES_VIEWS.containsKey(status.series())) {
+			modelAndView = resolve(SERIES_VIEWS.get(status.series()), model);
+		}
+		return modelAndView;
+	}
+	
+	private ModelAndView resolve(String viewName, Map<String, Object> model) {
+	    // SpringBoot可以在error目录下找到页面
+	    String errorViewName = "error/" + viewName;
+	    
+	    // 如果模板引擎能解析这个地址，就用模板引擎解析
+	    TemplateAvailabilityProvider provider = this.templateAvailabilityProviders.getProvider(errorViewName,
+	                                                                                           this.applicationContext);
+	    if (provider != null) {
+	        // 模板引擎可用的情况下返回到指定view视图地址
+	        return new ModelAndView(errorViewName, model);
+	    }
+	    // 模板引擎不可用调用resolveResource()，在静态资源文件夹下找errorViewName对应的页面 error/404.html
+	    return resolveResource(errorViewName, model);
+	}
+	
+	private ModelAndView resolveResource(String viewName, Map<String, Object> model) {
+	    for (String location : this.resourceProperties.getStaticLocations()) {
+	        try {
+	            Resource resource = this.applicationContext.getResource(location);
+	            resource = resource.createRelative(viewName + ".html");
+	            if (resource.exists()) {
+	                return new ModelAndView(new HtmlResourceView(resource), model);
+	            }
+	        }
+	        catch (Exception ex) {
+	        }
+	    }
+	    return null;
+	}
+}
+    ```
+
+## 6.2.如何地址错误的响应？
+
+### 6.2.1定制错误页面
+
+- 有模板引擎的情况下，直接在`templates`下创建`error`文件夹。`error`文件夹下面的`HttpStatus.html`(需要用状态码给错误页面命名)就可以被解析返回给浏览器。
+
+  - 错误页面可以获取到的信息？`DefaultErrorAttributes`可以帮我们在页面获取信息！
+
+     ```java
+  @Override
+  public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+      Map<String, Object> errorAttributes = new LinkedHashMap<>();
+      // 1、可以在错误页面获取到时间戳
+      errorAttributes.put("timestamp", new Date());
+      // 2、可以在错误页面获取到状态码
+      addStatus(errorAttributes, webRequest);
+      // 1、可以在错误页面获取到错误信息 Exception对象 Exception的Message Errors(JSR303数据校验的信息)
+      addErrorDetails(errorAttributes, webRequest, includeStackTrace);
+      addPath(errorAttributes, webRequest);
+      return errorAttributes;
+  }
+     ```
+
+- 没有模板引擎，就会在静态资源文件夹下找error/404.html。
+
+- 模板引擎和静态资源文件夹下都没有自己写的错误页面，就会来到SpringBoot默认的错误页面。
+
+### 6.2.2.定制错误数据
+
+> @ControllerAdvice
+
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UserNotExistException.class)
+    public String handelException(HttpServletRequest request, Exception ex) {
+        // 传入我们自己的状态码，这个一定要写
+        request.setAttribute("javax.servlet.error.status_code", 400);
+        Map<String, Object> map = new HashMap<>();
+        map.put("tip", "自定义的全局异常处理器");
+        // 将Map放在请求域中
+        request.setAttribute("ext", map);
+        return "forward:/error";
+    }
+}
+```
+
+> 将我们定制的错误信息携带出去
+
+```java
+package com.ymy.spring.boot.web.component;
+
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.WebRequest;
+
+import java.util.Map;
+// 自己写的ErrorAttributes
+@Component
+public class MyErrorAttribute extends DefaultErrorAttributes {
+    @Override
+    public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+        Map<String, Object> map = super.getErrorAttributes(webRequest, includeStackTrace);
+        // 可以从请求域中获取map
+        Map ext = (Map)webRequest.getAttribute("ext", RequestAttributes.SCOPE_REQUEST);
+        map.put("ext", ext);
+        return map;
+    }
+}
+```
+
+# 7.数据访问
+
+## 7.1.Spring Data简介
+
+对于数据访问层，无论是`SQL`还是`NoSQL` ，`Spring Boot`默认采用整合`Spring Data`的方式进行统一管理，添加大量自动配置，屏蔽了很多设置。引入各种`Template`，`Repository`来简化我们対数据访问层的操作。对我们来说只需要进行简单的设置即可。
+
+## 7.2.JDBC
+
+> 依赖
+
+```xml
+<!--jdbc-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+<!--mysql驱动-->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+```
+
+> application.yml配置
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 333
+    url:  jdbc:mysql://39.97.3.60:3306/jdbc?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    type: com.mysql.cj.jdbc.MysqlConnectionPoolDataSource
+```
+
+## 7.3.Druid
+
+> 依赖
+
+```xml
+<!--druid-->
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid</artifactId>
+    <version>${druid.version}</version>
+</dependency>
+
+<!--jdbc-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+<!--mysql驱动-->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+```
+
+> 配置Druid
+
+```yaml
+# application.yml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 333
+    url:  jdbc:mysql://39.97.3.60:3306/jdbc?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    type: com.alibaba.druid.pool.DruidDataSource
+    
+    #最大连接池数量
+    max-active: 20
+    #初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
+    initial-size: 10
+    # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，
+    # 并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+    max-wait: 60000
+    #最小连接池数量
+    min-idle: 5
+    #有两个含义：
+    #1: Destroy线程会检测连接的间隔时间
+    #2: testWhileIdle的判断依据，详细看testWhileIdle属性的说明
+    time-between-eviction-runs-millis: 60000
+    #配置一个连接在池中最小生存的时间，单位是毫秒
+    min-evictable-idle-time-millis: 180000
+    #用来检测连接是否有效的sql，要求是一个查询语句。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会其作用。
+    validation-query: select 'x'
+    #连接有效性检查的超时时间 1 秒
+    validation-query-timeout: 1
+    #申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+    test-on-borrow: false
+    #设置从连接池获取连接时是否检查连接有效性，true时，如果连接空闲时间超过minEvictableIdleTimeMillis进行检查，否则不检查;false时，不检查
+    test-while-idle: true
+    #归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能
+    test-on-return: false
+    #是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭。
+    pool-prepared-statements: true
+    #要启用PSCache，必须配置大于0，当大于0时，poolPreparedStatements自动触发修改为true。在Druid中，
+    # 不会存在Oracle下PSCache占用内存过多的问题，可以把这个数值配置大一些，比如说100
+    max-open-prepared-statements: 20
+    #数据库链接超过3分钟开始关闭空闲连接 秒为单位
+    remove-abandoned-timeout: 1800
+    #对于长时间不使用的连接强制关闭
+    remove-abandoned: true
+    #打开后，增强timeBetweenEvictionRunsMillis的周期性连接检查，minIdle内的空闲连接，
+    keep-alive: true
+    # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+    connect-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    #是否超时关闭连接 默认为false ,若为true 就算数据库恢复连接，也无法连接上
+    break-after-acquire-failure: false
+    #设置获取连接出错时的自动重连次数
+    connection-error-retry-attempts: 1
+    #设置获取连接时的重试次数，-1为不重试
+    not-full-fimeout-retry-count: 2
+    #重连间隔时间 单位毫秒
+    acquire-retry-delay: 10000
+    # 设置获取连接出错时是否马上返回错误，true为马上返回
+    fail-fast: true
+    #属性类型是字符串，通过别名的方式配置扩展插件，常用的插件有：
+    #监控统计用的filter:stat日志用的filter:log4j防御sql注入的filter:wall
+    filters: stat,wall
+```
+
+> Druid的配置
+
+```java
+@Configuration
+public class DruidConf {
+
+    /**
+     * 配置Druid的监控Servlet
+     */
+    @Bean
+    public ServletRegistrationBean statViewServlet() {
+        ServletRegistrationBean bean = new ServletRegistrationBean(new StatViewServlet(), "/druid/*");
+        Map<String, String> initParams = new HashMap<>();
+        initParams.put("loginUsername", "admin");
+        initParams.put("loginPassword", "admin");
+        initParams.put("allow", ""); // 默认就是允许所有
+        bean.setInitParameters(initParams);
+        return bean;
+    }
+
+    /**
+     * 配置一个Web监控的Filter
+     */
+    @Bean
+    public FilterRegistrationBean webStatFilter() {
+        FilterRegistrationBean bean = new FilterRegistrationBean();
+        bean.setFilter(new WebStatFilter());
+        Map<String, String> initParams = new HashMap<>();
+        initParams.put("exclusions","*.js,*.css,/druid/*");
+        bean.setInitParameters(initParams);
+        bean.setUrlPatterns(Arrays.asList("/*"));
+        return bean;
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource druidDataSource() {
+        return new DruidDataSource();
+    }
+}
+```
+
+## 7.4.MyBatis
+
+> 依赖
+
+```xml
+<properties>
+    <mybatis.spring.boot.starter.version>2.1.1</mybatis.spring.boot.starter.version>
+</properties>
+<!--mybatis-->
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>${mybatis.spring.boot.starter.version}</version>
+</dependency>
+```
+
+> application.yml
+
+```yaml
+mybatis:
+  config-location: classpath:mybatis/mybatis-conf.xml
+  mapper-locations: classpath:mybatis/mapper/*.xml
+```
+
+> myBatis全局配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+</configuration>
+```
+
+> mapper映射文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ymy.spring.boot.mapper.DepartmentMapper">
+</mapper>
+```
+
+## 7.5.JPA
+
+### 7.5.1.SpringData
+
+![SpringData](https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1594486501695&di=eca71fc70413dacf866ad83a32a8c25e&imgtype=0&src=http%3A%2F%2Ft8.baidu.com%2Fit%2Fu%3D3931991969%2C3971569297%26fm%3D193)
+
+### 7.5.2.整合JPA
+
+> 实例类和数据表进行映射
+
+```java
+import javax.persistence.*;
+
+/**
+ * @Entity 告诉jpa这是一个实体类，和数据表映射的类
+ * @Table 来指定和哪个数据表对应，如果省略默认就是命令就是user
+ */
+@Entity
+@Table(name = "tbl_user")
+public class User {
+
+    @Id  // 表示该字段是主键
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增
+    private Integer id;
+
+    @Column(name = "last_name", length = 50) // 和数据表对应的一个列
+    private String lastName;
+
+    @Column  // 省略默认类名就是属性名
+    private String email;
+```
+
+> 编写实例类对应的Dao接口
+
+```java
+import com.ymy.spring.boot.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+/**
+ * UserRepository继承JpaRepository<实体类,主键类型>
+ */
+public interface UserRepository extends JpaRepository<User, Integer> {
+}
+```
+
+> 基本配置
+
+```yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 333
+    url:  jdbc:mysql://39.97.3.60:3306/jpa?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    type: com.mysql.cj.jdbc.MysqlConnectionPoolDataSource
+
+  jpa:
+    hibernate:
+      ddl-auto: update # 更新或者创建数据表
+    show-sql: true # 在控制台显示sql
+```
+
+**启动应用的时候，就会自动在数据库中创建表了！**
+
+> JPA的基本使用
+
+```java
+import com.ymy.spring.boot.entity.User;
+import com.ymy.spring.boot.repository.UserRepository;
+import com.ymy.spring.boot.support.SimpleResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+
+@RestController
+public class UserController {
+
+    @Resource
+    private UserRepository userRepository;
+
+    @GetMapping("/user/{id}")
+    public SimpleResponse getUser(@PathVariable("id") Integer id) {
+        try{
+            User user = userRepository.findById(id).get();
+            return new SimpleResponse(HttpStatus.OK.value(),"查询成功", user);
+        }catch (Exception e){
+            return new SimpleResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"没有查到", null);
+        }
+    }
+
+    @PostMapping("/user")
+    public SimpleResponse insertUser(@RequestBody User user) {
+        User save = userRepository.save(user);
+        if (save != null) {
+            return new SimpleResponse(HttpStatus.OK.value(),"插入成功", save);
+        }
+        return new SimpleResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"插入失败", save);
+    }
+}
+```
+
+# 8.SpringBoot事件监听
+
+配置四个监听器：
+
+- **ApplicationContextInitializer(要写在META-INF/spring.factories中)**
+- **ApplicationRunner(直接加入到容器中)**
+- **CommandLineRunner(直接加入到容器中)**
+- **SpringApplicationRunListener(要写在META-INF/spring.factories中)**
+
+```java
+// 1.ApplicationContextInitializer
+public class HelloApplicationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+        System.out.println("*****ApplicationContextInitializer*****" + applicationContext);
+    }
+}
+
+// 2.ApplicationRunner
+@Component
+public class HelloApplicationRunner implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        System.out.println("****ApplicationRunner***run");
+    }
+}
+
+// 3.CommandLineRunner
+@Component
+public class HelloCommandLineRunner implements CommandLineRunner {
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("****HelloCommandLineRunner****");
+    }
+}
+
+// 4.SpringApplicationRunListener
+public class HelloSpringApplicationRunListener implements SpringApplicationRunListener {
+
+    public HelloSpringApplicationRunListener(SpringApplication application, String[] args) {
+
+    }
+
+    @Override
+    public void starting() {
+        System.out.println("*****SpringApplicationRunListener*****starting");
+    }
+
+    @Override
+    public void environmentPrepared(ConfigurableEnvironment environment) {
+        Object osName = environment.getSystemProperties().get("os.name");
+        System.out.println("*****SpringApplicationRunListener*****environmentPrepared " + osName);
+    }
+
+    @Override
+    public void contextPrepared(ConfigurableApplicationContext context) {
+        System.out.println("*****SpringApplicationRunListener*****contextPrepared");
+    }
+
+    @Override
+    public void contextLoaded(ConfigurableApplicationContext context) {
+        System.out.println("*****SpringApplicationRunListener*****contextLoaded");
+    }
+
+    @Override
+    public void started(ConfigurableApplicationContext context) {
+        System.out.println("*****SpringApplicationRunListener*****started");
+    }
+
+    @Override
+    public void running(ConfigurableApplicationContext context) {
+        System.out.println("*****SpringApplicationRunListener*****running");
+    }
+
+    @Override
+    public void failed(ConfigurableApplicationContext context, Throwable exception) {
+        System.out.println("*****SpringApplicationRunListener*****failed");
+    }
+}
+```
+
+
+
+控制台输出顺序
+
+```shell
+*****SpringApplicationRunListener*****starting
+*****SpringApplicationRunListener*****environmentPrepared Windows 10
+*****ApplicationContextInitializer*****
+*****SpringApplicationRunListener*****contextPrepared
+*****SpringApplicationRunListener*****contextLoaded
+*****SpringApplicationRunListener*****started
+****ApplicationRunner***run
+****CommandLineRunner****
+*****SpringApplicationRunListener*****running
+```
+
+# 9.自定义Starter
+
+## 9.1.基本介绍
+
+**starter：**
+
+- 这个场景需要使用到的依赖是什么？
+- 如果编写自动配置？
+
+```java
+@Configuration             // 指定这个类是个配置类
+@ConditionalOnXXX          // 在指定条件成立的情况下自动配置类生效
+@AutoConfigureAfter        // 指定自动配置类的顺序
+@Bean                      // 给容器中添加组件
+@ConfigurationPropertis    // 结合Properties类来绑定相关的配置
+@EnableConfigurationProperties  // 让xxxProperties生效并加入到容器中
+
+自动配置类要能加载
+将需要启动就加载的自动配置类，配置在META-INF/spring.factories
+```
+
+## 9.2.模式介绍
+
+-  启动器只用来做依赖导入。
+- 专门来写一个自动配置模块。
+- 启动器依赖自动配置，别人只需要引入启动器(starter)，自动配置就配置好了
+- starter的命名：`mybatis-spring-boot-starter`，自定义启动器名-spring-boot-starter。
+
+## 9.3.自动配置模块
+
+> pom
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ymy</groupId>
+    <artifactId>spring-boot-08-autoconfiguration</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.4.RELEASE</version>
+    </parent>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!--引入spring-boot-starter 所有starter的基本配置-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!--导入配置文件处理器-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+> HelloProperties
+
+```java
+@ConfigurationProperties(prefix = "ymy.hello")
+public class HelloProperties {
+
+    private String prefix;
+
+    private String suffix;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+}
+```
+
+> HelloService
+
+```java
+public class HelloService {
+
+    private HelloProperties helloProperties;
+
+    public HelloProperties getHelloProperties() {
+        return helloProperties;
+    }
+
+    public void setHelloProperties(HelloProperties helloProperties) {
+        this.helloProperties = helloProperties;
+    }
+
+    public String sayHello(String name) {
+        return helloProperties.getPrefix() + name + helloProperties.getSuffix();
+    }
+}
+```
+
+> 自动配置
+
+```java
+package com.ymy.spring.boot.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConditionalOnWebApplication // web应用才生效
+@EnableConfigurationProperties(value = HelloProperties.class)
+public class HelloServiceAutoConfiguration {
+
+    @Autowired
+    private HelloProperties helloProperties;
+	
+    // 这样就把HelloService组件加入了容器,并且可以在yml中配置
+    @Bean
+    public HelloService helloService() {
+        HelloService helloService = new HelloService();
+        helloService.setHelloProperties(helloProperties);
+        return helloService;
+    }
+}
+```
+
+> spring.factories
+
+```properties
+# 在resources目录下创建spring.factories文件
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.ymy.spring.boot.service.HelloServiceAutoConfiguration
+```
+
+## 9.4.自定义starter
+
+自定义starter需要把我们写的自动配置模块导入进来并且安装到本地仓库，就可以让其他项目来使用了！
+
+# 10.SpringBoot与缓存
+
+![缓存](https://img-blog.csdnimg.cn/20200712201214264.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
+
+## 10.1.核心概念
+
+| 概念           | 描述                                                         |
+| -------------- | ------------------------------------------------------------ |
+| Cache          | 缓存接口，定义缓存操作。实现有：RedisCache、EHCache、ConcurrentHashMap等 |
+| CacheManager   | 缓存管理器，管理各种缓存（Cache）插件                        |
+| @Cacheable     | 主要针对方法配置，能够根据方法的请求参数対其结果进行缓存     |
+| @CacheEvict    | 清空缓存                                                     |
+| @CachePut      | 保证方法被调用，又希望结果被缓存                             |
+| @EnableCaching | 开启基于注解的缓存                                           |
+| KeyGenerator   | 缓存数据时key的生成策略                                      |
+| serialize      | 缓存时value的序列化策略                                      |
+
+## 10.2.缓存的使用
+
+> 步骤
+
+- 开启注解的缓存`@EnableCaching`。
+- 在方法上标注缓存注解`@Cacheable`、`@CacheEvict`、`@CachePut`。
+
+> 缓存的SpEL表达式
+
+| 名字          | 位置                    | 描述                                                         | 示例                 |
+| ------------- | ----------------------- | ------------------------------------------------------------ | -------------------- |
+| methodName    | root object             | 当前被调用的方法名                                           | #root.methodName     |
+| method        | root object             | 当前被调用的方法                                             | #root.method.name    |
+| target        | root object             | 当前被调用的目标对象                                         | #root.target         |
+| targetClass   | root object             | 当前被调用的目标对象类                                       | #root.targetClass    |
+| args          | root object             | 当前被调用的方法的参数列表                                   | #root.args[0]        |
+| caches        | root object             | 当前被调用方法使用的缓存列表，如(@Cacheable(value={"cache1","cache2"}))，则有两个Cache | #root.caches[0].name |
+| argument name | evaluation      context | 方法参数的名字，可以直接#参数名，也可以使用#p0#a0的形式，0代表参数的索引 | #iban、#a0、#p0      |
+| result        | evaluation      context | 方法执行后的返回值（仅当方法执行之后的判断有效，如'unless'，'cache put'的表达式 'cache evict'的表达式beforeInvocation=false） | #result              |
+
+> @cacheable
+
+```java
+import com.ymy.spring.boot.cache.entity.Employee;
+import com.ymy.spring.boot.cache.mapper.EmployeeMapper;
+import com.ymy.spring.boot.cache.support.SimpleResponse;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import javax.annotation.Resource;
+
+@Service
+public class EmployeeService {
+
+    @Resource
+    private EmployeeMapper employeeMapper;
+
+    /**
+     * @Cacheable 将方法的运行结果进行缓存，以后再要相同的数据，直接从缓存中获取，不用调用方法。
+     * CacheManager管理多个Cache组件，每个缓存组件有自己唯一的名字。
+     *
+     * 运行时机：先查缓存，再运行目标方法。
+     *
+     * @Cacheable 的属性：
+     *      value/cacheNames：指定缓存的名字。
+     *      key：缓存数据时使用的key。默认是使用方法参数的值！ key = "#id" 可以使用SpEL表达式。
+     *      keyGenerator：可以自己指定key的生成器。(key和keyGenerator二选一使用)。
+     *      cacheManager：指定缓存管理器。
+     *      cacheResolver：指定缓存解析器。（cacheManager和cacheResolver二选一）。
+     *      condition：指定符合条件的情况下，才进行缓存。
+     *      unless：否定缓存。当unless的条件为true，就不会缓存。（unless和condition用法相反）。
+     *      sync：是否使用同步模式。
+     *
+     */
+    @Cacheable(cacheNames = {"employee"}, key = "#root.args[0]")
+    public SimpleResponse getEmployeeById(Integer id) {
+        Employee employee = employeeMapper.getEmployeeById(id);
+        if (employee == null) {
+            return new SimpleResponse(404, "数据库没有该员工！", null);
+        }
+        return new SimpleResponse(200, "查询成功", employee);
+    }
+}
+```
+
+> @CachePut
+
+```java
+	/**
+     * @CachePut 既调用方法又更新缓存数据。
+     * 修改了数据库的某个数据，同时更新缓存
+     * 运行时机：
+     *     1.先调用目标方法
+     *     2.将目标方法的结果缓存起来
+     */
+    @CachePut(cacheNames = {"employee"}, key = "#employee.id")
+    public SimpleResponse updateEmployee(Employee employee) {
+        Integer ret = employeeMapper.updateEmployee(employee);
+        if (ret > 0) {
+            return new SimpleResponse(200, "修改成功", 
+                                      employeeMapper.getEmployeeById(employee.getId()));
+        }
+        return new SimpleResponse(500, "修改失败", null);
+    }
+```
+
+> @CacheEvict
+
+```java
+    /**
+     * @CacheEvict 缓存清除
+     *
+     *  key：指定要清除的缓存的key。
+     *  allEntries：是否清除所有缓存。默认是false。
+     *  beforeInvocation：缓存的清除是否在方法执行之前清除。默认是false，代表在方法执行之后才清除缓存。
+     *      beforeInvocation=true：无论目标方法是否异常。缓存都会被清除！
+     */
+    @CacheEvict(cacheNames = {"employee"}, key = "#id", beforeInvocation = true)
+    public SimpleResponse deleteEmployee(Integer id) {
+        Integer ret = employeeMapper.deleteEmployee(id);
+        if (ret > 0) {
+            return new SimpleResponse(200, "删除成功", ret);
+        }
+        return new SimpleResponse(500, "删除失败", ret);
+    }
+```
+
+> @Caching
+
+
+
+## 10.3.缓存工作原理
+
+```java
+// 1、缓存的配置类
+0 = "org.springframework.boot.autoconfigure.cache.GenericCacheConfiguration"
+1 = "org.springframework.boot.autoconfigure.cache.JCacheCacheConfiguration"
+2 = "org.springframework.boot.autoconfigure.cache.EhCacheCacheConfiguration"
+3 = "org.springframework.boot.autoconfigure.cache.HazelcastCacheConfiguration"
+4 = "org.springframework.boot.autoconfigure.cache.InfinispanCacheConfiguration"
+5 = "org.springframework.boot.autoconfigure.cache.CouchbaseCacheConfiguration"
+6 = "org.springframework.boot.autoconfigure.cache.RedisCacheConfiguration"
+7 = "org.springframework.boot.autoconfigure.cache.CaffeineCacheConfiguration"
+8 = "org.springframework.boot.autoconfigure.cache.SimpleCacheConfiguration"
+9 = "org.springframework.boot.autoconfigure.cache.NoOpCacheConfiguration"
+
+// 2、SpringBoot默认使用的是SimpleCacheConfiguration
+SimpleCacheConfiguration matched:
+- Cache org.springframework.boot.autoconfigure.cache.SimpleCacheConfiguration automatic cache type (CacheCondition)
+- @ConditionalOnBean (types: org.springframework.cache.CacheManager; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+// 3、SimpleCacheConfiguration给容器中加入了ConcurrentMapCacheManager
+ConcurrentMapCacheManager可以获取和创建ConcurrentMapCache类型的组件
+
+// 4、缓存的运行流程
+    public Cache getCache(String name) {
+    Cache cache = this.cacheMap.get(name);
+    if (cache == null && this.dynamic) {
+        synchronized (this.cacheMap) {
+            cache = this.cacheMap.get(name);
+            if (cache == null) {
+                cache = createConcurrentMapCache(name);
+                this.cacheMap.put(name, cache);
+            }
+        }
+    }
+    return cache;
+    }
+(1)目标方法在发送SQL之前，先去查询Cache(缓存组件)，按照CacheNames指定的名字获取。CacheManager先获取相应的缓存，第一次获取如果没有Cache组件会自动创建。
+(2)去Cache中查找缓存的内容，使用一个key，默认就是方法的参数名。key是按照某种策略生成的。
+(3)没有查到缓存就调用目标方法。
+(4)将目标方法返回的结果放到缓存中。
+```
+
+## 10.4.自定义KeyGenerator
+
+> 定义KeyGenerator
+
+```java
+@Configuration
+public class CacheConf {
+    @Bean(name = "myKeyGenerator")
+    public KeyGenerator keyGenerator() {
+        return new KeyGenerator() {
+            @Override
+            public Object generate(Object target, Method method, Object... params) {
+                return method.getName() + "[" + Arrays.asList(params).toString() + "]";
+            }
+        };
+    }
+}
+```
+
+> 使用KeyGenerator
+
+```java
+@Cacheable(cacheNames = {"employee"}, keyGenerator = "myKeyGenerator")
+public SimpleResponse getEmployeeById(Integer id) {
+    Employee employee = employeeMapper.getEmployeeById(id);
+    if (employee == null) {
+        return new SimpleResponse(404, "数据库没有该员工！", null);
+    }
+    return new SimpleResponse(200, "查询成功", employee);
+}
+```
+
+## 10.5.Redis缓存
+
+> 依赖
+
+```xml
+<!--redis-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+导入Redis依赖，SpringBoot缓存就使用了Redis。
+
+
+
+> 配置RedisCacheManager
+
+```java
+package com.ymy.spring.boot.cache.conf;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.net.UnknownHostException;
+import java.time.Duration;
+
+@Configuration
+public class RedisConf {
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory factory) {
+        RedisSerializer<String> redisSerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+
+        //解决查询缓存转换异常的问题
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
+        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+
+        // 配置序列化（解决乱码的问题）
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
+                .disableCachingNullValues();
+
+        RedisCacheManager cacheManager = RedisCacheManager.builder(factory)
+                .cacheDefaults(config)
+                .build();
+        return cacheManager;
+    }
+}
+```
+
+# 11.定时任务
+
+```java
+@Service
+public class ScheduledService {
+    /**
+     * @Scheduled 定时任务
+     * second, minute, hour, day of month, month, and day of week
+     * 0 * * * * MON-TUE：任意月的星期二的每个整分钟都会调用一次该方法
+     */
+    @Scheduled(cron = "0 * * * * MON-TUE")
+    public void hello() {
+        System.out.println("hello");
+    }
+}
+
+@EnableScheduling // @EnableScheduling需要开启定时任务功能！
+@SpringBootApplication
+public class SpringBoot10TaskApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SpringBoot10TaskApplication.class, args);
+    }
+}
+```
+
+**cron表达式**
+
+| 字段 | 允许值         | 允许的特殊字符                   |
+| ---- | -------------- | -------------------------------- |
+| 秒   | 0-59           | `,` `-` `*` `/`                  |
+| 分   | 0-59           | `,` `-` `*` `/`                  |
+| 小时 | 0-23           | `,` `-` `*` `/`                  |
+| 日期 | 1-31           | `,` `-` `*` `/` `?` `L` `W` `C`  |
+| 月份 | 1-12           | `,` `-` `*` `/`                  |
+| 星期 | 0-7或者SUN—SAT | `,` `-` `*` `/` `?` `L`  `C` `#` |
+
+
+
+**特殊字符的含义**
+
+| 特殊字符 | 含义                       |
+| -------- | -------------------------- |
+| `,`      | 枚举                       |
+| `_`      | 区间                       |
+| `*`      | 任意                       |
+| `/`      | 步长                       |
+| `?`      | 日/星期冲突匹配            |
+| `L`      | 最后                       |
+| `W`      | 工作日                     |
+| `C`      | 和calendar联系后计算过的值 |
+| `#`      | 星期，4#2，第二个星期四    |
+
+# 12.邮件任务
+
+> 依赖
+
+```xml
+<!--mail-->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+```
+
+> 配置
+
+```yaml
+spring:
+  mail:
+    username: 1466637477@qq.com # 配置发送的邮箱
+    password: oexnnqprsuqngcbj # 配置邮箱的授权码
+    host: smtp.qq.com  # 邮箱服务器地址
+```
+
+> 测试发送简单邮件
+
+```java
+@Resource
+private JavaMailSenderImpl mailSender;
+
+@Test
+public void senderSimpleEmail() {
+    SimpleMailMessage mail = new SimpleMailMessage();
+    // 邮件的标题
+    mail.setSubject("测试发送邮件");
+    // 邮件的内容
+    mail.setText("********测试********");
+    // 邮件发送给谁
+    mail.setTo("YmyLearning@163.com");
+    // 谁发送的！
+    mail.setFrom("1466637477@qq.com");
+    mailSender.send(mail);
+}
+```
+
+> 测试发送复杂邮件
+
+```java
+@Resource
+private JavaMailSenderImpl mailSender;
+
+@Test
+public void senderEmail() throws Exception{
+    // 1、创建一个复杂的消息邮件
+    MimeMessage mimeMessage = mailSender.createMimeMessage();
+    // multipart为true 表示要上传文件
+    MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
+
+    // 2、设计邮件内容
+    mimeMessageHelper.setSubject("测试发送复杂邮件");
+    mimeMessageHelper.setText("<b>今天7点30开会</b>", true);
+    mimeMessageHelper.addAttachment("毕业声登记表.pdf", new File("C:\\Users\\14666\\Desktop\\毕业声登记表.pdf"));
+    mimeMessageHelper.setTo("YmyLearning@163.com");
+    mimeMessageHelper.setFrom("1466637477@qq.com");
+
+    // 3、发送邮件
+    mailSender.send(mimeMessage);
+}
+```
+
