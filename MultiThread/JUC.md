@@ -1,11 +1,87 @@
-[目录]
+# [目录]
 
 - [1.基础回顾](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#1%E5%9F%BA%E7%A1%80%E5%9B%9E%E9%A1%BE)
+
   - [1.1.什么是JUC？](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#11%E4%BB%80%E4%B9%88%E6%98%AFjuc)
   - [1.2.线程和进程？](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#12%E7%BA%BF%E7%A8%8B%E5%92%8C%E8%BF%9B%E7%A8%8B)
   - [1.3.并发和并行](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#13%E5%B9%B6%E5%8F%91%E5%92%8C%E5%B9%B6%E8%A1%8C)
   - [1.4.线程有几个状态？](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#14%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%87%A0%E4%B8%AA%E7%8A%B6%E6%80%81)
   - [1.5.wait和sleep的区别](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#15wait%E5%92%8Csleep%E7%9A%84%E5%8C%BA%E5%88%AB)
+
+- [2.Lock锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#2lock%E9%94%81)
+
+  - [2.1.Synchronized](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#21synchronized)
+  - [2.2.公平锁和非公平锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#22%E5%85%AC%E5%B9%B3%E9%94%81%E5%92%8C%E9%9D%9E%E5%85%AC%E5%B9%B3%E9%94%81)
+  - [2.3.Lock锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#23lock%E9%94%81)
+
+- [3.生产者和消费者问题](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#3%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85%E9%97%AE%E9%A2%98)
+
+  - [3.1.防止线程的虚假唤醒](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#31%E9%98%B2%E6%AD%A2%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%99%9A%E5%81%87%E5%94%A4%E9%86%92)
+  - [3.2.Synchronized版本](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#32synchronized%E7%89%88%E6%9C%AC)
+  - [3.3.Lock版本精准通知](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#33lock%E7%89%88%E6%9C%AC%E7%B2%BE%E5%87%86%E9%80%9A%E7%9F%A5)
+
+- [4.集合类不安全](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#4%E9%9B%86%E5%90%88%E7%B1%BB%E4%B8%8D%E5%AE%89%E5%85%A8)
+
+  - [4.1.List](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#41list)
+  - [4.2.Set](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#42set)
+  - [4.3.Map](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#43map)
+
+- [5.Callable](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#5callable)
+
+- [6.常用辅助类](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#6%E5%B8%B8%E7%94%A8%E8%BE%85%E5%8A%A9%E7%B1%BB)
+
+  - [6.1.CountDownLatch](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#61countdownlatch)
+  - [6.2.CyclicBarrier](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#62cyclicbarrier)
+  - [6.3.Semaphore](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#63semaphore)
+
+- [7.读写锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#7%E8%AF%BB%E5%86%99%E9%94%81)
+
+- [8.阻塞队列](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#8%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97)
+
+  - [8.1.BlockingQueue](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#81blockingqueue)
+  - [8.2.SynchronousQueue](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#82synchronousqueue)
+
+- [9.线程池](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#9%E7%BA%BF%E7%A8%8B%E6%B1%A0)
+
+  - [9.1.线程池介绍](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#91%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BB%8B%E7%BB%8D)
+  - [9.2.三大方法](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#92%E4%B8%89%E5%A4%A7%E6%96%B9%E6%B3%95)
+  - [9.3.七大参数](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#93%E4%B8%83%E5%A4%A7%E5%8F%82%E6%95%B0)
+  - [9.4.四种拒绝策略](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#94%E5%9B%9B%E7%A7%8D%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5)
+
+  - [9.5.小结](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#95%E5%B0%8F%E7%BB%93)
+
+- [10.四大函数式接口](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#10%E5%9B%9B%E5%A4%A7%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3)
+
+  - [10.1.函数式接口](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#101%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3)
+  - [10.2.断定型接口](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#102%E6%96%AD%E5%AE%9A%E5%9E%8B%E6%8E%A5%E5%8F%A3)
+  - [10.3.消费型接口](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#103%E6%B6%88%E8%B4%B9%E5%9E%8B%E6%8E%A5%E5%8F%A3)
+  - [10.4.供给型接口](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#104%E4%BE%9B%E7%BB%99%E5%9E%8B%E6%8E%A5%E5%8F%A3)
+
+- [11.Stream流式计算](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#11stream%E6%B5%81%E5%BC%8F%E8%AE%A1%E7%AE%97)
+
+- [12.ForkJoin](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#12forkjoin)
+
+  - [12.1.什么是ForkJoin？](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#121%E4%BB%80%E4%B9%88%E6%98%AFforkjoin)
+  - [12.2.ForkJoin的使用](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#122forkjoin%E7%9A%84%E4%BD%BF%E7%94%A8)
+
+- [13.异步回调](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#13%E5%BC%82%E6%AD%A5%E5%9B%9E%E8%B0%83)
+
+- [14.JMM](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#14jmm)
+
+- [15.volatile](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#15volatile)
+
+- [16.单例模式](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#16%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F)
+
+- [17.CAS](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#17cas)
+
+- [18.原子引用ABA问题](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#18%E5%8E%9F%E5%AD%90%E5%BC%95%E7%94%A8aba%E9%97%AE%E9%A2%98)
+
+- [19.各种锁的理解](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#19%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E7%90%86%E8%A7%A3)
+
+  - [19.1.公平锁和非公平锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#191%E5%85%AC%E5%B9%B3%E9%94%81%E5%92%8C%E9%9D%9E%E5%85%AC%E5%B9%B3%E9%94%81)
+  - [19.2.可重入锁](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#192%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81)
+
+- [20.死锁排查](https://github.com/RingoTangs/LearningNote/blob/master/MultiThread/JUC.md#20%E6%AD%BB%E9%94%81%E6%8E%92%E6%9F%A5)
 
 # 1.基础回顾
 
