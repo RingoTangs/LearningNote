@@ -1672,7 +1672,7 @@ Redis是内存数据库，如果不将内存中的数据库状态保存到磁盘
 
 > RDB基本介绍
 
-<img src="http://img1.tuicool.com/NjYjYvF.png!web?_=6182478" alt="RDB" style="zoom:150%;" />
+![RDB](https://img-blog.csdnimg.cn/20200801140759756.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
 
 - RDB持久化是指在指定的时间间隔内将内存中的数据集快照写入磁盘，实际操作过程是fork一个子进程，先将数据集写入临时文件，写入成功后，再替换之前的文件，用二进制压缩存储。
 - **RDB保存的文件是dump.rdb。**
@@ -1707,7 +1707,7 @@ Redis是内存数据库，如果不将内存中的数据库状态保存到磁盘
 
 > AOF基本介绍
 
-<img src="http://img2.tuicool.com/YrqaY3f.png!web?_=6182478" alt="AOF" style="zoom:150%;" />
+![AOF](https://img-blog.csdnimg.cn/20200801141125975.png)
 
 - AOF将我们所有的命令都记录下来，恢复的时候就把这个文件全部在执行一遍。
 - **AOF只记录写的操作。**
