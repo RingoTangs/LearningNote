@@ -1321,29 +1321,28 @@ spring:
      @Bean
      @ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
      public DefaultErrorAttributes errorAttributes() {
-     return new DefaultErrorAttributes(this.serverProperties.getError().isIncludeException());
+         return new DefaultErrorAttributes(this.serverProperties.getError().isIncludeException());
      }
-     ```
-
-@Bean
-@ConditionalOnMissingBean(value = ErrorController.class, search = SearchStrategy.CURRENT)
-public BasicErrorController basicErrorController(ErrorAttributes errorAttributes,
-                                                 ObjectProvider<ErrorViewResolver> errorViewResolvers) {
-    return new BasicErrorController(errorAttributes, this.serverProperties.getError(),
-                                    errorViewResolvers.orderedStream().collect(Collectors.toList()));
-}
-
-@Bean
-public ErrorPageCustomizer errorPageCustomizer(DispatcherServletPath dispatcherServletPath) {
-    return new ErrorPageCustomizer(this.serverProperties, dispatcherServletPath);
-}
-
-@Bean
-@ConditionalOnBean(DispatcherServlet.class)
-@ConditionalOnMissingBean(ErrorViewResolver.class)
-DefaultErrorViewResolver conventionErrorViewResolver() {
-    return new DefaultErrorViewResolver(this.applicationContext, this.resourceProperties);
-}
+     
+     @Bean
+     @ConditionalOnMissingBean(value = ErrorController.class, search = SearchStrategy.CURRENT)
+     public BasicErrorController basicErrorController(ErrorAttributes errorAttributes,
+                                                      ObjectProvider<ErrorViewResolver> errorViewResolvers) {
+         return new BasicErrorController(errorAttributes, this.serverProperties.getError(),
+                                         errorViewResolvers.orderedStream().collect(Collectors.toList()));
+     }
+     
+     @Bean
+     public ErrorPageCustomizer errorPageCustomizer(DispatcherServletPath dispatcherServletPath) {
+         return new ErrorPageCustomizer(this.serverProperties, dispatcherServletPath);
+     }
+     
+     @Bean
+     @ConditionalOnBean(DispatcherServlet.class)
+     @ConditionalOnMissingBean(ErrorViewResolver.class)
+     DefaultErrorViewResolver conventionErrorViewResolver() {
+         return new DefaultErrorViewResolver(this.applicationContext, this.resourceProperties);
+     }
      ```
 
 - 执行步骤
@@ -1353,106 +1352,107 @@ DefaultErrorViewResolver conventionErrorViewResolver() {
     // ErrorPageCustomizer会拿到path。
     @Value("${error.path:/error}")
     private String path = "/error";   // 系统出现错误后会来到/error请求进行处理
-    ```
-
-// 2、BasicErrorController处理默认/error请求
-@Controller
-@RequestMapping("${server.error.path:${error.path:/error}}")
-public class BasicErrorController extends AbstractErrorController {
     
-    // MediaType.TEXT_HTML_VALUE = "text/html"
-    // 该方法就是产生HTML的数据
-    // 浏览器发送的请求来到这个方法处理
-    @RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
-        HttpStatus status = getStatus(request);
-        Map<String, Object> model = Collections
-            .unmodifiableMap(getErrorAttributes(request, isIncludeStackTrace(request, MediaType.TEXT_HTML)));
-        response.setStatus(status.value());
-        
-        // 去哪个页面作为错误页面，包含页面地址和页面内容
-        ModelAndView modelAndView = resolveErrorView(request, response, status, model);
-        return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
-    }
+    // 2、BasicErrorController处理默认/error请求
+    @Controller
+    @RequestMapping("${server.error.path:${error.path:/error}}")
+    public class BasicErrorController extends AbstractErrorController {
+        // MediaType.TEXT_HTML_VALUE = "text/html"
+        // 该方法就是产生HTML的数据
+        // 浏览器发送的请求来到这个方法处理
+        @RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
+        public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+            HttpStatus status = getStatus(request);
+            Map<String, Object> model = Collections
+                .unmodifiableMap(getErrorAttributes(request, isIncludeStackTrace(request, MediaType.TEXT_HTML)));
+            response.setStatus(status.value());
     
-    protected ModelAndView resolveErrorView(HttpServletRequest request, HttpServletResponse response,   HttpStatus status,Map<String, Object> model) {
-        // 所有的ErrorViewResolver得到ModelAndView
-        for (ErrorViewResolver resolver : this.errorViewResolvers) {
-            ModelAndView modelAndView = resolver.resolveErrorView(request, status, model);
-            if (modelAndView != null) {
-                return modelAndView;
+            // 去哪个页面作为错误页面，包含页面地址和页面内容
+            ModelAndView modelAndView = resolveErrorView(request, response, status, model);
+            return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
+        }
+    
+        protected ModelAndView resolveErrorView(HttpServletRequest request, HttpServletResponse response,   HttpStatus status,Map<String, Object> model) {
+            // 所有的ErrorViewResolver得到ModelAndView
+            for (ErrorViewResolver resolver : this.errorViewResolvers) {
+                ModelAndView modelAndView = resolver.resolveErrorView(request, status, model);
+                if (modelAndView != null) {
+                    return modelAndView;
+                }
             }
+            return null;
         }
-        return null;
+    
+        // 产生json数据
+        // 其他客户端发送的请求来到这个方法处理
+        @RequestMapping
+        public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
+            HttpStatus status = getStatus(request);
+            if (status == HttpStatus.NO_CONTENT) {
+                return new ResponseEntity<>(status);
+            }
+            Map<String, Object> body = getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL));
+            return new ResponseEntity<>(body, status);
+        }
     }
     
-    // 产生json数据
-    // 其他客户端发送的请求来到这个方法处理
-    @RequestMapping
-    public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
-        HttpStatus status = getStatus(request);
-        if (status == HttpStatus.NO_CONTENT) {
-            return new ResponseEntity<>(status);
-        }
-        Map<String, Object> body = getErrorAttributes(request, isIncludeStackTrace(request, MediaType.ALL));
-        return new ResponseEntity<>(body, status);
-    }
-}
+    // 3、DefaultErrorViewResolver来得到ModelAndview
+    public class DefaultErrorViewResolver implements ErrorViewResolver, Ordered {
     
-// 3、DefaultErrorViewResolver来得到ModelAndview
-public class DefaultErrorViewResolver implements ErrorViewResolver, Ordered {
-
-	private static final Map<Series, String> SERIES_VIEWS;
-	
-	static {
-		Map<Series, String> views = new EnumMap<>(Series.class);
-		views.put(Series.CLIENT_ERROR, "4xx");
-		views.put(Series.SERVER_ERROR, "5xx");
-		SERIES_VIEWS = Collections.unmodifiableMap(views);
-	}
-	
-		@Override
-	public ModelAndView resolveErrorView(HttpServletRequest request, HttpStatus status, Map<String, Object> model) {
-		ModelAndView modelAndView = resolve(String.valueOf(status.value()), model);
-		if (modelAndView == null && SERIES_VIEWS.containsKey(status.series())) {
-			modelAndView = resolve(SERIES_VIEWS.get(status.series()), model);
-		}
-		return modelAndView;
-	}
-	
-	private ModelAndView resolve(String viewName, Map<String, Object> model) {
-	    // SpringBoot可以在error目录下找到页面
-	    String errorViewName = "error/" + viewName;
-	    
-	    // 如果模板引擎能解析这个地址，就用模板引擎解析
-	    TemplateAvailabilityProvider provider = this.templateAvailabilityProviders.getProvider(errorViewName,
-	                                                                                           this.applicationContext);
-	    if (provider != null) {
-	        // 模板引擎可用的情况下返回到指定view视图地址
-	        return new ModelAndView(errorViewName, model);
-	    }
-	    // 模板引擎不可用调用resolveResource()，在静态资源文件夹下找errorViewName对应的页面 error/404.html
-	    return resolveResource(errorViewName, model);
-	}
-	
-	private ModelAndView resolveResource(String viewName, Map<String, Object> model) {
-	    for (String location : this.resourceProperties.getStaticLocations()) {
-	        try {
-	            Resource resource = this.applicationContext.getResource(location);
-	            resource = resource.createRelative(viewName + ".html");
-	            if (resource.exists()) {
-	                return new ModelAndView(new HtmlResourceView(resource), model);
-	            }
-	        }
-	        catch (Exception ex) {
-	        }
-	    }
-	    return null;
-	}
-}
+        private static final Map<Series, String> SERIES_VIEWS;
+    
+        static {
+            Map<Series, String> views = new EnumMap<>(Series.class);
+            views.put(Series.CLIENT_ERROR, "4xx");
+            views.put(Series.SERVER_ERROR, "5xx");
+            SERIES_VIEWS = Collections.unmodifiableMap(views);
+        }
+    
+        @Override
+        public ModelAndView resolveErrorView(HttpServletRequest request, HttpStatus status, Map<String, Object> model) {
+            ModelAndView modelAndView = resolve(String.valueOf(status.value()), model);
+            if (modelAndView == null && SERIES_VIEWS.containsKey(status.series())) {
+                modelAndView = resolve(SERIES_VIEWS.get(status.series()), model);
+            }
+            return modelAndView;
+        }
+    
+        private ModelAndView resolve(String viewName, Map<String, Object> model) {
+            // SpringBoot可以在error目录下找到页面
+            String errorViewName = "error/" + viewName;
+    
+            // 如果模板引擎能解析这个地址，就用模板引擎解析
+            TemplateAvailabilityProvider provider = this.templateAvailabilityProviders.getProvider(errorViewName,
+                                                                                                   this.applicationContext);
+            if (provider != null) {
+                // 模板引擎可用的情况下返回到指定view视图地址
+                return new ModelAndView(errorViewName, model);
+            }
+            // 模板引擎不可用调用resolveResource()，在静态资源文件夹下找errorViewName对应的页面 error/404.html
+            return resolveResource(errorViewName, model);
+        }
+    
+        private ModelAndView resolveResource(String viewName, Map<String, Object> model) {
+            for (String location : this.resourceProperties.getStaticLocations()) {
+                try {
+                    Resource resource = this.applicationContext.getResource(location);
+                    resource = resource.createRelative(viewName + ".html");
+                    if (resource.exists()) {
+                        return new ModelAndView(new HtmlResourceView(resource), model);
+                    }
+                }
+                catch (Exception ex) {
+                }
+            }
+            return null;
+        }
+    }
     ```
 
-## 6.2.如何地址错误的响应？
+
+
+
+## 6.2.如何定制错误的响应？
 
 ### 6.2.1定制错误页面
 
