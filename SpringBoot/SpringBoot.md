@@ -1461,8 +1461,8 @@ spring:
   - 错误页面可以获取到的信息？`DefaultErrorAttributes`可以帮我们在页面获取信息！
 
      ```java
-  @Override
-  public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+     @Override
+     public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
       Map<String, Object> errorAttributes = new LinkedHashMap<>();
       // 1、可以在错误页面获取到时间戳
       errorAttributes.put("timestamp", new Date());
@@ -1472,7 +1472,8 @@ spring:
       addErrorDetails(errorAttributes, webRequest, includeStackTrace);
       addPath(errorAttributes, webRequest);
       return errorAttributes;
-  }
+         
+     }
      ```
 
 - 没有模板引擎，就会在静态资源文件夹下找error/404.html。
