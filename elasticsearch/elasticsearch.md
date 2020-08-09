@@ -177,7 +177,11 @@ i18n.locale: "zh-CN"   # 重启docker容器这样就可以将kibana汉化了！
 
 # 3.ES核心概念
 
-> elasticsearch是__面向文档__的 关系型数据库 和 elasticsearch客观对比
+## 3.1.基本介绍
+
+**elasticsearch是面向文档的。**
+
+关系型数据库 和 elasticsearch客观对比！一切都是JSON！
 
 | Relational DB    | Elasticsearcg |
 | :--------------- | :------------ |
@@ -192,15 +196,15 @@ elasticsearch(集群)中可以包含多个索引(数据库)，每个索引中可
 
 elasticsearch在后台把每个索引划分成多个分片，每分分片可以在集群中的不同服务器之间迁移！
 
-一个elasticsearch就是一个集群。
+**一个elasticsearch就是一个集群。**默认的集群名称就是`elasticsearch`。
 
 **逻辑设计：**
 
 一个索引类型中，包含多个文档，比如说文档1，文档2。当我们索引一篇文档时，可以通过这样的一个序列找到它：`索引>类型>文档ID`，通过这个组合我们就能索引到某个具体的文档。**注意：ID不必是整数，实际上它是个字符串！**
 
-> 文档
+## 3.2.文档
 
-就是我们的一条条数据
+**文档就类比表中的一条条数据。**
 
 ```md
 user
@@ -208,35 +212,37 @@ user
 2      lisi        3
 ```
 
-之前说elasticsearch是面向文档的，那么就意味着索引和搜索数据的最小单位是文档，elasticsearch中，文档有几个重要的属性：
+之前说`elasticsearch`是面向文档的，那么就意味着索引和搜索数据的最小单位是文档，`elasticsearch`中，文档有几个重要的属性：
 
-- 自我包含，一篇文档同时包含字段和对应的值，也就是同时包含key-value。
+- 自我包含，一篇文档同时包含字段和对应的值，也就是同时包含`key-value`。
 - 可以是层次型的，一个文档中包含自文档，复杂的逻辑实体就是这么来的！
-- 灵活的结构，文档不依赖预先定义的模式，我们知道关系型数据库中，要提前定义字段才能使用，在elasticsearch中，对于字段是非常灵活的，有时候，我们可以忽略该字段，或者动态的添加一个新的字段。
+- 灵活的结构，文档不依赖预先定义的模式，我们知道关系型数据库中，要提前定义字段才能使用，在`elasticsearch`中，对于字段是非常灵活的，有时候，我们可以忽略该字段，或者动态的添加一个新的字段。
 
-> 类型
+## 3.3.类型
 
-类型是文档的逻辑容器，就像关系型数据库一样，表格是行的容器。类型中对于字段的定义成为映射，比如name映射为字符串类型。我们说文档是无模式的，他们不需要拥有映射中所定义的所有字段，比如新增一个字段，那么elasticsearch是怎么做的呢？elasticsearch会自动的将新字段加入映射，但是这个字段的不确定它是什么类型，elasticsearch就开始猜，如果这个值是18，那么elasticsearch就会认为它是整型，但是elasticsearch也可能猜不对，所以最安全的办法的是提前定义好所需要的映射，这点跟关系型数据库殊途同归了，先是定义好字段，然后再使用。
+类型是文档的逻辑容器，就像关系型数据库一样，表格是行的容器。类型中对于字段的定义成为映射，比如`name`映射为字符串类型。我们说文档是无模式的，他们不需要拥有映射中所定义的所有字段，比如新增一个字段，那么`elasticsearch`是怎么做的呢？`elasticsearch`会自动的将新字段加入映射，但是这个字段的不确定它是什么类型，`elasticsearch`就开始猜，如果这个值是18，那么`elasticsearch`就会认为它是整型，但是`elasticsearch`也可能猜不对，所以最安全的办法的是提前定义好所需要的映射，这点跟关系型数据库殊途同归了，先是定义好字段，然后再使用。
 
-> 索引
+## 3.4.索引
 
-就是数据库！
+**索引就类比数据库！**
 
-索引是映射类型的容器，elasticsearch中的索引是一个非常大的文档集合。索引存储了映射类型的字段和其他设置。然后它们被存储到了各个分片上。我们来研究下分片是如何工作的。
+索引是映射类型的容器，`elasticsearch`中的索引是一个非常大的文档集合。索引存储了映射类型的字段和其他设置。然后它们被存储到了各个分片上。我们来研究下分片是如何工作的。
 
 
 
 **物理设计：节点和分片 如何工作**
 
-一个集群至少有一个节点，而一个节点就是一个elasticsearch进程，节点可以有多个索引，如果创建索引，那么索引将会有5个分片(primary shard，又称主分片)构成，每一个主分片会有一个副本（replica shard，又称复制分片）。
+一个集群至少有一个节点，而一个节点就是一个`elasticsearch`进程，节点可以有多个索引，如果创建索引，那么索引将会有5个分片(`primary shard`，又称主分片)构成，每一个主分片会有一个副本（`replica shard`，又称复制分片）。
 
-<img src="https://upload-images.jianshu.io/upload_images/13236273-fccfde47aa46d285.png?imageMogr2/auto-orient/strip|imageView2/2/w/1200/format/webp" alt="elasticsearch集群和分片"  />
+![分片](https://img-blog.csdnimg.cn/20200808165624176.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
 
-上图是一个有2个节点的集群，可以直接看到主分片和对应的复制分片都不会在同一个节点内，这样有利于某个节点挂掉了，数据也不会丢失。实际上，一个分片是一个Lucene索引，一个包含__倒排索引__的文件目录，倒排索引的结构使得elasticsearch在不扫描全部文档的情况下，就能告诉你哪些文档包含特定的关键字。不过，倒排索引是什么？
+上图是一个有3个节点的集群，可以直接看到主分片**[P]**和对应的复制分片**[R]**都不会在同一个节点内，这样有利于某个节点挂掉了，数据也不会丢失。实际上，一个分片是一个`Lucene`索引，一个包含__倒排索引__的文件目录，倒排索引的结构使得`elasticsearch`在不扫描全部文档的情况下，就能告诉你哪些文档包含特定的关键字。不过，倒排索引是什么？
 
-> 倒排索引
+## 3.5.倒排索引
 
-elasticsearch使用的是一种称为倒排索引的结构，采用Lucene倒排索引作为底层。这种结构适用于快速的全文检索，一个索引由文档中所有不重复的列表构成，对于每一个词，都有一个包含它的文档列表。例如，现在有两个文档，每个文档包含如下内容：
+> 倒排索引基本介绍
+
+`elasticsearch`使用的是一种称为倒排索引的结构，采用`Lucene`倒排索引作为底层。这种结构适用于快速的全文检索，一个索引由文档中所有不重复的列表构成，对于每一个词，都有一个包含它的文档列表。例如，现在有两个文档，每个文档包含如下内容：
 
 ```shell
 Study every day,good good up to forever # 文档1包含的内容
@@ -268,15 +274,39 @@ To forever,study every day, good good up # 文档2包含的内容
 
 两个文档都匹配，但是第一个文档比第二个匹配程度更高。如果没有别的条件，现在，这两个包含关键字的都将返回。
 
+
+
+> 创建倒排索引步骤
+
+1、创建文档列表：`Lucene`首先对原始文档数据进行编号，形成列表，就是一个文档列表。
+
+![文档列表](https://img-blog.csdnimg.cn/20200808170226686.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
+
+
+
+2、创建倒排索引列表：対原始文档中的数据进行分词，得到词条。対词条进行编号，以词条创建索引。然后记录下包含该词条的所有文档编号及其他信息。
+
+<img src="https://img-blog.csdnimg.cn/20200808170240614.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70" alt="创建倒排索引"  />
+
+
+
+**搜索的过程：**
+
+当用户输入任意的词条时，首先对用户输入的数据进行分词，得到用户要搜索的所有词条，然后拿着这些词条去倒排索引列表中进行匹配。找到这些词条就能找到包含这些词条的所有文档的编号。
+
+然后根据这些编号去文档列表中找到文档。
+
+
+
 # 4.IK分词器插件
 
 ## 4.1.什么是IK分词器？
 
-分词：即把一段中文或者别的划分为一个个的关键字，我们在搜索时候会把自己的信息进行分词，会把数据库中或者索引库中的数据进行分词，然后进行一个匹配操作，默认的中文分词是将每个字看成一个词，比如"我喜欢你"会被分为"我"，"喜"，"欢"，"你"，这显然是不符合要求的，所以我们需要安装中文分词器ik来解决这个问题。
+**分词：**即把一段中文或者别的划分为一个个的关键字，我们在搜索时候会把自己的信息进行分词，会把数据库中或者索引库中的数据进行分词，然后进行一个匹配操作，默认的中文分词是将每个字看成一个词，比如"我喜欢你"会被分为"我"，"喜"，"欢"，"你"，这显然是不符合要求的，所以我们需要安装中文分词器ik来解决这个问题。
 
 如果要使用中文，建议使用ik分词器。
 
-IK提供了两个分词算法：ik_smart和ik_max_word，其中ik_smart为最少切分，ik_max_word为最细粒度划分！
+IK提供了两个分词算法：`ik_smart`和`ik_max_word`，其中`ik_smart`为最少切分，`ik_max_word`为最细粒度划分！
 
 ## 4.2.安装IK分词器插件
 
@@ -295,86 +325,19 @@ IK提供了两个分词算法：ik_smart和ik_max_word，其中ik_smart为最少
 analysis-ik
 ```
 
-> kibana测试IK
+## 4.3.查看不同的分词器
 
-```json
-# 1、ik_smart为最少切分
-# 测试样例
-GET _analyze
-{
-  "analyzer": "ik_smart",
-  "text": "我好喜欢你"
-}
+> ik_smart最少切分
 
-# 结果
-{
-  "tokens" : [
-    {
-      "token" : "我",
-      "start_offset" : 0,
-      "end_offset" : 1,
-      "type" : "CN_CHAR",
-      "position" : 0
-    },
-    {
-      "token" : "好喜欢",
-      "start_offset" : 1,
-      "end_offset" : 4,
-      "type" : "CN_WORD",
-      "position" : 1
-    },
-    {
-      "token" : "你",
-      "start_offset" : 4,
-      "end_offset" : 5,
-      "type" : "CN_CHAR",
-      "position" : 2
-    }
-  ]
-}
+![ik_smart](https://img-blog.csdnimg.cn/2020080817382810.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
 
-# 2、ik_max_word为穷尽词库的可能
-# 测试样例
-GET _analyze
-{
-  "analyzer": "ik_max_word",
-  "text": "我好喜欢你"
-}
 
-# 结果
-{
-  "tokens" : [
-    {
-      "token" : "我",
-      "start_offset" : 0,
-      "end_offset" : 1,
-      "type" : "CN_CHAR",
-      "position" : 0
-    },
-    {
-      "token" : "好喜欢",
-      "start_offset" : 1,
-      "end_offset" : 4,
-      "type" : "CN_WORD",
-      "position" : 1
-    },
-    {
-      "token" : "喜欢",
-      "start_offset" : 2,
-      "end_offset" : 4,
-      "type" : "CN_WORD",
-      "position" : 2
-    },
-    {
-      "token" : "你",
-      "start_offset" : 4,
-      "end_offset" : 5,
-      "type" : "CN_CHAR",
-      "position" : 3
-    }
-  ]
-}
-```
+
+> ik_max_word为最细粒度划分！穷尽所有可能！
+
+![ik_max_word](https://img-blog.csdnimg.cn/20200808174011818.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
+
+
 
 ## 4.3.自定义字典
 
@@ -455,9 +418,9 @@ GET _analyze
 }
 ```
 
-# 5.Rest风格说明
+# 5.关于索引的基本操作
 
-> Rest模板
+## 5.1.Rest模板
 
 | method |                     url地址                     |         描述         |
 | :----: | :---------------------------------------------: | :------------------: |
@@ -468,74 +431,172 @@ GET _analyze
 |  GET   |     localhost:9200/索引名称/类型名称/文档id     |  通过文档id查询文档  |
 |  POST  |    localhost:9200/索引名称/类型名称/_search     |     查询所有数据     |
 
-> kibana基础测试
+## 5.2.添加索引
 
 当然不是只有`kibana`可以测试，使用其他软件如`Postman`或者T`alend APT Tester`都可以。
 
-```json
-# 测试创建一个索引
+```shell
+# 使用Postman测试 
 
-# 1、kibana语法
-# 当然也可用Postman等软件来测试
-PUT /索引名/类型名/文档id
+# 基本语法
+POST请求 http://39.97.3.60:9200/索引名/~类型名~/文档id
+{请求体}
+
+# 1、测试创建索引(添加了文档)
+POST请求 http://39.97.3.60:9200/test1/_doc/1
 {
-    请求体
+   "name": "Ringo",
+   "age": 3
 }
 
-# 2、执行语句
-PUT /index1/type/1
+# 2、测试创建索引规则(不添加文档)
+PUT请求 http://39.97.3.60:9200/test2
 {
-  "name": "Ringo",
-  "age": 18
-}
-
-# 3、执行结果
-{
-  "_index" : "index1",
-  "_type" : "type",
-  "_id" : "1",
-  "_version" : 2,
-  "result" : "updated",
-  "_shards" : {
-    "total" : 2,
-    "successful" : 1,
-    "failed" : 0
-  },
-  "_seq_no" : 1,
-  "_primary_term" : 1
-}
-
-# 4、可以在elasticsearch-head中去查看索引！
-```
-
-> 创建索引
-
-```json
-PUT /test2
-{
-  "mappings": {
-    "properties": {
-      "name": {
-        "type": "text"
-      },
-      "age": {
-        "type": "long"
-      },
-      "birthday": {
-        "type": "date"
+   "mappings": {
+      "properties": {
+         "name": {
+            "type": "text"           
+         },
+         "age": {
+            "type": "long"
+         },
+         "birthday": {
+            "type": "date"
+         }
       }
+   }
+}
+
+# 3、获取索引具体的信息
+GET请求 http://39.97.3.60:9200/test2
+```
+
+## 5.3.查看索引默认信息
+
+```shell
+# 1、创建索引并添加数据
+POST请求 http://39.97.3.60:9200/test3/_doc/1
+{
+	"name": "Ringo",
+	"age": 18,
+	"birth": "1997-11-13"
+}
+
+# 2、我们自己没有为索引写mapping映射查看索引默认的信息
+GET请求 http://39.97.3.60:9200/test3
+
+# 返回的结果，ES给我们的字段自动加上了类型
+{
+    "test3": {
+        "aliases": {},
+        "mappings": {
+            "properties": {
+                "age": {
+                    "type": "long"
+                },
+                "birth": {
+                    "type": "date"
+                },
+                "name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                }
+            }
+        },
     }
-  }
 }
 ```
+
+如果自己的文档字段没有指定类型，那么`elasticsearch`就会给我们默认配置字段类型！
+
+
+
+## 5.4.扩展命令
+
+```shell
+# 1、查看ElasticSearch健康状态
+GET请求 http://39.97.3.60:9200/_cat/health
+
+# 2、查看ElasticSearch详细信息
+GET请求 http://39.97.3.60:9200/_cat/indices?v
+```
+
+## 5.5.修改索引
+
+```shell
+# 方式一：修改文档
+PUT请求 http://39.97.3.60:9200/test3/_doc/1
+
+{
+	"name": "Ringo",
+	"age": 18,
+	"birth": "1997-11-13"
+}
+
+# 返回结果
+{
+    "_index": "test3",
+    "_type": "_doc",
+    "_id": "1",
+    "_version": 3,     # 发现修改一次之后版本号会增加1
+    "result": "updated",
+    "_shards": {
+        "total": 2,
+        "successful": 1,
+        "failed": 0
+    },
+}
+
+# 方式二：修改文档
+POST请求 http://39.97.3.60:9200/test3/_doc/1/_update
+
+{
+	"doc": {
+		"name": "Ringo",
+		"age": 19,
+		"birth": "1997-11-13"
+	}
+}
+
+# 返回结果
+{
+    "_index": "test3",
+    "_type": "_doc",
+    "_id": "1_update",
+    "_version": 3,
+    "result": "updated",
+    "_shards": {
+        "total": 2,
+        "successful": 1,
+        "failed": 0
+    },
+}
+```
+
+## 5.6.删除索引
+
+```shell
+# 1、删除索引
+DELETE请求 http://39.97.3.60:9200/test1
+
+# 2、删除文档
+DELETE请求 http://39.97.3.60:9200/test3/_doc/1
+```
+
+
 
 # 6.关于文档的基本操作
 
-## 6.1.简单查询
+## 6.1.基本操作
 
-```json
-# 创建文档
-PUT /ringo/user/1
+```shell
+# 1、创建文档
+POST请求 http://39.97.3.60:9200/ringo/_doc/1
 {
   "name": "RingoTangs",
   "age": 18,
@@ -543,155 +604,184 @@ PUT /ringo/user/1
   "tags": ["阳光","喜欢篮球","喜欢学习"]
 }
 
-# 带参数查询
-GET /ringo/user/_search?q=tags:"学"
+# 2、获取数据
+GET请求 http://39.97.3.60:9200/ringo/_doc/1
+
+# 3、更新数据,PUT如果不写全字段就会被覆盖
+PUT请求 http://39.97.3.60:9200/ringo/_doc/3
+
+{
+  "name": "李四233",
+  "age": 30,
+  "describe": "法外狂徒，李四",
+  "tags": ["靓仔","喜欢唱歌","喜欢学习"]
+}
+
+# 4、推荐使用POST来更新,自由度很高，携带的JSON可以只写修改字段
+POST请求 http://39.97.3.60:9200/ringo/_doc/3/_update
+
+{
+   "doc": {
+      "name": "李四999"
+	}
+}
 ```
 
-## 6.2.复杂查询
 
-```json
-# 1、带上查询条件，默认返回全部字段
-GET /ringo/user/_search
+
+## 6.2.简单查询
+
+```shell
+# 1、简单的条件查询
+GET请求 http://39.97.3.60:9200/ringo/_search?q=name:张三
+
+GET请求 http://39.97.3.60:9200/ringo/_search?q=tags:篮球
+```
+
+
+
+## 6.3.复杂查询
+
+```shell
+# 1、带上查询条件，match只要名字中有"张三"的都会被检索出来
+POST请求 http://39.97.3.60:9200/ringo/_search
+
 {
-  "query": {
-    "match": {
-      "name": "RingoTangs"
-    }
-  }
+	"query": {
+		"match": {
+			"name": "张三"
+		}
+	}
 }
 
-# 2、查询结果返回指定字段
-GET /ringo/user/_search
-{
-  "query": {
-    "match": {
-      "name": "RingoTangs"
-    }
-  },
-  "_source": ["name","age"]      # 结果的过滤
-}
+# 2、查询结果返回具体的字段,使用"_source"
+POST请求 http://39.97.3.60:9200/ringo/_search
 
-# 3、通过某个字段进行排序
-GET /ringo/user/_search
 {
-  "query": {
-    "match": {
-      "name": "RingoTangs"
-    }
-  },
-  "sort": [
-    {
-      "age": {
-        "order": "asc"
-      }
-    }
-  ]
-}
-
-# 4、分页查询
-GET /ringo/user/_search
-{
-  "query": {
-    "match": {
-      "name": "RingoTangs"
-    }
-  },
-  "from": 0, # 从第几个数据开始 数据下标是从0开始
-  "size": 1 # 返回多少条数据
-}
-
-# 5、must命令多条件查询，所有条件都要符合！等价于and
-GET /ringo/user/_search
-{
-  "query": {
-    "bool": {
-      "must": [          # must 等价于and
-        {
-          "match": {
-            "name": "RingoTangs"
-          }
-        },
-        {
-          "match": {
-            "age": 18
-          }
-        }
-      ]
-    }
-  }
-}
-
-# 4、should有一个条件符合即可，等价于or
-GET /ringo/user/_search
-{
-  "query": {
-    "bool": {
-      "should": [    # should等价于or
-        {
-          "match": {
-            "name": "RingoTangs"
-          }
-        },
-        {
-          "match": {
-            "age": 3
-          }
-        }
-      ]
-    }
-  }
+	"query": {
+		"match": {
+			"name": "张三"
+		}
+	},
+	"_source": ["name", "age"]
 }
 
 
-# 5、must_not查询年龄不是3岁的人
-GET /ringo/user/_search
+# 3、查询结果排序,使用"sort",通过某个字段进行排序
+POST请求 http://39.97.3.60:9200/ringo/_search
+
 {
-  "query": {
-    "bool": {
-      "must_not": [      # 等价于"非"
-        {
-          "match": {
-            "age": 3
-          }
-        }
-      ]
-    }
-  }
+	"query": {
+		"match": {
+			"name": "张三"
+		}
+	},
+	"_source": ["name", "age"],
+	"sort": [{
+		"age": {
+			"order": "asc"
+		}
+	}]
 }
 
-# 6、查询结果添加过滤器
+# 4、分页查询 "from"从哪里开始,“size"每页显示几条数据
+POST请求 http://39.97.3.60:9200/ringo/_search
+
+{
+	"query": {
+		"match": {
+			"name": "张三"
+		}
+	},
+	"_source": ["name", "age"],
+	"from": 0,
+	"size": 1
+}
+
+# 5、通过"bool"和"must"组合使用，可以多条件组合查询,等价于and
+# 会把name="张三"和age=30的文档查出来
+POST请求 http://39.97.3.60:9200/ringo/_search
+{
+	"query": {
+		"bool": {
+			"must": [{
+				"match": {
+					"name": "张三"
+				}
+			}, {
+				"match": {
+					"age": 30
+				}
+			}]
+		}
+	}
+}
+
+# 4、"should"有一个条件符合即可，等价于or
+# 会把name="张三"或者age=18的文档查出来
+POST请求 http://39.97.3.60:9200/ringo/_search
+
+{
+	"query": {
+		"bool": {
+			"should": [{
+				"match": {
+					"name": "张三"
+				}
+			}, {
+				"match": {
+					"age": 18
+				}
+			}]
+		}
+	}
+}
+
+
+# 5、"must_not"查询年龄不是18岁的人
+POST请求 http://39.97.3.60:9200/ringo/_search
+
+{
+	"query": {
+		"bool": {
+			"must_not": [{
+				"match": {
+					"age": 18
+				}
+			}]
+		}
+	}
+}
+
+# 6、查询结果过滤，范围查询
 # gt：大于
 # gte：大于等于
 # lt：小于
 # lte：小于等于
-GET /ringo/user/_search
+POST请求 http://39.97.3.60:9200/ringo/_search
+
 {
-  "query": {
-    "bool": {
-      "must": [
-        {
-          "match": {
-            "name": "RingoTangs"
-          }
-        }
-      ],
-      "filter": [
-        {
-          "range": {     # 按照年龄的范围过滤
-            "age": {
-              "gte": 10,
-              "lte": 20
-            }
-          }
-        }
-      ]
-    }
-  }
+	"query": {
+		"bool": {
+			"must":[{
+				"match": {
+					"name": "张三"
+				}
+			}],
+			"filter": {
+				"range": {
+					"age": {
+						"gt": 19
+					}
+				}
+			}
+		}
+	}
 }
 
-# 7、条件查询 多个条件用空格隔开
-# 通过匹配度可以用权重表示
-GET /ringo/user/_search
+# 7、多条件使用空格隔开，只要满足其中一个结果就可以被查出
+POST请求 http://39.97.3.60:9200/ringo/_search
+
 {
   "query": {
     "match": {
@@ -700,7 +790,7 @@ GET /ringo/user/_search
   }
 }
 
-# 8、精确查询term  term输入的词不会被分词
+# 8、精确查询term  "term"输入的词不会被分词，"match"会使用分词器解析
 # term查询是直接通过倒排索引指定的词条进行精确查找的！
 # 注意：keyword类型的字段不会被分词器解析！！！
 PUT /testdb
@@ -721,7 +811,7 @@ GET /testdb/_search
 {
   "query": {
     "term": {
-      "describe": "Ringo 每天都要好好学习3"
+      "describe": "Ringo 每天都要好好学习"
     }
   }
 }
@@ -752,14 +842,6 @@ GET /testdb/_search
 }
 ```
 
-- 基本查询
-- 按照条件查询
-- 精确匹配
-- 区间范围查询
-- 匹配字段过滤
-- 多条件查询
-- 高亮查询
-
 # 7.SpringBoot整合ES
 
 **官方文档地址：https://www.elastic.co/guide/en/elasticsearch/client/index.html**
@@ -780,7 +862,7 @@ GET /testdb/_search
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <!--注意这里要和我们Linux上安装的客户端版本对应-->
+        <!--重点：注意这里要和我们Linux上安装的客户端版本对应-->
         <elasticsearch.version>7.8.0</elasticsearch.version>
     </properties>
 
@@ -828,6 +910,35 @@ GET /testdb/_search
 </project>
 ```
 
+
+
+`SpringBoot`的依赖中，默认用的`elasticsearch`版本还是6.8.6。我们只需要在我们自己的`pom`文件的`<properties>`修改`elasticsearch`版本为`Linux`服务器上的版本即可。
+
+```xml
+<!--这是SpringBoot依赖管理中使用的ES版本-->
+<properties>
+	<elasticsearch.version>6.8.6</elasticsearch.version>
+</properties>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        ....
+    </dependencies>
+</dependencyManagement>
+```
+
+
+
 > elasticsearch配置
 
 ```java
@@ -839,17 +950,50 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ElasticSearchConf {
-    @Bean
+    @Bean(name = "client")
     public RestHighLevelClient restHighLevelClient() {
-        RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("39.97.3.60",9200)));
+        RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("39.97.3.60", 9200, "http")));
         return client;
     }
 }
 ```
 
+
+
+> ES自动配置
+
+![自动配置](https://img-blog.csdnimg.cn/2020080911062628.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
+
+
+
+`SpringBoot`默认将`RestHighLevelClient`加到了容器中，详情见`org.springframework.boot.autoconfigure.elasticsearch.rest.RestClientConfigurations`。
+
+```java
+package org.springframework.boot.autoconfigure.elasticsearch.rest;
+class RestClientConfigurations {
+    
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(RestHighLevelClient.class)
+    static class RestHighLevelClientConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        RestHighLevelClient elasticsearchRestHighLevelClient(RestClientBuilder restClientBuilder) {
+            return new RestHighLevelClient(restClientBuilder);
+        }
+    }   
+}
+```
+
+
+
+
+
 ## 7.2.关于索引的API操作
 
 ```java
+package com.ymy.elasticsearch;
+
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -857,64 +1001,82 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.GetIndexResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Resource;
+
+/**
+ * ES关于索引的操作
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class TestESAPI {
+public class TestESIdxAPI {
 
-    @Autowired
-    private RestHighLevelClient restHighLevelClient;
+    @Resource
+    private RestHighLevelClient client;
+
+    public static final String INDEX_NAME = "test_es_idx_api";
 
     /**
-     * 1、测试创建索引
+     * 1、创建索引
      */
     @Test
     public void createIndex() throws Exception {
         // 1、创建索引请求
-        CreateIndexRequest request = new CreateIndexRequest("ringo_index");
-        // 2、执行创建请求
-        CreateIndexResponse response = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
+        CreateIndexRequest request = new CreateIndexRequest(INDEX_NAME);
+
+        // 2、执行请求 client.indices()返回対索引操作的对象
+        CreateIndexResponse response = client.indices().create(request, RequestOptions.DEFAULT);
+
         // 3、打印响应
-        System.out.println(response);
+        System.out.println(response.isAcknowledged());
     }
 
     /**
-     * 2、测试获取索引
+     * 2、获取索引
      */
     @Test
-    public void indexIsExists() throws Exception{
-        // 1、获得索引请求
-        GetIndexRequest request = new GetIndexRequest("ringo_index");
-        // 2、执行请求
-        boolean exist = restHighLevelClient.indices().exists(request, RequestOptions.DEFAULT);
-        // 3、打印结果
-        System.out.println(exist);
+    public void getIndex() throws Exception {
+        // 1、获取索引请求
+        GetIndexRequest request = new GetIndexRequest(INDEX_NAME);
+
+        // 2、判断索引是否存在
+        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
+        System.out.println(exists);
+
+        // 3、执行请求
+        GetIndexResponse response = client.indices().get(request, RequestOptions.DEFAULT);
+
+        // 4、获得索引信息
+        System.out.println(response.getSettings());
     }
 
     /**
-     * 3、测试删除索引
+     * 3、删除索引
      */
     @Test
     public void deleteIndex() throws Exception{
         // 1、删除索引请求
-        DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest("ringo_index");
-        // 2、执行请求
-        AcknowledgedResponse ack = restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
-        // 3、打印ack
-        System.out.println(ack.isAcknowledged());
-    }
+        DeleteIndexRequest request = new DeleteIndexRequest(INDEX_NAME);
 
+        // 2、执行请求
+        AcknowledgedResponse response = client.indices().delete(request, RequestOptions.DEFAULT);
+
+        // 3、返回结果
+        System.out.println(response.isAcknowledged());
+    }
 }
 ```
 
 ## 7.3.关于文档的API操作
 
 ```java
+package com.ymy.elasticsearch;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ymy.elasticsearch.entity.User;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -933,11 +1095,9 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -946,159 +1106,192 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+
+/**
+ * ES关于文档的操作
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class TestESDocAPI {
+public class TestESDocAPI2 {
 
     @Resource
-    private RestHighLevelClient restHighLevelClient;
+    private RestHighLevelClient client;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    public static final String INDEX_NAME = "test_es_idx_api";
+
     /**
-     * 1、测试添加文档
+     * 1、添加文档
      */
     @Test
     public void addDocument() throws Exception {
         // 1、创建对象
-        User user = new User("Ringo", "123");
+        User user = new User("张三", "234");
+
         // 2、创建请求
-        IndexRequest indexRequest = new IndexRequest("ringo_index");
-        // 3、设置规则
-        indexRequest.id("1");
-        indexRequest.timeout(TimeValue.timeValueSeconds(100));
-        // 4、将我们的对象放入请求
-        indexRequest.source(objectMapper.writeValueAsString(user), XContentType.JSON);
-        // 5、客户端发送请求
-        IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
-        //6、获取响应结果
-        System.out.println(indexResponse);
-        System.out.println(indexResponse.status()); // CREATED 表示创建成功！
+        IndexRequest request = new IndexRequest(INDEX_NAME);
+
+        // 3、设置规格
+        request.id("1").timeout(TimeValue.timeValueSeconds(5));
+
+        // 4、将数据放入请求
+        request.source(objectMapper.writeValueAsString(user), XContentType.JSON);
+
+        // 5、发送请求
+        IndexResponse response = client.index(request, RequestOptions.DEFAULT);
+
+        // 6、打印响应
+        System.out.println(response.status());  // CREATED 创建成功
+        System.out.println(response.toString());
     }
 
     /**
-     * 2、测试文档判断是否存在
-     * get /ringo_index/_doc/1
+     * 2、获取文档信息
      */
     @Test
-    public void docIsExists() throws Exception {
-        // 1、创建获取文档请求
-        GetRequest getRequest = new GetRequest("ringo_index", "1");
-        // 2、不获取返回的 _source的上下文
-        getRequest.fetchSourceContext(new FetchSourceContext(false));
-        getRequest.storedFields("_none_");
+    public void getDocument() throws Exception {
+        // 1、创建请求
+        GetRequest request = new GetRequest(INDEX_NAME, "1");
+
+        // 不获取"_source"的上下文
+        //request.fetchSourceContext(new FetchSourceContext(false));
+
+        // 2、判断文档是否存在
+        boolean exists = client.exists(request, RequestOptions.DEFAULT);
+        System.out.println(exists);
+
         // 3、执行请求
-        boolean ret = restHighLevelClient.exists(getRequest, RequestOptions.DEFAULT);
-        // 4、打印结果
-        System.out.println(ret);
+        GetResponse response = client.get(request, RequestOptions.DEFAULT);
+
+        // 4、打印响应结果
+        System.out.println(response.isExists());
+        System.out.println(response.getSourceAsMap()); // {password=234, username=张三}
+        System.out.println(response.getSource()); // {password=234, username=张三}
+        System.out.println(response.getSourceAsString()); // {"username":"张三","password":"234"}
     }
 
     /**
-     * 3、测试获取文档信息
+     * 3、更新文档信息
      */
     @Test
-    public void getDocsInfo() throws Exception {
-        // 1、创建获取文档请求
-        GetRequest getRequest = new GetRequest("ringo_index", "1");
-        // 2、执行请求
-        GetResponse getResponse = restHighLevelClient.get(getRequest, RequestOptions.DEFAULT);
-        // 3、打印结果
-        System.out.println(getResponse);
-        System.out.println(getResponse.getSourceAsString());
-    }
+    public void updateDocument() throws Exception {
+        // 1、创建请求
+        UpdateRequest request = new UpdateRequest(INDEX_NAME, "1");
 
-    /**
-     * 4、测试更新文档
-     */
-    @Test
-    public void updateDocsInfo() throws Exception {
-        // 1、创建更新文档请求
-        UpdateRequest updateRequest = new UpdateRequest("ringo_index", "1");
-        updateRequest.timeout(TimeValue.timeValueSeconds(2));
         // 2、创建更新的对象
-        User user = new User("Ringo", "abc");
-        // 3、将更新的数据放入请求
-        updateRequest.doc(objectMapper.writeValueAsString(user), XContentType.JSON);
+        User user = new User("李四44", "234");
+
+        // 3、将更新对象放入请求
+        request.doc(objectMapper.writeValueAsString(user), XContentType.JSON);
+
         // 4、执行请求
-        UpdateResponse updateResponse = restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
+        UpdateResponse response = client.update(request, RequestOptions.DEFAULT);
+
         // 5、打印结果
-        System.out.println(updateResponse.status());
+        System.out.println(response.status()); // OK 表示修改成功！
+        System.out.println(response.toString());
     }
 
     /**
-     * 5、测试删除文档
+     * 4、删除文档信息
      */
     @Test
-    public void deleteDoc() throws Exception {
-        // 1、创建删除文档请求
-        DeleteRequest deleteRequest = new DeleteRequest("ringo_index", "1");
-        deleteRequest.timeout("2s");
+    public void deleteDocument() throws Exception {
+        // 1、创建请求
+        DeleteRequest request = new DeleteRequest(INDEX_NAME, "1");
+        request.timeout(TimeValue.timeValueSeconds(2));
+
         // 2、执行请求
-        DeleteResponse deleteResponse = restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
+        DeleteResponse response = client.delete(request, RequestOptions.DEFAULT);
+
         // 3、打印结果
-        System.out.println(deleteResponse.status());
+        System.out.println(response.status()); // OK 删除成功
+        System.out.println(response.toString());
     }
 
     /**
-     * 6、批量插入数据
+     * 5、批量插入数据
      */
     @Test
-    public void batchAddDocs() throws Exception {
-        // 1、创建批量添加请求
-        BulkRequest bulkRequest = new BulkRequest();
-        bulkRequest.timeout("10s");
+    public void bulkAddDocs() throws Exception {
+        // 1、创建请求
+        BulkRequest request = new BulkRequest();
+        request.timeout("10s");
+
         // 2、创建数据
         List<User> users = new ArrayList<>();
-        users.add(new User("zs", "111"));
-        users.add(new User("ls", "222"));
-        users.add(new User("ww", "333"));
-        users.add(new User("zl", "444"));
-        // 3、将数据放入到请求中
+        users.add(new User("张三", "123"));
+        users.add(new User("李四", "123"));
+        users.add(new User("王五", "123"));
+        users.add(new User("赵六", "123"));
+        users.add(new User("王二狗", "123"));
+
+        // 3、将数据放到请求中
         for (int i = 0; i < users.size(); i++) {
-            bulkRequest.add(
-                    new IndexRequest("ringo_index")
-                            .id((i + 1) + "")
-                            .source(objectMapper.writeValueAsString(users.get(i)),XContentType.JSON)
+            request.add(new IndexRequest(INDEX_NAME)
+                    .id(String.valueOf(i + 1))
+                    .source(objectMapper.writeValueAsString(users.get(i)), XContentType.JSON)
             );
         }
+
         // 4、执行请求
-        BulkResponse bulkResponse = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+        BulkResponse response = client.bulk(request, RequestOptions.DEFAULT);
+
         // 5、打印结果
-        System.out.println(bulkResponse.status());
+        System.out.println(response.status()); // OK 批量插入成功！
+        System.out.println(response.hasFailures()); // false 表示批量插入成功！
     }
 
     /**
-     * 7、查询
+     * 6、查询
      */
     @Test
-    public void search() throws Exception{
-        // 1、创建查询请求
-        SearchRequest searchRequest = new SearchRequest("ringo_index");
-        // 2、添加搜索条件
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        // 可以使用QueryBuilders来实现
-        MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("username", "s");
-        searchSourceBuilder.query(matchQueryBuilder);
-        // 设置分页
-        searchSourceBuilder.from();
-        searchSourceBuilder.size();
-        // 设置查询超时时间
-        searchSourceBuilder.timeout(TimeValue.timeValueSeconds(60));
+    public void query() throws Exception {
+        // 1、创建请求
+        SearchRequest request = new SearchRequest(INDEX_NAME);
 
-        // 3、执行请求
-        searchRequest.source(searchSourceBuilder);
-        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        // 2、构建搜索条件
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+                .query(QueryBuilders.matchQuery("username", "张三"))// 查询条件
+                .timeout(TimeValue.timeValueSeconds(5)) // 设置超时时间
+                .from(0) // 分页查询
+                .size(3);
 
-        // 4、打印结果
-        System.out.println(objectMapper.writeValueAsString(searchResponse.getHits()));
-        // 遍历hits
-        SearchHit[] hits = searchResponse.getHits().getHits();
-        for (SearchHit hit: hits) {
-            System.out.println(hit.getSourceAsMap());
-        }
+        // 3、请求中添加搜索条件
+        request.source(searchSourceBuilder);
+
+        // 4、执行请求
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+
+        // 5、打印结果
+        System.out.println(response.status()); // OK
+
+        /**
+         * {
+         *   "_index" : "test_es_idx_api",
+         *   "_type" : "_doc",
+         *   "_id" : "1",
+         *   "_score" : 2.8796844,
+         *   "_source" : {
+         *     "username" : "张三",
+         *     "password" : "123"
+         *   }
+         * }
+         */
+        response.getHits().forEach(System.out::println);
+        // 这个SearchHits是返回的全部信息
+        // System.out.println(objectMapper.writeValueAsString(response.getHits())); 
+
+        
+        // SearchHit主要包装"_source"
+        SearchHit[] hits = response.getHits().getHits(); 
+        // {"username":"张三","password":"123"}
+        Arrays.stream(hits).forEach(hit -> System.out.println(hit.getSourceAsString()));
     }
 }
 ```
