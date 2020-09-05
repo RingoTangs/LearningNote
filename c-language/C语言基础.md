@@ -3531,7 +3531,6 @@ int main(int argc, char const *argv[]) {
 | `<<` |    左移    |
 | `>>` |    右移    |
 | `^`  |  按位异或  |
-|      |            |
 
 ```c
 #include <stdio.h>
