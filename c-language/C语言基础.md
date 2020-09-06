@@ -256,7 +256,7 @@ int main() {
 
 ### 2.1.2.sizeof()
 
-`sizeof()`是一个运算符，给出某个类型或者变量在内存中所占的**字节**数。
+`sizeof()`是一个**运算符**，给出某个类型或者变量在内存中所占的**字节**数。
 
 ```c
 #include <stdio.h>
@@ -987,17 +987,7 @@ index < 0 || index > 99         # 小于0或大于99
 - 赋值运算优先级永远是最低的！
 - 单目运算优先级很高，`!`就是单目运算。
 
-| 优先级 |       运算符       |        结合性        |
-| :----: | :----------------: | :------------------: |
-|   1    |        `()`        |       从左到右       |
-|   2    |   `! + - ++ --`    | 从右到左(单目的+和-) |
-|   3    |      `* / %`       |       从左到右       |
-|   4    |       `+ -`        |       从左到右       |
-|   5    |    `< <= > >=`     |       从左到右       |
-|   6    |      `== !=`       |       从左到右       |
-|   7    |        `&&`        |       从左到右       |
-|   8    |        `||`        |       从左到右       |
-|   9    | `= += -= *= /= %=` |       从右到左       |
+**https://jingyan.baidu.com/article/ae97a646c865ccbbfd461dd3.html**
 
 
 
@@ -3729,4 +3719,570 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 ```
+
+
+
+# 13.可变数组
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义数组
+*
+* @Member array：     指向数组(某块地址)的指针;
+* @Member size：      数组的大小;
+* @Member currentLen: 当前数组存放的个数
+*/
+typedef struct {
+	int *array;
+	int size;
+	int currentLen;
+} Array;
+
+
+/**
+* 数组的创建
+*
+* @Param init_size 数组初始化容量
+* @Return          Array类型的变量(本地变量)
+*/
+Array array_create(int init_size);
+
+/**
+* 数组初始化,全部为0
+*
+* @Param int *a  指向数组内存空间的指针
+*/
+void array_init(Array *a);
+
+/**
+* 释放数组的内存空间
+*
+* @Param Array *a  指向要释放Array类型变量内存空间的指针
+*/
+void array_free(Array *a);
+
+/**
+* 获得数组的大小
+*
+* @Param Array *a  指向Array类型变量内存空间的指针
+* @Return          数组的大小
+*/
+int array_size(const Array *a);
+
+/**
+* 获得数组下标对应的指针
+*
+* @Param Array *a  指向Array类型变量内存空间的指针
+* @Param int index 数组下标
+* @Return          数组下标对应的指针
+*/
+int * array_at(const Array *a, int index);
+
+/**
+* 获得数组下标所对应的值
+*
+* @Param Array *a 指向Array类型变量内存空间的指针
+* @Param index    数组下标
+*/
+int array_get(const Array *a, int index);
+
+/**
+* 向数组指定下标存值
+*
+* @Param Array *a 指向Array类型变量内存空间的指针
+* @Param index    数组下标
+* @Param value    存入数组的值
+*/
+void array_set(Array *a, int value);
+
+/**
+* 数组的扩容
+*
+* @Param Array *a  指向Array类型变量内存空间的指针
+* @Param more_size 额外扩容的空间
+*/
+void array_inflate(Array *a, int more_size);
+
+/**
+* 输出数组的基本信息
+*/
+void array_print(Array *a);
+
+int main(int argc, char const *argv[]) {
+	const int capacity = 10;             // 数组的初始容量 
+	int max = 10;                        // 向数组中插入的数量      
+		
+	int i;
+	Array a = array_create(capacity);
+
+	for(i = 0; i < max; i++) {
+		array_set(&a, i*123);
+	}
+
+	array_print(&a);
+
+	array_free(&a);
+	
+	return 0;
+}
+
+Array array_create(int init_size) {
+	Array a;
+	a.size = init_size;
+	a.array = (int*)malloc(sizeof(int) * a.size);
+	a.currentLen = 0;
+	array_init(&a);
+	return a;
+}
+
+void array_init(Array *a) {
+	int i;
+	for(i = 0; i < a->size; i++) {
+		a->array[i] = 0;
+	}
+}
+
+void array_free(Array *a) {
+	free(a->array);
+	a->array = NULL;
+	a->size = 0;
+	a->currentLen = 0;
+	return;
+}
+
+int array_size(const Array *a) {
+	return a->size;
+}
+
+int * array_at(const Array *a, int index) {
+	return &(a->array[index]);
+}
+
+int array_get(const Array *a, int index) {
+	return a->array[index];
+}
+
+void array_set(Array *a, int value) {
+	// 数组扩容
+	if(a->currentLen + 1 == a->size) {
+		array_inflate(a, a->size>>1);
+	}
+	a->array[a->currentLen++] = value;
+}
+
+void array_inflate(Array *a, int more_size) {
+	int i;
+	int newLen = a->size + more_size;
+	int *p = (int*)malloc(sizeof(int) * (newLen));
+
+	// 新建数组的初始化
+	for(i = 0; i < newLen; i++ ) {
+		p[i] = 0;
+	}
+
+	// 将旧数组的值拷贝到新数组中
+	for(i = 0; i < a->size; i++) {
+		p[i] = a->array[i];
+	}
+	free(a->array);
+	a->array = p;
+	a->size = newLen;
+}
+
+void array_print(Array *a) {
+	int i;
+	printf("数组的容量 = %d\n", a->size);
+	printf("数组使用的容量 = %d\n", a->currentLen);
+	printf("数组剩余容量 = %d\n", a->size - a->currentLen);
+	
+	printf("content of array:\n");
+	for(i = 0; i < a->currentLen; i++) {
+		printf("%d ", a->array[i]);
+	}
+```
+
+
+
+# 14.链表
+
+## 14.1.创建链表
+
+> 1、单链表二级指针头插法
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义结点
+*/
+typedef struct _node {
+	int value;           // 值
+	struct _node *next;  // 指向下一个结点
+} Node;
+
+/**
+* 头插法
+*/
+void put(Node** head, int val) {
+	if(*head == NULL) {
+		*head = (Node*)malloc(sizeof(Node));
+		(*head)->value = val;
+		(*head)->next = NULL;
+		return;
+	}
+	Node* p = (Node*)malloc(sizeof(Node));
+	p->value = val;
+	p->next = *head;
+	*head = p;
+}
+
+/**
+* 遍历
+*/
+void travel(Node* head) {
+	Node *p;
+	for(p = head; p != NULL; p = p->next) {
+		printf("%d\n", p->value);
+	}
+}
+
+
+int main(int argc, char const *argv[]) {
+	Node *head = NULL;
+	
+	put(&head, 1);
+	put(&head, 2);
+	put(&head, 3);
+
+	travel(head);
+	return 0;
+}
+```
+
+
+
+> 2、定义链表结构头插法
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义结点
+*/
+typedef struct _node {
+	int value;           // 值
+	struct _node *next;  // 指向下一个结点
+} Node;
+
+/**
+* 定义链表
+*/
+typedef struct _list {
+	Node* head;         // 链表的头结点
+} LinkedList;
+
+/**
+* 初始化链表
+*/
+LinkedList initLinkedList() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	return *list;
+}
+
+/**
+* 头插法
+*/
+void put(LinkedList *list, int val) {
+	if(list->head == NULL) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->value = val;
+		list->head->next = NULL;
+		return;
+	}
+	Node* p = (Node*)malloc(sizeof(Node));
+	p->value = val;
+	p->next = list->head;
+	list->head = p;
+}
+
+/**
+* 遍历
+*/
+void travle(LinkedList *list) {
+	Node* p;
+	for(p = list->head; p != NULL; p = p->next) {
+		printf("%d\n", p->value);
+	}
+}
+
+int main(int argc, char const *argv[]) {
+	LinkedList linkedList = initLinkedList();
+
+	put(&linkedList, 1);
+	put(&linkedList, 2);
+	put(&linkedList, 3);
+
+	travle(&linkedList);
+
+	return 0;
+}
+```
+
+
+
+> 3、定义链表结构尾插法
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义结点
+*/
+typedef struct _node {
+	int value;           // 值
+	struct _node *next;  // 指向下一个结点
+} Node;
+
+
+/**
+* 定义链表
+*/
+typedef struct _list {
+	Node* head;         // 链表的头结点
+	Node* tail;         // 链表的尾结点
+} LinkedList;
+
+/**
+* 初始化链表
+*/
+LinkedList initLinkedList() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	return *list;
+}
+
+/**
+* 尾插法
+*/
+void put(LinkedList* list, int val) {
+	if(list->head == NULL) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->value = val;
+		list->tail = list->head;
+		list->tail->next = NULL;
+		return;
+	}
+
+	Node* p = (Node*)malloc(sizeof(Node));
+	p->value = val;
+	p->next = NULL;
+	list->tail->next = p;
+	list->tail = p;
+}
+
+/**
+* 遍历
+*/
+void travle(LinkedList *list) {
+	Node* p;
+	for(p = list->head; p != NULL; p = p->next) {
+		printf("%d\n", p->value);
+	}
+}
+
+int main(int argc, char const *argv[]) {
+	
+	LinkedList linkedlist = initLinkedList();
+	
+	put(&linkedlist, 1);
+	put(&linkedlist, 2);
+	put(&linkedlist, 3);
+	
+	travle(&linkedlist);
+	
+	return 0;
+}
+```
+
+
+
+## 14.2.链表元素的删除和销毁
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义结点
+*/
+typedef struct _node {
+	int value;           // 值
+	struct _node *next;  // 指向下一个结点
+} Node;
+
+
+/**
+* 定义链表
+*/
+typedef struct _list {
+	Node* head;         // 链表的头结点
+	Node* tail;         // 链表的尾结点
+} LinkedList;
+
+/**
+* 初始化链表
+*/
+LinkedList initLinkedList() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	return *list;
+}
+
+/**
+* 尾插法
+*/
+void put(LinkedList* list, int val) {
+	if(list->head == NULL) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->value = val;
+		list->tail = list->head;
+		list->tail->next = NULL;
+		return;
+	}
+
+	Node* p = (Node*)malloc(sizeof(Node));
+	p->value = val;
+	p->next = NULL;
+	list->tail->next = p;
+	list->tail = p;
+}
+
+/**
+* 遍历
+*/
+void travle(LinkedList *list) {
+
+	if(list->head == NULL) {
+		printf("链表不存在！\n");
+		return;
+	}
+
+	Node* p;
+	printf("LinkedList：");
+	for(p = list->head; p != NULL; p = p->next) {
+		printf("%d", p->value);
+		if(p->next) printf("->");
+	}
+	printf("\n");
+}
+
+/**
+* 删除链表元素
+*
+* @Param LinkedList* list 目标链表
+* @Param target           要删除的元素
+*
+* 这个方法一定要好好看,有错误
+* 边界条件：如果删除的是头结点怎么办？？
+*/
+int deleteLinkedListElement(LinkedList* list, int target) {
+	int count = 0;
+	Node* p;
+	Node* q;
+
+	// 删除头结点(边界情况)
+	while(list->head->value == target) {
+		// 将结点全部删除,所有节点都被释放,head就没有初始化了！
+		if(list->head == list->tail) {
+			free(list->head);
+			count++;
+			list->head = NULL;
+			break;
+		}
+		Node* temp = list->head;
+		list->head = list->head->next;
+		free(temp);
+		count++;
+	}
+
+	if(list->head == NULL) return count;
+
+	// 头结点存在的前提下才有如下操作
+	for(q = NULL, p = list->head; p != NULL; q = p, p = p->next) {
+		if(p->value == target) {
+			q->next = p->next;
+			free(p);
+			count++;
+			p = q;                            // 删除链表中所有的目标 如果break就是删除一个！
+		}
+	}
+
+	return count;
+}
+
+/**
+* 销毁链表
+*/
+int destoryLinkedList(LinkedList *list) {
+	int cnt = 0;
+	Node *p;
+	Node *q;
+	for(p = list->head; p != NULL; p=q) {
+		q = p->next;
+		free(p);
+		cnt++;
+	}
+	list->head = list->tail = NULL;
+	return cnt;
+}
+
+int main(int argc, char const *argv[]) {
+
+	LinkedList linkedlist = initLinkedList(); // 初始化链表
+
+	int x;
+	int cnt = 0;
+	int val;
+	int delNum;
+
+	printf("请输入要插入的个数:\n");
+	scanf("%d", &x);
+	fflush(stdin);
+
+	printf("请输入插入的%d个整数:\n", x);
+
+	do {
+		scanf("%d", &val);
+		cnt++;
+		put(&linkedlist, val);
+	} while(cnt < x);
+
+	fflush(stdin);
+
+	printf("插入成功！您在链表中插入了%d个整数。\n", cnt);
+	travle(&linkedlist);
+
+//	destoryLinkedList(&linkedlist);
+	printf("请输入要删除的整数:\n");
+	scanf("%d", &delNum);
+	printf("删除的结点个数：%d\n", deleteLinkedListElement(&linkedlist, delNum));
+
+	travle(&linkedlist);
+
+	return 0;
+}
+```
+
+
+
+
 
