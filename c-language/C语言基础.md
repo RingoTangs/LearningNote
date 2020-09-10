@@ -1353,6 +1353,66 @@ int main() {
 }
 ```
 
+> 二维数组的取地址
+
+```c
+#include <stdio.h>
+#define ROWS 8
+#define COLS 9
+
+/**
+* a[m][n] = *(base_add + m * COLS + n);
+* 二维数组的话在内存中也是连续的！第一行最后一个元素和第二行第一个元素地址只差一个sizeof(type)
+* 通过上述式子就能表示为什么数组可以定义为a[][COLS]了！
+*
+* 至于为什么数组的下标从0开始？
+* 0就代表了地址的偏移量，首先需要一个起始地址base_add，当我们访问数组第一个元素时,
+* 地址的偏移量就是0，即式子中的m是0，所以数组下标是从0开始的。
+*/
+int main(int argc, char const *argv[]) {
+	int a[ROWS][COLS];
+
+	for(int i = 0; i < ROWS; i++) {
+		for(int j = 0; j < COLS; j++) {
+			a[i][j] = i + j;
+		}
+	}
+
+	printf("---------------------------------------\n");
+
+	for(int i = 0; i < ROWS; i++) {
+		for(int j = 0; j < COLS; j++) {
+			printf("%d\t", a[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("---------------------------------------\n");
+
+	for(int i = 0; i < ROWS; i++) {
+		for(int j = 0; j < COLS; j++) {
+			printf("%X\t", &a[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("---------------------------------------\n");
+
+	int *base_add = &a[0][0];
+	int m = 0;                     // 行
+	int n = 0;                     // 列
+	printf("请输入行和列:\n");
+	scanf("%d%d", &m, &n);
+
+	printf("a[%d][%d] = %d\n", m, n, *(base_add + m * COLS + n));
+	printf("a[%d][%d] = %d\n", m, n, a[m][n]);
+
+	return 0;
+}
+```
+
+
+
 
 
 # 5.指针
@@ -4367,6 +4427,144 @@ int main(int argc, char const *argv[]) {
 	printf("删除的结点个数：%d\n", deleteLinkedListElement(&linkedlist, delNum));
 
 	travle(&linkedlist);
+
+	return 0;
+}
+```
+
+
+
+## 14.3.双向链表判断回文
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义双向链表的结点
+typedef struct _node {
+	struct _node* prev;  // 前驱结点
+	char ch;             // 存放的字符
+	struct _node* next;  // 后继节点
+} Node;
+
+// 定义双向链表
+typedef struct _douLinkedList {
+	Node* head;
+	Node* tail;
+	int size;            // 当前双向链表结点的数量
+} DouLinkedList;
+
+// 双向链表的初始化
+DouLinkedList init() {
+	DouLinkedList* list = (DouLinkedList*)malloc(sizeof(DouLinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(DouLinkedList* list, char ch) {
+	// 如果头结点是NULL
+	if(!list->head)	{
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->head->prev = NULL;
+		list->tail = list->head;
+		list->size += 1;
+		return;
+	}
+
+	// 头结点不是NULL
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	node->prev = list->tail;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+// head->tail 遍历
+void travelHead2Tail(DouLinkedList* list) {
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+// tail->head 遍历
+void travelTail2Head(DouLinkedList* list) {
+	Node* p;
+	for(p = list->tail; p; p = p->prev) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+/**
+* 判断是否是回文
+*
+* 定义指针p指向双向链表的head, 指针q指向双向链表的tail。
+* 判断回文，只需要将p向后移,q向前移即可，并判断p和q对应字符是否相等。
+*
+* 当链表结点数为奇数时,while循环的条件时p != q; 
+* 当链表结点数为偶数时,do-while循环的条件为 q->next != q; 
+*/
+int isPalindrome(DouLinkedList* list) {
+	Node* p = list->head;
+	Node* q = list->tail;
+
+	int flag = 1;         // 1是回文数 0不是回文数
+
+	if(list->size % 2 ) {
+		// 结点是奇数
+		while(p != q) {
+			if(p->ch != q->ch) {
+				// 不是回文数
+				flag = 0;
+				break;
+			}
+			p = p->next;
+			q = q->prev;
+		}
+	} else {
+		// 结点是偶数
+		do {
+			if(p->ch != q->ch) {
+				// 不是回文数
+				flag = 0;
+				break;
+			}
+			p = p->next;
+			q = q->prev;
+		} while(q->next != p);
+	}
+
+	return flag;
+}
+
+int main(int argc, char const *argv[]) {
+	char ch;
+	DouLinkedList list = init();
+
+	printf("请输入要检测的串(中间不要有空格,以回车结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list, ch);
+	}
+
+	printf("\n-------------------正向输出-------------------\n");
+	travelHead2Tail(&list);
+	printf("结点个数: %d\n", list.size);
+
+	printf("\n-------------------逆向输出-------------------\n");
+	travelTail2Head(&list);
+	printf("结点个数: %d\n", list.size);
+
+	printf("\n-------------------是否是回文？-------------------\n");
+	printf("%s\n", isPalindrome(&list) ? "是" : "不是");
 
 	return 0;
 }
