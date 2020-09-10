@@ -4572,5 +4572,115 @@ int main(int argc, char const *argv[]) {
 
 
 
+## 14.4.单链表反转
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义结点
+typedef struct _node {
+	char ch;
+	struct _node* next;
+} Node;
+
+// 定义单链表
+typedef struct _linkedList {
+	Node* head;     // 头结点
+	Node* tail;     // 尾结点
+	int size;       // 结点数量
+} LinkedList;
+
+// 初始化单链表
+LinkedList init() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(LinkedList* list, char ch) {
+	if(!list->head) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->tail = list->head;
+		list->size = 1;
+		return;
+	}
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+// 遍历
+void travel(LinkedList* list) {
+	if(!list->size) {
+		printf("链表为空！\n");
+		return;
+	}
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+// 单链表反转
+void reverse(LinkedList* list) {
+	// 没有结点以下代码不需要执行
+	if(list->size == 0) return ;
+
+	// 只有一个结点不需要反转
+	if(list->size == 1) return;
+
+	Node* pNow = list->head;
+	Node* pPre = NULL;
+	Node* pNext = NULL;
+
+	// 单链表的反转
+	while(pNow) {
+		pNext = pNow->next;
+		pNow->next = pPre;
+		pPre = pNow;
+		pNow = pNext;
+	}
+
+	// 交换头尾指针
+	Node* temp = list->tail;
+	list->tail = list->head;
+	list->head = temp;
+}
+
+int main(int argc, char const *argv[]) {
+	LinkedList list = init();
+	char ch;
+
+	printf("请输入串(回车表示结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list, ch);
+	}
+
+	printf("-----------遍历单链表-----------\n");
+	travel(&list);
+	printf("结点数量：%d\n", list.size);
+
+	// 单链表反转
+	reverse(&list);
+	printf("-----------反转后遍历单链表-----------\n");
+	travel(&list);
+	printf("结点数量：%d\n", list.size);
+
+	return 0;
+}
+```
+
+
+
 
 
