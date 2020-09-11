@@ -5032,7 +5032,16 @@ void travel(LinkedList* list) {
 void del(LinkedList* list, int n) {
 
 	// 单链表为空 或 n大于单链表的长度
-	if(!list->size || n > list->size) return;
+	if(!list->size || n > list->size || n <= 0) return;
+
+	// 删头结点
+	if(list->size == n) {
+		Node* p = list->head;
+		list->head = list->head->next;
+		free(p);
+		list->size -= 1;
+		return;
+	}
 
 	Node* fast;      // 快指针
 	Node* slow;      // 慢指针
