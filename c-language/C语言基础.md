@@ -4574,6 +4574,10 @@ int main(int argc, char const *argv[]) {
 
 ## 14.4.单链表反转
 
+![单链表反转](https://img-blog.csdnimg.cn/20200911110906590.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70#pic_center)
+
+
+
 ```c
 #include <stdio.h>
 #include <stdlib.h>
@@ -4675,6 +4679,139 @@ int main(int argc, char const *argv[]) {
 	printf("-----------反转后遍历单链表-----------\n");
 	travel(&list);
 	printf("结点数量：%d\n", list.size);
+
+	return 0;
+}
+```
+
+## 14.5.单链表是否存在环
+
+![单链表是否存在环](https://img-blog.csdnimg.cn/20200911114200648.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70#pic_center)
+
+
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义结点
+typedef struct _node {
+	char ch;
+	struct _node* next;
+} Node;
+
+// 定义单链表
+typedef struct _linkedList {
+	Node* head;
+	Node* tail;
+	int size;
+} LinkedList;
+
+// 初始化
+LinkedList init() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(LinkedList* list, char ch) {
+	if(!list->head) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->tail = list->head;
+		list->size = 1;
+		return;
+	}
+
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+// 遍历
+void travel(LinkedList* list) {
+	if(!list->size) {
+		printf("单链表为空!\n");
+		return ;
+	}
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+/**
+* 判断单链表是否有环
+* @Return 0 没有环  >0 有环代表环的长度
+*/
+int hasLoop(LinkedList* list) {
+
+	// 没有结点或者结点为1都返回0
+	if(list->size == 0 || list->size == 1) return 0;
+
+	int flag = 0;                 // 0代表不存在环 1代表存在环
+	int cnt = 0;                  // 计算环的个数
+	Node* fast;                   // 快指针
+	Node* slow;                   // 慢指针
+	fast = slow = list->head;
+
+	while(fast && fast->next) {   // 考虑到链表结点个数有奇数有偶数
+		slow = slow->next;
+		fast = fast->next->next;
+		if(slow == fast) {        // 表示单链表有环
+			flag = 1;
+			break;
+		}
+	}
+
+	// 如果有环就计算环的长度
+	if(flag) {
+		do {
+			fast = fast->next;
+			cnt++;
+		} while(slow != fast);
+	}
+
+	return cnt;
+}
+
+// 故意制造环
+void addLoop(LinkedList* list) {
+	list->tail->next = list->head;
+}
+
+int main(int argc, char const *argv[]) {
+	LinkedList list = init();
+	char ch;
+
+	printf("请输入串(回车结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list, ch);
+	}
+
+//	addLoop(&list);
+
+	printf("----------正常遍历单链表----------\n");
+	travel(&list);
+	printf("结点的数量：%d\n", list.size);
+
+	printf("----------单链表是否存在环？----------\n");
+
+	int numOfLoop = hasLoop(&list);
+
+	if(numOfLoop) {
+		printf("有环,长度为%d\n", numOfLoop);
+	} else {
+		printf("没有环\n");
+	}
 
 	return 0;
 }
