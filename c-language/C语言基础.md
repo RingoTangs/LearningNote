@@ -5097,6 +5097,118 @@ int main(int argc, char const *argv[]) {
 }
 ```
 
+## 14.8.单链表的中间结点
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义结点
+typedef struct _node {
+	char ch;
+	struct _node* next;
+} Node;
+
+// 定义链表
+typedef struct _linkedList {
+	Node* head;
+	Node* tail;
+	int size;
+} LinkedList;
+
+// 初始化
+LinkedList init() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(LinkedList* list, char ch) {
+
+	// head是NULL
+	if(!list->head) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->tail = list->head;
+		list->size = 1;
+		return ;
+	}
+
+	// head不是NULL
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+/**
+* 求链表的中间结点
+*
+* 思路：
+* 1.定义快指针fast和慢指针slow初始化为list->head
+* 2.fast每次走两步,slow每次走一步,当fast走到tail的时候slow刚好走到一半。
+* 3.临界条件 fast && fast->next。 
+*/
+Node* middle(LinkedList* list) {
+	if(!list->size || list->size == 1) return list->head;
+
+	Node* fast;                // 快指针
+	Node* slow;                // 慢指针
+
+	fast = slow = list->head;  // 快慢指针的初始化
+
+	// 单链表长度分为奇偶,fast可能刚好在tail,也能在tail后面
+	while(fast && fast->next) {
+		fast = fast->next->next;
+		slow = slow->next;
+	}
+	return slow;
+}
+
+// 遍历
+void travel(LinkedList* list) {
+	if(!list->size) {
+		printf("单链表为空\n");
+		return;
+	}
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+int main(int argc, char const *argv[]) {
+	LinkedList list = init();
+	char ch;
+
+	printf("请输入串(回车表示结束)：\n");
+	while((ch = getchar()) != '\n') {
+		put(&list, ch);
+	}
+
+	printf("\n------------正常遍历单链表------------\n");
+	travel(&list);
+	printf("单链表的结点数：%d\n", list.size);
+
+	printf("\n------------单链表的中间结点是?------------\n");
+	Node* midNode = middle(&list);
+	if(midNode) {
+		printf("%c\n", midNode->ch);
+	} else {
+		printf("该单链表没有中间结点!\n");
+	}
+
+	return 0;
+}
+```
+
 
 
 
