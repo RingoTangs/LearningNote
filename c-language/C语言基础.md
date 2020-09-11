@@ -4819,5 +4819,276 @@ int main(int argc, char const *argv[]) {
 
 
 
+## 14.6.合并两个有序单链表
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义结点
+typedef struct _node {
+	char ch;
+	struct _node* next;
+} Node;
+
+// 定义单链表
+typedef struct _linkedList {
+	Node* head;            // 头结点
+	Node* tail;            // 尾结点
+	int size;	           // 单链表结点数
+} LinkedList;
+
+// 初始化单链表
+LinkedList init() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(LinkedList* list, char ch) {
+	// 头结点为空
+	if(!list->head) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->tail = list->head;
+		list->size = 1;
+		return;
+	}
+
+	// 头结点不为空
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+// 遍历
+void travel(LinkedList* list) {
+	if(!list->head) {
+		printf("单链表不存在!\n");
+		return;
+	}
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+/**
+* 合并两个有序单链表
+*
+* @Param list1 有序单链表1
+* @Param list2 有序单链表2
+* @Return      合并后新的链表
+*/
+LinkedList merge(LinkedList* list1, LinkedList* list2) {
+
+	// list1和list2有一个为空就不需要执行合并操作
+	if(!list1->size || !list2->size) {
+		if(list1->size) {
+			return *list1;
+		}
+		return *list2;
+	}
+
+	LinkedList currentList = init();  // 要返回的新链表
+	Node* p = list1->head;            // 指向list1的结点
+	Node* q = list2->head;            // 指向list2的结点
+	Node* then;                       // list1或list2遍历完成之后继续遍历剩下的结点
+
+
+	while(p && q) {
+		if(p->ch > q->ch) {           // 找到小的结点就继续向后移
+			put(&currentList, q->ch);
+			q = q->next;
+		} else {
+			put(&currentList, p->ch);
+			p = p->next;
+		}
+	}
+
+	if(!p) then = q;                 // 如果list1遍历完了,就继续遍历list2
+	if(!q) then = p;                 // 如果list2遍历完了,就继续遍历list1
+	while(then) {
+		put(&currentList, then->ch);
+		then = then->next;
+	}
+
+	return currentList;
+}
+
+int main(int argc, char const *argv[]) {
+	LinkedList list1 = init();
+	LinkedList list2 = init();
+	char ch;
+
+	printf("请输入串1(回车代表结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list1, ch);
+	}
+
+	printf("请输入串2(回车代表结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list2, ch);
+	}
+
+	printf("--------------------遍历单链表1--------------------\n");
+	travel(&list1);
+	printf("结点数量:%d\n", list1.size);
+
+	printf("--------------------遍历单链表2--------------------\n");
+	travel(&list2);
+	printf("结点数量:%d\n", list2.size);
+
+	printf("--------------------合并两个有序单链表--------------------\n");
+	LinkedList newList = merge(&list1, &list2);
+	travel(&newList);
+	printf("结点数量:%d\n", newList.size);
+
+	return 0;
+}
+```
+
+
+
+## 14.7.删除倒数第n个结点
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+// 定义单链表结点
+typedef struct _node {
+	char ch;
+	struct _node* next;
+} Node;
+
+// 定义单链表
+typedef struct _linkedList {
+	Node* head;
+	Node* tail;
+	int size;
+} LinkedList;
+
+// 初始化单链表
+LinkedList init() {
+	LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+	list->head = NULL;
+	list->tail = NULL;
+	list->size = 0;
+	return *list;
+}
+
+// 插入
+void put(LinkedList* list, char ch) {
+
+	// head为空
+	if(!list->head) {
+		list->head = (Node*)malloc(sizeof(Node));
+		list->head->ch = ch;
+		list->head->next = NULL;
+		list->tail = list->head;
+		list->size = 1;
+		return;
+	}
+
+	// head不为空
+	Node* node = (Node*)malloc(sizeof(Node));
+	node->ch = ch;
+	node->next = NULL;
+	list->tail->next = node;
+	list->tail = node;
+	list->size += 1;
+}
+
+// 遍历
+void travel(LinkedList* list) {
+	if(!list->size) {
+		printf("单链表为空\n");
+		return;
+	}
+	Node* p;
+	for(p = list->head; p; p = p->next) {
+		printf("%c", p->ch);
+	}
+	printf("\n");
+}
+
+/**
+* 删除倒数第n个结点
+*
+* 思路：
+* 1、定义快指针fast初始化为list->head, 向前先走n步;
+* 2、定义慢指针slow初始化为list->head, 和fast一起向后走;
+* 3、当fast到达list->tail的位置时,slow->next就是要删除的结点。
+*/
+void del(LinkedList* list, int n) {
+
+	// 单链表为空 或 n大于单链表的长度
+	if(!list->size || n > list->size) return;
+
+	Node* fast;      // 快指针
+	Node* slow;      // 慢指针
+	Node* target;    // 要删除的目标位置
+
+	fast = slow = list->head;
+
+	// 让快指针先走n步
+	int i = 1;
+	while(i <= n) {
+		fast = fast->next;
+		i++;
+	}
+
+	// 慢指针和快指针一起走,知道fast到tail的位置停止
+	while(fast->next) {
+		fast = fast->next;
+		slow = slow->next;
+	}
+
+	// 删除目标结点
+	target = slow->next;
+	slow->next = target->next;
+	free(target);
+	list->size -= 1;
+
+}
+
+int main(int argc, char const *argv[]) {
+
+	LinkedList list = init();
+	char ch;
+	int n;
+
+	printf("请输入串(回车代表结束):\n");
+	while((ch = getchar()) != '\n') {
+		put(&list, ch);
+	}
+
+	printf("\n-------------正常遍历单链表-------------\n");
+	travel(&list);
+	printf("单链表结点数%d\n", list.size);
+
+	printf("\n--------请输入要删除倒数第几个结点？--------\n");
+	scanf("%d", &n);
+	del(&list, n);
+
+	printf("\n-------------操作结果-------------\n");
+	travel(&list);
+	printf("单链表结点数%d\n", list.size);
+
+	return 0;
+}
+```
+
+
+
 
 
