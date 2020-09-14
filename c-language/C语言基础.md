@@ -5211,5 +5211,248 @@ int main(int argc, char const *argv[]) {
 
 
 
+# 15.队列
 
+## 15.1.循环队列
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+* 定义循环队列
+* 循环队列元素个数 (r-f+n)%n
+*/
+typedef struct _circularQueue {
+	char* items;      // 数组
+	int capacity;     // 数组容量
+	int front;        // 队头下标
+	int rear;         // 队尾下标
+} circularQueue;
+
+// 初始化循环队列
+circularQueue init(int capacity) {
+	circularQueue* queue = (circularQueue*)malloc(sizeof(circularQueue));
+	queue->capacity = capacity;
+	queue->items = (char*)malloc(sizeof(char) * queue->capacity);
+	queue->front = 0;
+	queue->rear = 0;
+	return *queue;
+}
+
+/**
+* 是否队空
+*
+* @Return 1表示队空 0表示不空
+*/
+int isEmpty(circularQueue* queue) {
+	int flag = 0;
+	if(queue->front == queue->rear) {
+		flag = 1;
+	}
+	return flag;
+}
+
+/**
+* 是否队满
+*
+* @Return 1表示队满 0表示队空
+*/
+int isFull(circularQueue* queue) {
+	int flag = 0;
+	if((queue->rear + 1) % queue->capacity == queue->front) {
+		flag = 1;
+	}
+	return flag;
+}
+
+/**
+* 进队
+*
+* @Return 1表示入队成功 0表示入队失败
+*/
+int enQueue(circularQueue* queue, char ch) {
+	// 队满了
+	if(isFull(queue)) {
+		return 0;
+	}
+
+	queue->items[queue->rear] = ch;
+	queue->rear = (queue->rear + 1) % queue->capacity;
+	return 1;
+}
+
+/**
+* 出队 
+*/
+char* deQueue(circularQueue* queue) {
+	// 队空
+	if(isEmpty(queue)) {
+		return NULL;
+	}
+
+	char* ret = &queue->items[queue->front];
+	queue->front = (queue->front + 1) % queue->capacity;
+	return ret;
+}
+
+int main(int argc, char const *argv[]) {
+	circularQueue queue = init(5);
+	char ch;
+	
+	printf("\n----------请在队列中插入值----------\n");
+	while((ch = getchar()) != '\n') {
+		enQueue(&queue, ch);
+	}
+	
+	
+	printf("\n----------全部出队----------\n");
+	while(!isEmpty(&queue)) {
+		printf("%c", *deQueue(&queue));
+	}
+	
+	return 0;
+}
+```
+
+# 16.递归计算
+
+## 16.1.递归重复计算
+
+```c
+#include <stdio.h>
+
+/**
+* 案例：走台阶,每次可以走1步或2步
+* 
+* 防止递归重复计算
+* 
+* func(5)
+* func(4)
+* func(3)
+* func(2)
+* func(1)
+* func(2)
+* func(3)
+* func(2)
+* func(1)
+* 5层台阶有8种走法
+*
+* 计算结果是対的,但是计算机发生了重复计算,效率会降低,
+* 可以使用Map的key来存储n,value来存储func(n),如果Map中有,
+* 就不要递归计算了！ 
+*/
+int func(int n) {
+	printf("func(%d)\n", n);
+	if(n == 1) return 1;
+	if(n == 2) return 2;
+	return func(n-1) + func(n-2);
+}
+
+int main(int argc, char const *argv[]) {
+	int n = 5;
+	printf("%d层台阶有%d种走法\n", n,func(5));
+	return 0;
+}
+```
+
+
+
+# 17.排序
+
+## 17.1.冒泡排序(n^2)
+
+**冒泡排序只会操作相邻的两个数据。每次冒泡操作都会对相邻的两个元素进行比较，看是否满足大小关系要求。如果不满足就让它俩互换。一次冒泡会让至少一个元素移动到它应该在的位置，重复 n 次，就完成了 n 个数据的排序工作**。
+
+我用一个例子，带你看下冒泡排序的整个过程。我们要对一组数据 4，5，6，3，2，1，从小到大进行排序。第一次冒泡操作的详细过程就是这样：
+
+![冒泡排序第一次排序](https://static001.geekbang.org/resource/image/40/e9/4038f64f47975ab9f519e4f739e464e9.jpg)
+
+
+
+可以看出，经过一次冒泡操作之后，6 这个元素已经存储在正确的位置上。要想完成所有数据的排序，我们只要进行 6 次这样的冒泡操作就行了。
+
+![完整冒泡排序](https://static001.geekbang.org/resource/image/92/09/9246f12cca22e5d872cbfce302ef4d09.jpg)
+
+
+
+实际上，刚讲的冒泡过程还可以优化。当某次冒泡操作已经没有数据交换时，说明已经达到完全有序，不用再继续执行后续的冒泡操作。我这里还有另外一个例子，这里面给 6 个元素排序，只需要 4 次冒泡操作就可以了。
+
+![冒泡优化](https://static001.geekbang.org/resource/image/a9/e6/a9783a3b13c11a5e064c5306c261e8e6.jpg)
+
+```c
+#include <stdio.h>
+#define MAX_SIZE 6
+
+void travel(int* a, int n);
+
+void bubbleSort(int* a, int n);
+
+int main(int argc, char const *argv[]) {
+	int a[] = {4, 5, 6, 3, 2, 1};
+	bubbleSort(a, MAX_SIZE);
+	printf("\n------------冒泡排序结果------------\n");
+	travel(a, MAX_SIZE);
+	return 0;
+}
+
+/**
+* 冒泡排序
+
+* 第1趟:4 5 3 2 1 6
+* 第2趟:4 3 2 1 5 6
+* 第3趟:3 2 1 4 5 6
+* 第4趟:2 1 3 4 5 6
+* 第5趟:1 2 3 4 5 6
+
+* ------------冒泡排序结果------------
+* 1 2 3 4 5 6
+*
+*/
+void bubbleSort(int* a, int n) {
+	if(n <= 1) return;               // 数组元素只有一个直接退出
+	for(int i = 1; i <= n; i++) {    // 冒泡排序的趟数
+		int isSwap = 0;              // 提前退出冒泡排序的标志位
+		for(int j = 1; j < n; j++) {
+			if(a[j] < a[j-1]) {
+				int temp = a[j];
+				a[j] = a[j-1];
+				a[j-1] = temp;
+				isSwap = 1;
+			}
+		}
+		if(!isSwap) break;           // 没有数据交换提前退出
+		printf("第%d趟:", i);
+		travel(a, n);
+	}
+}
+
+// 遍历
+void travel(int* a, int n) {
+	for(int i = 0; i < n; i++) {
+		printf("%d ", a[i]);
+	}
+	printf("\n");
+}
+```
+
+**第一，冒泡排序是原地排序算法吗？**
+
+冒泡的过程只涉及相邻数据的交换操作，只需要常量级的临时空间，所以它的空间复杂度为 O(1)，是一个原地排序算法。
+
+**第二，冒泡排序是稳定的排序算法吗？**
+
+在冒泡排序中，只有交换才可以改变两个元素的前后顺序。为了保证冒泡排序算法的稳定性，当有相邻的两个元素大小相等的时候，我们不做交换，相同大小的数据在排序前后不会改变顺序，所以冒泡排序是稳定的排序算法。
+
+**第三，冒泡排序的时间复杂度是多少？**
+
+最好情况下，要排序的数据已经是有序的了，我们只需要进行一次冒泡操作，就可以结束了，所以**最好情况时间复杂度是 O(n)**。而最坏的情况是，要排序的数据刚好是倒序排列的，我们需要进行 n 次冒泡操作，所以**最坏情况时间复杂度为 O(n2)**。
+
+**平均情况下的时间复杂度就是 O(n2)**。
+
+![冒泡排序时间复杂度](https://static001.geekbang.org/resource/image/fe/0f/fe107c06da8b290fb78fcce4f6774c0f.jpg)
+
+
+
+## 17.2.插入排序(n^2)
 
