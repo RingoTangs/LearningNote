@@ -102,6 +102,18 @@ public class SwaggerConf {
                 "http://www.apache.org/licenses/LICENSE-2.0", new ArrayList<VendorExtension>());
         return apiInfo;
     }
+    
+    // apiInfo()也可以这样写
+    private ApiInfo apiInfo() {
+        Contact contact = new Contact("Ringo", "", "1466637477@qq.com");
+        ApiInfo apiInfo = new ApiInfoBuilder()
+            .title("网课-课程中心API文档")
+            .description("本文档描述了课程中心微服务接口定义")
+            .version("1.0")
+            .contact(contact)
+            .build();
+        return apiInfo;
+    
 }
 ```
 
