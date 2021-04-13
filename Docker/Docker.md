@@ -538,7 +538,7 @@ docker run --name mysql -d -p 3306:3306 \
 -v /root/mysql/data:/var/lib/mysql \
 -v /root/mysql/conf:/etc/mysql \
 -e MYSQL_ROOT_PASSWORD=333 \
-mysql:tag
+mysql:5.7
 ```
 
 ## 4.4.具名挂载和匿名挂载
@@ -1047,5 +1047,10 @@ docker run --name renren-fast -p 8080:8080 \
 
 # 7、访问服务器地址
 http://39.97.3.60:8080/renren-fast/sys/user/info
+```
+
+```shell
+docker build -f Dockerfile -t vhr-web:1.0 .
+docker run --name vhr-web -p 8001:8001 -d vhr-web:1.0
 ```
 
