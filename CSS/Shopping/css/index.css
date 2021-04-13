@@ -1,0 +1,296 @@
+/* 首页部分 */
+
+/* 1、main模块 */
+.w .main {
+    width: 980px;
+    height: 465px;
+    margin-left: 220px;
+    margin-top: 10px;
+}
+
+/* 1.1、焦点图 */
+.w .main .focus {
+    float: left;
+
+    width: 721px;
+    height: 455px;
+}
+
+/* 1.2、新闻快报 */
+.w .main .news_flush {
+    float: right;
+
+    width: 250px;
+    height: 455px;
+}
+
+/* 1.3、新闻快报 > 新闻模块 */
+.w .main .news_flush .news {
+    height: 165px;
+
+    width: 249px;
+    border: 1px solid #e4e4e4;
+}
+
+.w .main .news_flush .news .news_hd {
+    height: 33px;
+    line-height: 33px;
+    border-bottom: 1px dotted #e4e4e4;
+}
+
+.w .main .news_flush .news .news_hd h5 {
+    float: left;
+
+    font-size: 14px;
+    margin-left: 15px;
+}
+
+.w .main .news_flush .news .news_hd .more {
+    float: right;
+
+    margin-right: 15px;
+    margin-left: 5px;
+    /* background-color: skyblue; */
+}
+
+.w .main .news_flush .news .news_hd .more::after {
+    content: "\e920";
+
+    font-family: "icomoon";
+}
+
+.w .main .news_flush .news .news_bd {
+    padding: 5px 15px 0 15px;
+}
+
+.w .main .news_flush .news .news_bd ul li {
+    height: 24px;
+    line-height: 24px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+
+/* 1.4、新闻快报 > 生活服务模块 */
+.w .main .news_flush .lifeservice {
+    height: 209px;
+    border-left: 1px solid #e4e4e4;
+}
+
+.w .main .news_flush .lifeservice ul li {
+    float: left;
+
+    width: 62px;
+    height: 70px;
+    border-right: 1px solid #e4e4e4;
+    border-bottom: 1px solid #e4e4e4;
+    text-align: center;
+}
+
+.w .main .news_flush .lifeservice ul li i {
+    display: inline-block;
+    width: 24px;
+    height: 28px;
+    margin-top: 12px;
+    margin-bottom: 5px;
+    font-size: 0;
+    background: url(../images/icons.png) no-repeat -17px -15px;
+}
+
+/* 1.5、新闻快报 > 特价商品模块 */
+.w .main .news_flush .bargain {
+    margin-top: 5px;
+}
+
+
+/* 2、recommend 推荐模块 */
+.recommend {
+    height: 163px;
+    background-color: #ebebeb;
+}
+
+.recommend .recommend_hd {
+    float: left;
+    width: 205px;
+    height: 100%;
+    background-color: #5c5251;
+
+    /* 图片是行内块元素 可以使用text-align水平居中 */
+    text-align: center;
+    padding-top: 30px;
+}
+
+
+.recommend .recommend_bd {
+    float: left;
+}
+
+.recommend .recommend_bd ul li {
+    float: left;
+    position: relative;
+}
+
+.recommend .recommend_bd ul li img {
+    width: 248px;
+    height: 163px;
+}
+
+/* after伪元素 + 定位 => 制作竖线 */
+.recommend .recommend_bd ul li:nth-child(-n+3):after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 0;
+
+    width: 1px;
+    height: 145px;
+    background-color: #ddd;
+}
+
+/* 3、favorite 猜你喜欢模块 */
+.favorite {
+    height: 200px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.favorite .fav_hd {
+    height: 30px;
+    line-height: 30px;
+    padding-right: 15px;
+}
+
+.favorite .fav_hd h5 {
+    float: left;
+
+    font-size: 14px;
+}
+
+.favorite .fav_hd .more {
+    float: right;
+}
+
+.favorite .fav_hd .more::after {
+    content: "\ea2e";
+    font-family: "icomoon";
+    margin-left: 8px;
+}
+
+.favorite .fav_bd {
+    height: 170px;
+    border: 1px solid #e4e4e4;
+}
+
+.favorite .fav_bd ul {
+    width: 1201px;
+}
+
+.favorite .fav_bd ul li {
+    float: left;
+    position: relative;
+
+    width: 200px;
+    height: 170px;
+}
+
+.favorite .fav_bd ul li:nth-child(-n + 5)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 10px;
+
+    width: 1px;
+    height: 150px;
+    background-color: #e4e4e4;
+}
+
+/* 4、楼层区 */
+.floor {
+    margin-bottom: 30px;
+}
+
+/* 4.1、家用电器 */
+
+/* 家用电器 > 头部部分 */
+.floor .house_elec_app .box_hd {
+    height: 30px;
+    line-height: 30px;
+    border-bottom: 2px solid #c81623;
+}
+
+.floor .house_elec_app .box_hd h4 {
+    float: left;
+
+    font-size: 18px;
+    color: #c81623;
+}
+
+.floor .house_elec_app .box_hd ul {
+    float: right;
+}
+
+.floor .house_elec_app .box_hd ul li {
+    float: left;
+}
+
+.floor .house_elec_app .box_hd ul li:nth-child(-n + 8) a {
+    border-right: 1px solid #e4e4e4;
+}
+
+.floor .house_elec_app .box_hd ul li:first-child a {
+    color: #c81623;
+}
+
+.floor .house_elec_app .box_hd ul li a {
+    padding: 0 20px;
+}
+
+/* 家用电器 > 主体部分 */
+.floor .house_elec_app .box_bd {
+    height: 361px;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item>div {
+    float: left;
+    height: 361px;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .col_210 {
+    width: 210px;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .col_210 ul li {
+    float: left;
+
+    width: 85px;
+    height: 34px;
+    line-height: 30px;
+    border-bottom: 2px solid #ccc;
+    margin-left: 12px;
+}
+
+
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .col_329 {
+    width: 329px;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .col_221 {
+    width: 221px;
+    border-right: 1px solid #ccc;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .col_219 {
+    width: 219px;
+}
+
+.floor .house_elec_app .box_bd .tab_content .tab_list_item .bb {
+    display: block;
+
+    border-bottom: 1px solid #ccc;
+}

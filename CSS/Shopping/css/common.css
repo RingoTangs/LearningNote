@@ -1,0 +1,360 @@
+/* 公共样式 */
+@font-face {
+    font-family: 'icomoon';
+    src: url('../fonts/icomoon.eot?tomleg');
+    src: url('../fonts/icomoon.eot?tomleg#iefix') format('embedded-opentype'),
+        url('../fonts/icomoon.ttf?tomleg') format('truetype'),
+        url('../fonts/icomoon.woff?tomleg') format('woff'),
+        url('../fonts/icomoon.svg?tomleg#icomoon') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+/* 版心设置 */
+.w {
+    width: 1200px;
+    margin: 0 auto;
+}
+
+.fl {
+    float: left;
+}
+
+.fr {
+    float: right;
+}
+
+.style_red {
+    color: #c81623;
+}
+
+/* 1、shortcut 快捷导航栏 */
+.shortcut {
+    height: 31px;
+    line-height: 31px;
+    background-color: #f1f1f1;
+}
+
+/* 左边欢迎栏 */
+.shortcut .w .fl ul li {
+    float: left;
+}
+
+/* 右边导航栏 */
+.shortcut .w .fr ul li {
+    float: left;
+}
+
+.shortcut .w .fr ul li a {
+    /* border: 1px solid red; */
+    border-right: 1px solid #666;
+    padding: 0 15px;
+}
+
+.shortcut .w .fr ul li:last-child a {
+    border-right: none;
+}
+
+.shortcut .w .fr ul .arrow-icon::after {
+    font-family: 'icomoon';
+    content: "\e91e";
+    margin-left: 5px;
+}
+
+/* 2、header 头部 */
+.header {
+    position: relative;
+
+    height: 105px;
+    /* background-color: pink; */
+}
+
+/* logo模块 */
+.header .logo {
+    position: absolute;
+    top: 25px;
+
+    width: 171px;
+    height: 61px;
+    /* background-color: skyblue; */
+}
+
+.header .logo h1 a {
+    display: block;
+
+    width: 171px;
+    height: 61px;
+    text-indent: -9999px;
+    overflow: hidden;
+    background: url(../images/logo.png) no-repeat center;
+}
+
+/* seacher 搜索模块 */
+.header .search {
+    position: absolute;
+    top: 25px;
+    left: 364px;
+
+    width: 538px;
+    height: 36px;
+    border: 2px solid #b1191a;
+}
+
+.header .search input {
+    float: left;
+
+    width: 454px;
+    height: 32px;
+    padding-left: 10px;
+}
+
+.header .search button {
+    float: left;
+
+    width: 80px;
+    height: 32px;
+    background-color: #b1191a;
+    font-size: 16px;
+    color: #fff;
+}
+
+/* hotwords 热词模块 */
+.header .hotwords {
+    position: absolute;
+    top: 66px;
+    left: 366px;
+}
+
+
+.header .hotwords ul li {
+    float: left;
+    margin: 0 10px;
+}
+
+/* shopcar 购物车模块 */
+.header .shopcar {
+    position: absolute;
+    right: 60px;
+    top: 25px;
+
+    width: 140px;
+    height: 35px;
+    line-height: 35px;
+    text-align: center;
+    background-color: #f7f7f7;
+}
+
+.header .shopcar::before {
+    content: "\e93a";
+
+    font-family: "icomoon";
+    color: #b1191a;
+    margin-right: 5px;
+}
+
+.header .shopcar::after {
+    content: "\e920";
+
+    font-family: "icomoon";
+    margin-left: 10px;
+}
+
+.header .shopcar .count {
+    position: absolute;
+    top: -5px;
+    left: 105px;
+
+    height: 14px;
+    line-height: 14px;
+    color: #fff;
+    background-color: #e60012;
+    padding: 0 5px;
+    border-radius: 7px 7px 7px 0;
+}
+
+/* 3、nav导航栏 */
+.nav {
+    height: 47px;
+    border-bottom: 2px solid #b1191a;
+}
+
+.nav .w {
+    height: 100%;
+    /* background-color: pink; */
+}
+
+/* 3.1、dropdown全部商品下拉模块 */
+.nav .w .dropdown {
+    float: left;
+
+    width: 210px;
+    height: 47px;
+}
+
+/* 设置 全部商品分类 */
+.nav .w .dropdown .dt {
+    height: 100%;
+    line-height: 47px;
+    background-color: #b1191a;
+    text-align: center;
+    color: #fff;
+    font-size: 16px;
+}
+
+/* 鼠标移动到 dropdown时 显示dd下拉列表 */
+/* .nav .w .dropdown:hover .dd {
+    display: block;
+} */
+
+/* 默认隐藏dd */
+.nav .w .dropdown .dd {
+    /* display: none; */
+
+    height: 465px;
+    background-color: #c81623;
+}
+
+.nav .w .dropdown .dd ul li {
+    position: relative;
+
+    height: 31px;
+    line-height: 31px;
+    width: 208px;
+    margin-left: 2px;
+    padding-left: 10px;
+
+    border-bottom: 1px solid #c81623;
+}
+
+/* 鼠标移动到dd中的 li 时更换背景颜色 */
+.nav .w .dropdown .dd ul li:hover {
+    background-color: #fff;
+}
+
+/* 鼠标移动到dd中的 li 时更换字体颜色 */
+.nav .w .dropdown .dd ul li:hover a {
+    color: #c81623;
+}
+
+.nav .w .dropdown .dd ul li a {
+    color: #fff;
+}
+
+/* li 中的after伪元素 ==> 添加字体图标用于显示右侧小箭头 */
+.nav .w .dropdown .dd ul li::after {
+    position: absolute;
+    right: 10px;
+
+    content: "\e920";
+    color: #fff;
+    font-family: "icomoon";
+}
+
+
+/* 3.2、导航条模块 */
+.nav .w .navitems {
+    float: right;
+}
+
+
+.nav .w .navitems ul li {
+    float: left;
+}
+
+/* 给a设置大小 不点到字也会出现小手图标 ==> 提升用户体验 */
+.nav .w .navitems ul li a {
+    display: block;
+
+    height: 45px;
+    line-height: 45px;
+    font-size: 16px;
+    padding: 0 25px 0 25px;
+    /* border: 1px solid red; */
+}
+
+/* 4、footer 底部 */
+.footer {
+    height: 415px;
+    background-color: #f5f5f5;
+    padding-top: 30px;
+}
+
+/* 4.1、footer mod_service服务模块 */
+.footer .w .mod_service {
+    height: 80px;
+    border-bottom: 1px solid #ccc;
+    /* background-color: pink; */
+}
+
+
+.footer .w .mod_service ul li {
+    float: left;
+
+    width: 300px;
+    height: 50px;
+    padding-left: 35px;
+    /* border: 1px solid red; */
+}
+
+/* 图片浮动,文字就会到图片周围了 */
+.footer .w .mod_service ul li h5 {
+    float: left;
+
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    text-indent: -9999px;
+    overflow: hidden;
+    background: url(../images/icons.png) no-repeat -252px -2px;
+}
+
+.footer .w .mod_service ul li .service_txt h4 {
+    font-size: 14px;
+}
+
+/* 4.2、footer mod_help 帮助模块 */
+.footer .w .mod_help {
+    height: 185px;
+    border-bottom: 1px solid #ccc;
+    padding-top: 20px;
+    padding-left: 50px;
+
+    /* background-color: pink; */
+}
+
+.footer .w .mod_help dl {
+    float: left;
+    width: 200px;
+}
+
+.footer .w .mod_help dl:last-child {
+    width: 90px;
+    text-align: center;
+}
+
+
+
+.footer .w .mod_help dl dt {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* 4.3、footer 版权模块 */
+.footer .w .mode_copyright {
+    text-align: center;
+    padding-top: 20px;
+}
+
+.footer .w .mode_copyright .links {
+    margin-bottom: 15px;
+}
+
+.footer .w .mode_copyright .links a {
+    margin: 0 3px;
+}
+
+.footer .w .mode_copyright .copyright {
+    line-height: 20px;
+}
