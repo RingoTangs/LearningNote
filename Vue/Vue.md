@@ -1,6 +1,2938 @@
-# 1.Vue/CLI3
+# 一：vue基础入门
 
-## 1.1.基本介绍
+## 1. vue安装
+
+**方式一：直接CDN引入**
+
+```html
+<!-- 对于制作原型或学习，你可以这样使用最新版本：-->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<!-- 对于生产环境，我们推荐链接到一个明确的版本号和构建文件，以避免新版本造成的不可预期的破坏：-->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+```
+
+**方式二：下载和引入**
+
+```html
+<!-- 直接下载并用 <script> 标签引入，Vue 会被注册为一个全局变量。-->
+<!-- 提前下载好 vue.js -->
+<script src="../js/vue.js"></script>
+```
+
+**方式三：NPM安装**
+
+
+
+## 2. vue.js的使用
+
+```xml
+<!-- vue实例中的选项 -->
+<!--
+ 1、el: 类型：string。作用：决定之后Vue实例会管理哪一个DOM。
+ 2、data：类型：Object|Function(组件中data必须是函数)。作用：Vue实例对应的数据对象。
+ 3、methods：类型：Function。作用：定义属于Vue的一些方法，可以在其他地方调用，也可以在命令中使用。	
+-->
+<script>
+    const app = new Vue({
+    el: '',
+    data: {
+    }.
+    methods: {
+    }
+    })
+</script>
+```
+
+
+
+### 2.1. 响应式编程
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>001-Hello</title>
+</head>
+
+<body>
+    <!-- 拿到data中的数据 -->
+    <div id="app">{{message}}</div>
+</body>
+
+<!-- 引入vue.js -->
+<script src="../js/vue.js"></script>
+
+<script>
+    const app = new Vue({
+        // 1、用于挂载要管理的元素
+        el: '#app',
+
+        // 2、定义数据
+        data: {
+            message: 'Hello, vue.js!'
+        }
+    })
+</script>
+</html>
+```
+
+![image-20210105125634270](E:\Typora\image\image-20210105125634270.png)
+
+
+
+### 2.2. 列表展示
+
+`v-for`：遍历
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>002-列表展示</title>
+</head>
+
+<body>
+    <div id="app">
+        <ul>
+            <!-- v-for遍历 -->
+            <li v-for="(item, index) in movies" :key="index">
+                {{item}} index = {{index}}
+            </li>
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data: {
+            message: 'Hello',
+            movies: ['海王', '亲王绕柱', '大话西游', '回家的诱惑']
+        }
+    })
+</script>
+
+</html>
+```
+
+![image-20210105130933849](E:\Typora\image\image-20210105130933849.png)
+
+
+
+### 2.3. 计数器
+
+`v-on:click、@click`：监听点击事件。
+
+`methods: {}`：这里可以定义方法。
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>003-计数器</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 方式一： -->
+        <h2>当前计数: {{counter1}}</h2>
+        <!-- v-on:click事件点击监听,这里的counter就是data中的counter -->
+        <button v-on:click="counter1++">+</button>
+        <button v-on:click="counter1--">-</button>
+
+        <h2>-----------------------------------------</h2>
+
+        <!-- 方式二： -->
+        <h2>当前计数: {{counter2}}</h2>
+        <button @click="increment">+</button>
+        <button @click="decrement">-</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+
+        // 定义数据
+        data: {
+            counter1: 0,
+            counter2: 0
+        },
+
+        // 定义方法
+        methods: {
+            increment() {
+                this.counter2++
+            },
+            decrement() {
+                this.counter2--
+            }
+        },
+    })
+</script>
+
+</html>
+```
+
+<img src="E:\Typora\image\image-20210105133037743.png" alt="image-20210105133037743" style="zoom:150%;" />
+
+
+
+## 3. vue生命周期
+
+<img src="E:\Typora\image\image-20210105185012057.png" alt="image-20210105185012057" style="zoom:150%;" />
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>004-生命周期函数</title>
+</head>
+
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: 'Hello World!',
+            }
+        },
+        beforeCreate() {
+            console.log('beforeCreate()...');
+        },
+        created() {
+            console.log('create()...');
+        },
+        beforeMount() {
+            console.log('beforeMount()...');
+        },
+        mounted() {
+            console.log('mounted()...');
+        },
+        beforeUpdate() {
+            console.log('beforeUpdate()...');
+        },
+        updated() {
+            console.log('updated()...');
+        },
+        beforeDestroy() {
+            console.log('beforeDestroy()...');
+        },
+        destroyed() {
+            console.log('destroyed()...');
+        },
+    })
+</script>
+
+</html>
+```
+
+![image-20210105190342046](E:\Typora\image\image-20210105190342046.png)
+
+
+
+## 4. 插值表达式
+
+### 4.1. 双大括号语法
+
+```html
+<!-- {{}} 双大括号会解析vue实例的data中的数据 -->
+<body>
+    <div id="app">
+        <!-- 1、直接使用 -->
+        <h1>1、{{msg}}</h1>
+
+        <!-- 2、可以进行拼接 -->
+        <h1>2、{{msg}}, Ringo</h1>
+
+        <!-- 3、这样也是可以解析的！ 中间还可以加字符串 -->
+        <h2>3、{{firstName + ' ' + lastName}}</h2>
+
+        <!-- 4、分开解析,并且显示中间有空格 -->
+        <h2>4、{{firstName}} {{lastName}}</h2>
+
+        <!-- 5、大括号内部可以做计算 -->
+        <h2>5、{{number * 2}}</h2>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀Vue!',
+                firstName: 'Ringo',
+                lastName: 'Lency',
+                number: 100,
+            }
+        },
+    })
+</script>
+```
+
+![image-20210105192839033](E:\Typora\image\image-20210105192839033.png)
+
+
+
+### 4.2. v-once指令
+
+```html
+<body>
+    <div id="app">
+        <!-- v-once 就会禁用数据的响应式 -->
+        <h2 v-once>{{msg}}</h2>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+    })
+</script>
+```
+
+![image-20210105193621049](E:\Typora\image\image-20210105193621049.png)
+
+
+
+### 4.3. v-html指令
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、{{}} 直接展示msg -->
+        <h1>{{msg}}</h1>
+
+        <!-- 2、v-html 将msg中的HTML标签解析出来 -->
+        <h1 v-html="msg" ></h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '<a>你好呀</a>',
+            }
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210105194347895.png" alt="image-20210105194347895" style="zoom:150%;" />
+
+
+
+### 4.4. v-text指令
+
+```html
+<body>
+    <div id="app">
+        <!-- v-text会覆盖标签中的文本 -->
+        <h1 v-text="msg">, Ringo</h1>
+        
+        <!-- 双大括号语法就比较灵活 -->
+        <h1>{{msg}}, Ringo</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '<a>你好呀</a>',
+            }
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210105194927384.png" alt="image-20210105194927384" style="zoom:150%;" />
+
+
+
+### 4.5. v-pre指令
+
+```html
+<body>
+    <div id="app">
+        <h1>{{msg}}</h1>
+
+        <!-- v-pre将标签中的内容直接显示(vue不会解析) -->
+        <h1 v-pre>{{msg}}</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+    })
+</script>
+```
+
+![image-20210105195336904](E:\Typora\image\image-20210105195336904.png)
+
+
+
+
+
+### 4.6. v-cloak指令
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+    <!-- 这里来设置css样式 -->
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 在vue解析之前，div中有一个属性v-cloak -->
+    <!-- 在vue解析之后，div中没有一个属性v-cloak -->
+    <!-- v-cloak防止因为网络的问题vue没有解析出数据 界面出现{{msg}}的问题 -->
+    <div id="app" v-cloak>
+        <h1>{{msg}}</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+    })
+</script>
+```
+
+
+
+## 5. v-bind动态绑定属性
+
+**(1) v-bind的简单使用**
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、错误的使用{{}}语法 -->
+        <!-- <img src="{{msg}}" alt=""> -->
+
+        <!-- 2、正确的使用v-bind -->
+        <!-- v-bind:属性="data中的数据", 可以将属性和变量动态绑定 -->
+        <img v-bind:src="url" />
+
+        <!-- 3、:href="" 绑定href(v-bind的简写)  -->
+        <a :href="href">百度一下</a>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                url: 'https://cn.vuejs.org/images/logo.png',
+                href: 'https://www.baidu.com',
+            }
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210105203039554.png" alt="image-20210105203039554" style="zoom:150%;" />
+
+**(2) v-bind动态绑定class(对象语法1)**
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>002-v-bind绑定class</title>
+
+    <!-- css设置颜色 -->
+    <style>
+        .active {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h2 class="active">{{msg}}</h2>
+        
+        <!-- :class="{key:value}" value一般使用bool值 -->
+        <!-- 当 value = true 时, class="active" -->
+        <!-- 当 value = false 时, active 就不会加在class上 -->
+        <h2 :class="{active:isActive}">{{msg}}</h2>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+               msg: '你好呀', 
+               isActive: true,
+            }
+        },
+    })
+</script>
+```
+
+![image-20210105204416301](E:\Typora\image\image-20210105204416301.png)
+
+
+
+**(3) v-bind动态绑定class(对象语法2—绑定方法)**
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>002-v-bind绑定class</title>
+
+    <!-- css设置颜色 -->
+    <style>
+        .active {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- :class="{key:value}" value一般使用bool值 -->
+        <!-- 当 value = true 时, class="active" -->
+        <!-- 当 value = false 时, active 就不会加在class上 -->
+        <!-- getkeyValue() 这里要加() -->
+        <h2 :class="getkeyValue()">{{msg}}</h2>
+
+        <!-- 按钮点击变色 -->
+        <!-- change之所以不加括号，是因为被省略了 -->
+        <!-- 真实调用函数的时候最好加上() -->
+        <button v-on:click="change">按钮</button></button>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+                isActive: true,
+            }
+        },
+        methods: {
+            // 点击按钮变色
+            change() {
+                this.isActive = !this.isActive
+            },
+
+            // 动态绑定class
+            getkeyValue() {
+                return {
+                    active: this.isActive
+                }
+            }
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210105210541165.png" alt="image-20210105210541165" style="zoom:150%;" />
+
+
+
+**(4) v-bind 动态绑定class(数组语法)**
+
+```html
+<body>
+    <div id="app">
+        <!-- 对象语法、数组语法和普通的class都是可以共存的 -->
+        <h1 class="title" :class="[active, line]">Tom</h1>
+        <h1 :class="getArray()">Jack</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                active: 'aaaa',
+                line: 'bbb',
+            }
+        },
+        methods: {
+            getArray() {
+                return [this.active, this.line]
+            }
+        },
+    })
+</script>
+```
+
+![image-20210105211620337](E:\Typora\image\image-20210105211620337.png)
+
+
+
+**(5) v-bind 和 v-for 结合使用案例**
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>004-v-for和v-bind案例</title>
+
+    <!-- css 使字体变红 -->
+    <style>
+        .active {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <ul>
+            <!-- 初始让movies[0]显示红色,之后点击哪个<li></li>,就让其变红色 -->
+            <li v-for="(item, index) in movies" :key="index" v-on:click="change(index)"
+                :class="{active:isActive(index)}">
+                {{item}} {{index}}
+            </li>
+        </ul>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                movies: ['海王', '火影', '泰坦尼克号', '柯南'],
+                current: 0,
+            }
+        },
+        methods: {
+            // 点击后将index的值赋给current
+            change(index) {
+                this.current = index
+            },
+
+            // 判断 current 是否等于 index
+            isActive(index) {
+                return this.current == index
+            },
+        },
+    })
+</script>
+```
+
+![image-20210105214809480](E:\Typora\image\image-20210105214809480.png)
+
+
+
+**(6) v-bind动态绑定style(对象语法)**
+
+```html
+<body>
+    <div id="app">
+        <!-- 动态绑定style对象语法 :style="{key:value}" -->
+        <!-- key是属性名 value是属性值 -->
+        <!-- 这里不能使用font-size，必须使用fontSize -->
+        <h1 :style="{fontSize:getFontSize()}">{{msg}}</h1>
+
+        <!-- 这样写也是可以的, 不能直接写50px,要加上单引号'50px' -->
+        <!-- 这里的value如果不加'',vue解析的时候就会解析data中的变量,加上''才表示是一个整体 -->
+        <h1 :style="{fontSize:'50px', color:'red'}">{{msg}}</h1>
+
+        <!-- 这里的value没有加'', 就是直接去data中找名字为fontSize的变量 -->
+        <h1 :style="{fontSize:fontSize, color:'green'}">{{msg}}</h1>
+
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    // 这里一定要有const app 才有响应式！！！！
+    const app = new Vue({
+        el: '#app',
+        data: {
+            msg: '你好呀',
+            fontSize: '50px',
+        },
+        methods: {
+            getFontSize() {
+                return this.fontSize
+            }
+        },
+    })
+</script>
+```
+
+
+
+## 6. 计算属性
+
+**(1)  计算属性基本使用**
+
+```html
+<body>
+    <div id="app">
+        <!-- 这里使用计算属性不加()-->
+        <!-- 这里用{{fullName()}} 会报错-->
+        <h1>{{fullName}}</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                firstName: 'Ringo',
+                lastName: 'Lency',
+            }
+        },
+
+        // 计算属性 --> 归根到底是属性
+        // 计算属性起名字的时候按照规矩就直接起名就可以了，不需要加动词
+        computed: {
+            fullName() {
+                return this.firstName + ' ' + this.lastName
+            }
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210106131955770.png" alt="image-20210106131955770" style="zoom:150%;" />
+
+
+
+**(2) 计算属性复杂操作：计算图书总价**
+
+```html
+<body>
+    <div id="app">
+        <table>
+            <thead>
+                <th>编号</th>
+                <th>书名</th>
+                <th>价格</th>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in books" :key="index">
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.price}}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <th>总价</th>
+                <th>---></th>
+                </th>
+                <th>{{totalPrice}}</th>
+            </tfoot>
+        </table>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                books: [
+                    { id: 110, name: 'Linux编程', price: 119 },
+                    { id: 111, name: '算法', price: 89 },
+                    { id: 112, name: '操作系统', price: 150 },
+                    { id: 113, name: '计算机组成原理', price: 120 },
+                ],
+            }
+        },
+        computed: {
+            // 计算所有书的价钱
+            totalPrice() {
+                let price = 0;
+                this.books.forEach(element => {
+                    price += element.price
+                });
+                return price;
+            },
+        },
+    })
+</script>
+```
+
+<img src="E:\Typora\image\image-20210106133810410.png" alt="image-20210106133810410" style="zoom:150%;" />
+
+
+
+**(3) 计算属性的getter和setter**
+
+```html
+<body>
+    <div id="app">
+        <h1>{{fullName}}</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                firstName: 'Ringo',
+                lastName: 'Lency',
+            }
+        },
+
+        // 计算属性其实是默认调用了对象中的get()
+        // 计算属性一般没有set(),我们不希望给计算属性设置值
+        // 由于计算属性中只有get(),就可以简写为 ==> fullName(){}
+        computed: {
+            fullName: {
+                get() {
+                    return this.firstName + ' ' + this.lastName;
+                },
+            }
+        },
+    })
+</script>
+```
+
+![image-20210106135242489](E:\Typora\image\image-20210106135242489.png)
+
+
+
+**(4) 计算属性和methods的对比**
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、调用methods中的方法要加() -->
+        <!-- 多次调用methods中的方法,这个方法会被调用多次 -->
+        <h1>{{getFullName()}}</h1>
+        <h1>{{getFullName()}}</h1>
+        <h1>{{getFullName()}}</h1>
+
+        <!-- 2、computed中的计算属性,直接写属性名就行了,不需要加() -->
+        <!-- 多次调用计算属性,该计算属性只会被调用一次！ -->
+        <h1>{{fullName}}</h1>
+        <h1>{{fullName}}</h1>
+        <h1>{{fullName}}</h1>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                firstName: 'Ringo',
+                lastName: 'Lency',
+            }
+        },
+
+        methods: {
+            getFullName() {
+                console.log('getFullName()....');
+                return this.firstName + ' ' + this.lastName;
+            }
+        },
+
+        computed: {
+            fullName() {
+                console.log('fullName()....');
+                return this.firstName + ' ' + this.lastName;
+            }
+        },
+    })
+</script>
+```
+
+![image-20210106140650789](E:\Typora\image\image-20210106140650789.png)
+
+
+
+## 7. ES6语法
+
+### 7.1. 块级作用域
+
+```html
+<script>
+    // 变量作用域：变量在什么范围内可以使用。
+    // 1、var没有块级作用域——if和for中都没有块级作用域
+    {
+        var name = 'zs';
+        console.log('var {} 里面' + name);
+    }
+    console.log('var {} 外面' + name);
+
+    // 2、var在函数中是有块级作用域的
+    function testVar() {
+        var price = '10元';
+        console.log('price testVar() 内' + price);
+    }
+
+    testVar();
+    console.log('price testVar() 外' + price);
+
+    // 3、let有块级作用域
+    {
+        let age = 18;
+        console.log('let {} 里面' + age);
+    }
+    console.log('let {} 外面' + age);
+
+</script>
+```
+
+![image-20210106142610190](E:\Typora\image\image-20210106142610190.png)
+
+
+
+### 7.2. const的用法
+
+**在开发中，优先使用const，只有需要改变某一个标识符的时候才使用 let**。
+
+```html
+<script>
+    // 注意一：const定义常量必须初始化
+    // const name;
+
+    // 注意二：一旦定义了const常量,该常量不可修改      
+    // const age = 18;
+    // age = 20; 
+
+    // 注意三：const定义的对象不可修改,但是可以修改对象内的属性
+    const person = {
+        name: 'zs',
+        age: '18',
+    };
+    person.age = 19;
+    console.log(person);
+</script>
+```
+
+<img src="E:\Typora\image\image-20210106143836455.png" alt="image-20210106143836455" style="zoom: 200%;" />
+
+
+
+### 7.3. 对象增强写法
+
+```html
+<script>
+    // 1、对象属性的增强写法
+    const name = 'zs';
+    const age = 18;
+    const gender = '男';
+
+    // ES5 语法
+    const person1 = {
+        name: name,
+        age: age,
+        gender: gender,
+    };
+
+    // ES6 语法
+    const person2 = {
+        name,
+        age,
+        gender,
+    }
+
+    console.log(person1);
+    console.log(person2);
+
+    // 2、函数的增强写法
+    // ES5 语法
+    const cat1 = {
+        eat: function () {
+            console.log('cat1 eats fish...');
+        },
+    };
+    cat1.eat();
+
+    // ES6 语法
+    const cat2 = {
+        eat() {
+            console.log('cat2 eats fish...');
+        },
+    };
+    cat2.eat();
+</script>
+```
+
+![image-20210106145216734](E:\Typora\image\image-20210106145216734.png)
+
+
+
+## 8. 事件监听
+
+### 8.1. v-on：基本使用
+
+```html
+<body>
+    <div id="app">
+        <h1>计数器: {{counter}}</h1>
+
+        <!-- v-on:click 监听事件的点击 -->
+        <button v-on:click="increment()">+</button>
+
+        <!-- @click：v-on:click的简写 -->
+        <button @click="decrement()">-</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                counter: 0,
+            }
+        },
+        methods: {
+            // 计数器 + 1
+            increment() {
+                this.counter += 1;
+            },
+
+            // 计数器 - 1
+            decrement() {
+                this.counter -= 1;
+            },
+        },
+    });
+</script>
+```
+
+
+
+### 8.2. v-on：传递参数
+
+```html
+<body>
+    <div id="app">
+        <!-- 按钮1点击调用方法没有传递参数 -->
+        <button @click="btn1Click()">按钮1</button>
+
+        <!-- 按钮2点击调用方法传递参数 -->
+        <button @click="btn2Click(123)">按钮2</button>
+
+        <!-- 按钮3点击调用方法应该有参数,但是没有传递 -->
+        <button @click="btn3Click()">按钮3</button>
+
+        <!-- 按钮4点击调用方法应该有参数,但是没有传递并且方法没有加() -->
+        <!-- 这里应该是 <==> @click="btn4Click($event)" -->
+        <button @click="btn4Click">按钮4</button>
+
+        <!-- 按钮5点击调用方法同时需要参数和event对象 -->
+        <button @click="btn5Click(8848, $event)">按钮5</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        methods: {
+            btn1Click() {
+                console.log('btn1Click...');
+            },
+            btn2Click(param) {
+                console.log('btn2Click...' + param);
+            },
+            btn3Click(param) {
+                console.log('btn3Click...' + param);
+            },
+            btn4Click(event) {
+                console.log('--------------------');
+                console.log('btn4Click...');
+                console.log(event);
+            },
+            btn5Click(param, event) {
+                console.log('--------------------');
+                console.log('btn5Click.....' + param);
+                console.log(event);
+            },
+        },
+    });
+</script>
+```
+
+![image-20210106152522955](E:\Typora\image\image-20210106152522955.png)
+
+
+
+### 8.3. v-on：修饰符
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、.stop修饰符的使用 -->
+        <div @click="divClick()">
+            <!-- @click.stop防止事件冒泡 -->
+            <button @click.stop="btnClick()">按钮</button>
+        </div>
+
+        <!-- 2、.prevent阻止默认事件 -->
+        <form action="https://www.baidu.com" method="POST">
+            <input type="submit" value="提交" @click.prevent="submitClick()"/>
+        </form>
+
+        <!-- 3、@keyup监听键盘的按键 -->
+        <!-- @keyup.enter只监听Enter回车键 -->
+        <input type="text" @keyup.enter="keyupLinstener()" />
+
+        <!-- 4、.once只监听一次回调 -->
+        <button @click.once="testOnce()">只监听一次回调</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+
+            }
+        },
+        methods: {
+            btnClick() {
+                console.log('点击button...');
+            },
+            divClick() {
+                console.log('点击div...');
+            },
+            submitClick() {
+                console.log('点击submit..');
+            },
+            keyupLinstener() {
+                console.log('监听键盘点击...');
+            },
+            testOnce() {
+                console.log('test .once ....');
+            },
+        },
+    });
+</script>
+```
+
+
+
+## 9. 条件判断
+
+### 9.1. v-if 和 v-else
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、v-if="condition" 这个condition是bool类型的值 -->
+        <h1 v-if="isShow">{{msg}}</h1>
+
+        <!-- 2、v-if和v-else联合使用 -->
+        <h1 v-else>abc</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+                isShow: true,
+            }
+        },
+    });
+</script>
+```
+
+![image-20210106173834036](E:\Typora\image\image-20210106173834036.png)
+
+
+
+### 9.2. v-else-if
+
+`v-else-if`很少用。
+
+```html
+<body>
+    <div id="app">
+        <h1 v-if="score>=90">优秀</h1>
+        <h1 v-else-if="score>=80">良好</h1>
+        <h1 v-else-if="score>=60">及格</h1>
+        <h1 v-else>不及格</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return { 
+                score: 90,
+            }
+        },
+    });
+</script>
+```
+
+![image-20210106175138682](E:\Typora\image\image-20210106175138682.png)
+
+
+
+### 9.3. 用户登录切换案例
+
+```html
+<body>
+    <div id="app">
+        <span v-if="isUser">
+            <!-- label中的 for="username",当点击用户名的时候可以聚焦到input上 -->
+            <!-- input中加入key点击切换的时候就不会复用 -->
+            <label for="username">用户账号</label>
+            <input type="text" id="username" placeholder="用户账号" key="username"/>
+        </span>
+        <span v-else>
+            <label for="email">用户邮箱</label>
+            <input type="text" id="email" placeholder="用户邮箱" key="email">
+        </span>
+        <button @click="switchLoginType()">切换类型</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                isUser: true,
+            }
+        },
+        methods: {
+            switchLoginType() {
+                this.isUser = !this.isUser;
+            }, 
+        },
+    });
+</script>
+```
+
+<img src="E:\Typora\image\image-20210106185500942.png" alt="image-20210106185500942" style="zoom:150%;" />
+
+
+
+### 9.4. v-show
+
+```html
+<body>
+    <div id="app">
+        <!-- v-if 条件为false时 根本就没有DOM -->
+        <h1 v-if="isShow" id="aaa">{{msg}}</h1>
+
+        <!-- v-show 条件为false时 是添加了style style="display: none;"-->
+        <h1 v-show="isShow" id="bbb">{{msg}}</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+                isShow: true,
+            }
+        },
+    });
+</script>
+```
+
+<img src="E:\Typora\image\image-20210106190345322.png" alt="image-20210106190345322" style="zoom:150%;" />
+
+`v-show、v-if`如何选择？
+
+- 当需要在显示和隐藏之间切换很频繁时，使用`v-show`。
+- 当只有一次切换时，使用`v-if`。
+
+
+
+## 10. 遍历数组和对象
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、遍历数组：在名字前面加上序号 -->
+        <ul>
+            <!-- v-for尽量绑定 key，并且保证绑定key的元素是唯一的，index下标是唯一的！-->
+            <li v-for="(name, index) in names" :key="index">
+                {{(index + 1) + ' ' + name}}
+            </li>
+        </ul>
+
+        <!-- 2、遍历对象 -->
+        <!-- 2.1、获取对象的key、value -->
+        <ul>
+            <li v-for="(value, key, index) in info" :key="index">
+                {{key + '：' + value}}
+            </li>
+        </ul>
+
+        <!-- 2.2、获取对象的key、value、index -->
+        <ul>
+            <li v-for="(value, key, index) in info" :key="index">
+                {{(index + 1) + ' ' + key + '：' + value}}
+            </li>
+        </ul>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                names: ['张三', '李四', '王五'],
+                info: {
+                    name: 'Ringo',
+                    age: 18,
+                    gender: '男',
+                },
+            }
+        },
+    });
+</script>
+```
+
+![image-20210106192417231](E:\Typora\image\image-20210106192417231.png)
+
+
+
+## 11. 数组中的响应式方法
+
+```html
+<body>
+    <div id="app">
+        <ul>
+            <li v-for="(letter, index) in letters" :key="index">
+                {{letter}}
+            </li>
+        </ul>
+        <button @click="btnClick()">响应式方法测试</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                letters: ['A', 'B', 'C', 'D', 'E'],
+            }
+        },
+        methods: {
+            btnClick() {
+                // 1、push()：从数组尾部添加元素 并且length + 1
+                this.letters.push('A');
+                console.log(this.letters);
+
+                // 注意：push()可以一次添加多个元素
+                this.letters.push('8', '9');
+                console.log(this.letters);
+
+                // 2、通过索引值修改数组中的值(最好用splice()来修改数组的值)
+                this.letters[1] = 'CCCCCCCCCCCC';
+                console.log(this.letters);
+
+                // 3、pop()：弹出数组最后一个元素 并且length - 1
+                let p = this.letters.pop();
+                console.log(p);
+                console.log(this.letters);
+
+                // 4、shift()：弹出数组第一个元素 并且length - 1
+                this.letters.shift();
+                console.log(this.letters);
+
+                // 5、unshift()：在数组第一个元素前添加元素 并且length + 1
+                this.letters.unshift('8848');
+                console.log(this.letters);
+
+                // 注意：unshift()也可以一次添加多个元素
+                this.letters.unshift('8849', '8850');
+                console.log(this.letters);
+
+                // 6、splice(): 删除元素/插入元素/替换元素 
+                // splice(index,howmany,item1,.....,itemX)
+                // index: 必需。整数，规定添加/删除项目的位置，使用负数可从数组结尾处规定位置。
+                // howmany: 可选。要删除的项目数量。如果设置为 0，则不会删除项目。
+                // item1, ..., itemX: 可选。向数组添加的新项目。
+                // splice(index, howmany)：删除元素, 从index开始删除howmany个元素
+                // splice(index, howmany, item..)：替换元素,替换从index开始, 将howmany个元素替换为 item..
+                // splice(index, 0, item..)：插入元素,在下边index之前插入元素
+                this.letters.splice(0, 0, '1');
+                console.log(this.letters);
+
+                // 7、sort()：排序
+                this.letters.sort();
+                console.log(this.letters);
+
+                // 8、reverse()：反转
+                this.letters.reverse();
+                console.log(this.letters);
+
+                // 9、Vue.set(object, index, value)：可以修改数组
+                Vue.set(this.letters, 0, 'qwer');
+                console.log(this.letters);
+            },
+        },
+    });
+</script>
+```
+
+
+
+## 12. 购物车案例(filters)
+
+- `toFixed(n)`：保留小数点后 n 位小数。
+- Vue实例中可以使用过滤器 `filter`。
+
+```html
+<body>
+    <!-- 使用过滤器 -->
+    {{price|finalPrice}}
+</body>
+
+<script>
+	const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                price: 50,
+            }
+        },
+        fiters: {
+          finalPrice(price) {
+          	return '￥' + (price.tofixed(2));  
+          },  
+        },
+    });
+</script>
+```
+
+Vue.js 允许你自定义过滤器，可被用于一些常见的文本格式化。过滤器可以用在两个地方：**双花括号插值和 `v-bind` 表达式** (后者从 2.1.0+ 开始支持)。过滤器应该被添加在 JavaScript 表达式的尾部，由“管道”符号指示：
+
+```html
+<!-- 在双花括号中 -->
+{{ message | capitalize }}
+
+<!-- 在 `v-bind` 中 -->
+<div v-bind:id="rawId | formatId"></div>
+```
+
+
+
+**购物车案例**：
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车案例</title>
+
+    <style>
+        table {
+            border: 1px solid #e9e9e9;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        th,
+        td {
+            padding: 8px 16px;
+            border: 1px solid #e9e9e9;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f7f7f7;
+            color: #5c6b77;
+            font-weight: 600;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <table v-if="books.length > 0">
+            <tbody>
+                <tr>
+                    <th>编号</th>
+                    <th>书籍名称</th>
+                    <th>出版日期</th>
+                    <th>价格</th>
+                    <th>购买数量</th>
+                    <th>操作</th>
+                </tr>
+            </tbody>
+            <tbody>
+                <tr v-for="(book, index) in books" :key="index">
+                    <td>{{index + 1}}</td>
+                    <td>{{book.name}}</td>
+                    <td>{{book.time}}</td>
+                    <!-- {{book.price | finalPrice}}使用过滤器 -->
+                    <td>{{book.price | finalPrice}}</td>
+                    <td>
+                        <button @click="decrement(index)">-</button>
+                        <span>{{book.number}}</span>
+                        <button @click="increment(index)">+</button>
+                    </td>
+                    <td>
+                        <button @click="remove(index)">移除</button>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>总价</th>
+                    <th colspan="5">{{totoal | finalPrice}}</th>
+                </tr>
+            </tfoot>
+        </table>
+        <h1 v-else>购物车记录为空！</和>
+    </div>
+</body>
+
+<script src="./js/vue.js"></script>
+
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                books: [
+                    { name: '算法导论', time: '2006-9', price: 85.00, number: 1 },
+                    { name: 'Unix编程', time: '2006-2', price: 59.00, number: 1 },
+                    { name: '编程珠玑', time: '2008-10', price: 39.00, number: 1 },
+                    { name: '代码大全', time: '2006-3', price: 128.00, number: 1 },
+                ],
+            }
+        },
+        methods: {
+            // 下标为index的图书购买数量增加
+            increment(index) {
+                this.books[index].number++;
+            },
+
+            // 下标为index的图书购买数量减少
+            decrement(index) {
+                if (this.books[index].number > 1) {
+                    this.books[index].number--;
+                }
+            },
+
+            // 移除数组中下标为index的元素
+            remove(index) {
+                this.books.splice(index, 1);
+            },
+        },
+
+        computed: {
+            // 计算书的总价
+            totoal() {
+                let sum = 0.00;
+                this.books.forEach(book => {
+                    sum += book.price * book.number;
+                });
+                return sum;
+            }
+        },
+
+        // 过滤器
+        filters: {
+            finalPrice(price) {
+                // tofixed(n)：保留n位小数
+                return '￥' + (price.toFixed(2));
+            },
+        },
+    });
+</script>
+```
+
+![image-20210107140716595](E:\Typora\image\image-20210107140716595.png)
+
+
+
+## 13. JS高阶函数
+
+```html
+<script>
+    const numbers = [1, 3, 5, 7, 9];
+
+    console.log('-------------for(let i in array)-------------');
+    // 1、for(let i in array)：这里的i拿到的是数组的下标
+    for (let i in numbers) {
+        console.log(numbers[i]);
+    }
+    
+    const obj = {
+        username: '123',
+        password: '456',
+    };
+
+    // 遍历对象 这里的 i 拿到的是对象的 key
+    for(let i in obj) {
+        console.log(i);              // username  123
+        console.log(obj[i]);         // 123       456
+    }
+
+    console.log('-------------for(let element of array)-------------');
+    // 2、for (let number of numbers)：这里拿到的是数组中每个元素
+    for (let number of numbers) {
+        console.log(number);
+    }
+
+    console.log('-------------arrays.filter(function())-------------');
+    // 3、arrays.filter(function())
+    // filter()中的回调函数必须返回一个boolean值
+    const a1 = numbers.filter(number => number > 3);
+    console.log(a1);
+
+    console.log('-------------arrays.map(function())-------------');
+    // 4、array.map(function(currentValue,index,arr), thisValue)
+    // currentValue：必须。当前元素的值
+    // index：可选。当前元素的索引值
+    // arr:可选。当前元素属于的数组对象 ==> 就是当前数组
+    // thisValue：可选。对象作为该执行回调时使用，传递给函数，用作 "this" 的值。如果省略了 thisValue，或者传入 null、undefined，那么回调函数的 this 为全局对象
+    // map()中的回调函数会对数组中元素做操作
+    const a2 = numbers.map(number => number * 2);
+    console.log(a2);
+
+    console.log('-------------reduce(function)-------------');
+    // 5、array.reduce(function(total, currentValue, currentIndex, arr), initialValue)
+    // total：必需。初始值, 或者计算结束后的返回值
+    // currentValue：必需。当前元素
+    // currentIndex：可选。当前元素的索引
+    // arr：可选。当前元素所属的数组对象 ==> 就是当前数组
+    // initialValue：可选。传递给函数的初始值
+    // reduce：对数组中所有内容进行汇总
+
+    // 5.1、数组求和
+    const sum1 = numbers.reduce((total, currentValue) => total + currentValue);
+    console.log('sum1 = ' + sum1);
+
+    // 5.2. 数组求和然后再 + 5
+    const sum2 = numbers.reduce((total, currentValue) => total + currentValue, 5);
+    console.log('sum2 = ' + sum2);
+
+</script>
+```
+
+![image-20210107145923481](E:\Typora\image\image-20210107145923481.png)
+
+
+
+## 14. v-model指令
+
+### 14.1. 基本使用和原理
+
+`v-model`实现了数据的双向绑定！经常和表单一起使用！
+
+```html
+<body>
+    <div id="app">
+        <h1>msg：{{msg}}</h1>
+        <!-- 1、v-bind:value="" 单向绑定：数据 ==> DOM -->
+        <input type="text" :value="msg" /><br />
+
+        <!-- 2、v-model双向绑定：数据 <==> DOM -->
+        <!-- v-model经常和表单一起使用 -->
+        <!-- v-model的使用限制input(checkbox,radio,text),select,textarea,components -->
+        <input type="text" v-model="msg"><br />
+
+        <!-- 3、v-model的原理：v-bind:value(动态绑定value) 和 v-on:input(input事件监听) -->
+        <!-- v-bind:value + v-on:input 也可以实现双向绑定 -->
+        <input type="text" :value="msg" v-on:input="valueChange($event)">
+
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+        methods: {
+            valueChange(event) {
+                console.log('valueChange()..');
+                console.log(event);
+                this.msg = event.target.value;
+            },
+        },
+    });
+</script>
+```
+
+
+
+### 14.2. 结合radio使用
+
+```html
+<body>
+    <div id="app">
+        <h1>gender：{{gender}}</h1>
+        <label for="male">
+            <!-- name：保证互斥 -->
+            <!-- id：label的引用 -->
+            <!-- value：name所对应的值 -->
+            <!-- 注意：v-model绑定同一个值，name可以不写 -->
+            <input type="radio" name="gender" id="male" value="male" v-model="gender">男
+        </label>
+
+        <label for="female">
+            <input type="radio" name="gender" id="female" value="female" v-model="gender">女
+        </label>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 打开页面默认就会选择男
+                gender: 'male',
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107155334420](E:\Typora\image\image-20210107155334420.png)
+
+
+
+### 14.3. 结合checkbox使用
+
+**(1) checkbox 单选框：v-model 绑定的是boolean值**。
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、checkbox单选框 -->
+        <h1>isAgree：{{isAgree}}</h1>
+        <label for="agree">
+            <!-- checkbox中的v-model要绑定boolean值 -->
+            <input type="checkbox" name="agree" id="agree" v-model="isAgree">同意协议
+        </label>
+        <br />
+
+        <!-- 不点同意下一步就不能点 -->
+        <button :disabled="!isAgree">下一步</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 默认是false
+                isAgree: false,
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107161031901](E:\Typora\image\image-20210107161031901.png)
+
+
+
+**(2) checkbox复选框：checkbox复选框v-model绑定的是数组**。
+
+```html
+<body>
+    <div id="app">
+        <h1>interests:{{interests}}</h1>
+        <label for="basketball">
+            <input type="checkbox" name="interest" id="basketball" value="basketball" v-model="interests">篮球
+        </label>
+
+        <label for="football">
+            <input type="checkbox" name="interest" id="football" value="football" v-model="interests">足球
+        </label>
+
+        <label for="badminton">
+            <input type="checkbox" name="interest" id="badminton" value="badminton" v-model="interests">羽毛球
+        </label>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                interests: [],
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107162443596](E:\Typora\image\image-20210107162443596.png)
+
+
+
+### 14.4. 结合select使用
+
+**(1) select 单选：v-model绑定的是值**。
+
+```html
+<body>
+    <div id="app">
+        <h1>interest: {{interest}}</h1>
+        <!-- select选择一个 -->
+        <!-- v-model="interest" 绑定interest属性 -->
+        <select name="interest" v-model="interest">
+            <option value="basketball">篮球</option>
+            <option value="football">足球</option>
+            <option value="badminton">羽毛球</option>
+        </select>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 默认显示football
+                interest: 'football',
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107164407940](E:\Typora\image\image-20210107164407940.png)
+
+
+
+**(2) select选择多个：v-model绑定的是数组**。
+
+```html
+<body>
+    <div id="app">
+        <h1>interests: {{interests}}</h1>
+        <!--v-model="interests" 绑定的是数组 -->
+        <!-- select上添加multiple即可选中多个 -->
+        <select name="interest" v-model="interests" multiple>
+            <option value="basketball">篮球</option>
+            <option value="football">足球</option>
+            <option value="badminton">羽毛球</option>
+            <option value="ping-pang">乒乓球</option>
+        </select>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // v-model绑定数组
+                interests: [],
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107165131143](E:\Typora\image\image-20210107165131143.png)
+
+
+
+### 14.5. 值绑定
+
+```html
+<body>
+    <div id="app">
+        <h1>interests：{{interests}}</h1>
+        <label v-for="(item, index) in originalInterests" :key="index" :for="item.value">
+            <input type="checkbox" name="interest" :id="item.value" :value="item.value" v-model="interests" >{{item.name}}
+        </label>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 从服务器请求到的数据
+                originalInterests: [
+                    { name: '篮球', value: 'basketball' },
+                    { name: '足球', value: 'football' },
+                    { name: '羽毛球', value: 'badminton' },
+                ],
+
+                // 用户选择的数据
+                interests: [],
+            }
+        },
+    });
+</script>
+```
+
+![image-20210107191953925](E:\Typora\image\image-20210107191953925.png)
+
+
+
+### 14.6. v-model修饰符
+
+```html
+<body>
+    <div id="app">
+        <!-- 1、lazy：等用户输入完成后,按Enter/input失去焦点的时候再绑定数据 -->
+        <!-- 如果不用lazy, 默认是实时绑定,写一个字母就会修改数据 -->
+        <h1>msg：{{msg}}</h1>
+        <input type="text" v-model.lazy="msg" />
+        <br />
+
+        <!-- 2、number：input中的数字会被解析成number类型 -->
+        <!-- 默认情况下 input 输入框内无论输入什么都是string类型 -->
+        <h1>age：{{age}}</h1>
+        <h1>typeof age：{{typeof age}}</h1>
+        <input type="number" v-model.number="age" />
+
+        <!-- 3、trim：消除字符串左右两边的空格 -->
+        <h1>name.length: {{name.length}}</h1>
+        <input type="text" v-model.trim="name" />
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+                age: 18,
+                name: 'zhangsan',
+            }
+        },
+    });
+</script>
+```
+
+
+
+### 15. watch的使用
+
+```html
+<body>
+    <div id="app">
+        <h1>{{fullName}}</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                firstName: 'zhang',
+                lastName: 'san',
+                fullName: 'zhang san',
+            }
+        },
+
+        watch: {
+            // 监听 firstName 的变化
+            firstName(val) {
+                this.fullName = val + ' ' + this.lastName;
+            },
+
+            // 监听 lastName 的变化
+            lastName(val) {
+                this.fullName = this.firstName + ' ' + val;
+            }
+        },
+    });
+</script>
+```
+
+![image-20210213180542495](E:\Typora\image\image-20210213180542495.png)
+
+
+
+# 二、组件化开发
+
+## 1. 组件化的实现
+
+**(1) 注册组件的基本步骤**：
+
+- 创建组件构造器。
+- 注册组件。
+- 使用组件。
+
+![image-20210107194240512](E:\Typora\image\image-20210107194240512.png)
+
+```html
+<body>
+    <div id="app">
+        <!-- 3、使用组件 -->
+        <cpn></cpn>
+        <cpn></cpn>
+        <cpn></cpn>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 使用组件的步骤
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: `<div><h2>组件模板</h2></div>`
+    });
+
+    // 2、注册组件
+    // Vue.component(组件标签名, 组件构造器)
+    Vue.component('cpn', cpn);
+
+
+    const app = new Vue({
+        el: '#app',
+    });
+</script>
+```
+
+<img src="E:\Typora\image\image-20210107195536279.png" alt="image-20210107195536279" style="zoom:150%;" />
+
+
+
+## 2. 全局组件和局部组件
+
+```html
+<body>
+    <div id="app">
+        <cpn></cpn>
+        <cpn></cpn>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、创建组件构造器
+    const cpn = Vue.extend({
+        template: `
+        <div>
+            <h1>我是标题</h1>
+            <p>我是内容</p>
+        </div>
+        `
+    });
+
+    // 2、注册组件(全局组件)
+    // 全局组件：可以在多个vue实例中使用
+    // Vue.component('cpn', cpn);
+
+    const app = new Vue({
+        el: '#app',
+        // 注册局部组件,只能在当前vue实例中使用
+        components: {
+            cpn,
+        },
+    });
+</script>
+```
+
+<img src="E:\Typora\image\image-20210107204240063.png" alt="image-20210107204240063" style="zoom:150%;" />
+
+
+
+## 3. 父子组件
+
+组件中除了有`template`属性之外，还有`components`属性。
+
+```html
+<body>
+    <div id="app">
+        <cpn2></cpn2>
+        
+        <!-- 没有在vue实例中注册cpn1,所以不能用cpn1 -->
+        <cpn1></cpn1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、注册组件构造器
+    const cpn1 = Vue.extend({
+        template: `
+        <div>
+            <h1>我是cpn1</h1>
+        </div>
+        `
+    });
+
+    const cpn2 = Vue.extend({
+        template: `
+        <div>
+            <h1>我是cpn2</h1>
+            <cpn1></cpn1>
+        </div>
+        `,
+
+        // 可以在组件cpn2中注册组件
+        // 我们就可以在cpn2中使用cpn1
+        components: {
+            cpn1,
+        },
+    });
+
+    const app = new Vue({
+        el: '#app',
+
+        // 2、注册局部组件,将cpn2注册到vue实例中
+        components: {
+            cpn2,
+        },
+    });
+</script>
+```
+
+![image-20210108135415225](E:\Typora\image\image-20210108135415225.png)
+
+
+
+## 4. 组件模板抽离
+
+```html
+<body>
+    <div id="app">
+        <!-- 3、使用组件 -->
+        <cpn></cpn>
+    </div>
+</body>
+
+<template id="template-cpn">
+    <div>
+        <h1>我是cpn组件</h1>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: '#template-cpn'
+    });
+
+    const app = new Vue({
+        el: '#app',
+
+        // 2、注册局部组件
+        components: {
+            cpn,
+        },
+    });
+</script>
+```
+
+![image-20210108152923027](E:\Typora\image\image-20210108152923027.png)
+
+
+
+## 5. 组件中的data属性
+
+**注：组件不能直接访问vue实例中的数据**。
+
+**组件中的data必须是函数**。
+
+```html
+<body>
+    <div id="app">
+        <!-- 3、使用组件 -->
+        <cpn></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <!-- 注意：组件内部不能只能访问vue实例中的数据 -->
+        <!-- <h1>{{msg}}</h1> -->
+        <h1>{{title}}</h1>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: '#cpn',
+
+        // 组件中的data可以存放数据
+        // 组件中的data必须是函数
+        data() {
+            return {
+                title: 'abc',
+            }
+        },
+    });
+
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+
+        // 2、注册局部组件
+        components: {
+            cpn,
+        },
+    });
+</script>
+```
+
+![image-20210108180911623](E:\Typora\image\image-20210108180911623.png)
+
+
+
+## 6. 父子组件通信
+
+### 6.1. 父传子props
+
+**(1) props的基本使用**
+
+```html
+<body>
+    <div id="app">
+        <!-- 3、使用组件 -->
+        <!-- 父组件中的数据传递到子组件中, 使用v-bind来绑定属性 -->
+        <!-- :movies绑定的是vue实例中的数据 -->
+        <cpn :movies="movies"></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>{{msg}}</h1>
+        <ul>
+            <li v-for="(movie, index) in movies" :key="index">
+                <span>{{movie}}</span>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: '#cpn',
+        data() {
+            return {
+                msg: '你好呀',
+            }
+        },
+
+        // props用于父组件数据 ==> 子组件
+        props: {
+            // 这样可以指定每个prop的类型
+            movies: {
+                type: Array,
+                default() {
+                    return [1, 2, 3];
+                },
+            },
+        },
+    });
+
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                movies: ['海王', '火影', '柯南'],
+            }
+        },
+
+        // 2、在vue实例中注册局部组件
+        components: {
+            cpn,
+        },
+    });
+</script>
+```
+
+![image-20210108184518532](E:\Typora\image\image-20210108184518532.png)
+
+
+
+**子组件中props应该怎么写？？**
+
+官网：https://cn.vuejs.org/v2/guide/components-props.html
+
+```html
+<script>
+Vue.component('my-component', {
+  props: {
+    // 基础的类型检查 (`null` 和 `undefined` 会通过任何类型验证)
+    propA: Number,
+    // 多个可能的类型
+    propB: [String, Number],
+    // 必填的字符串
+    propC: {
+      type: String,
+      required: true
+    },
+    // 带有默认值的数字
+    propD: {
+      type: Number,
+      default: 100
+    },
+    // 带有默认值的对象
+    propE: {
+      type: Object,
+      // 对象或数组默认值必须从一个工厂函数获取
+      default: function () {
+        return { message: 'hello' }
+      }
+    },
+    // 自定义验证函数
+    propF: {
+      validator: function (value) {
+        // 这个值必须匹配下列字符串中的一个
+        return ['success', 'warning', 'danger'].indexOf(value) !== -1
+      }
+    }
+  }
+})
+</script>
+```
+
+
+
+**(2) v-bind不支持驼峰**
+
+```html
+<body>
+    <div id="app">
+        <!-- 子组件中prop是myMovies, 在HTML标签中属性要写my-movies -->
+        <!-- vue的v-bind不支持驼峰标识 -->
+        <cpn :my-movies="myMovies"></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>{{title}}</h1>
+        <ul>
+            <li v-for="(myMovie, index) in myMovies" :key="index">
+                <span>{{myMovie}}</span>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: '#cpn',
+        data() {
+            return {
+                title: '这是子组件',
+            }
+        },
+
+        // props用于父 ==> 子
+        props: {
+            myMovies: {
+                type: Array,
+                default() {
+                    return [1, 2, 3];
+                },
+            },
+        },
+    });
+
+
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                myMovies: ['海王', '火影', '柯南'],
+            }
+        },
+
+        // 2、在vue实例中注册局部组件
+        components: {
+            cpn,
+        },
+    });
+</script>
+```
+
+![image-20210108190831619](E:\Typora\image\image-20210108190831619.png)
+
+
+
+### 6.2. 子传父自定义事件emit()
+
+```html
+<body>
+    <div id="app">
+        <!-- 3、使用组件 -->
+        <!-- 父组件通过 v-on 来监听子组件的自定义事件 -->
+        <!-- 监听自定义的事件 btnClickLinster($event) 参数直接监听该事件 -->
+        <cpn v-on:btnclick="btnClickLinster($event)"></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>{{title}}</h1>
+        <ul>
+            <li v-for="(category, index) in categories" :key="index">
+                <button @click="btnClick(category)">
+                    {{category.name}}
+                </button>
+            </li>
+        </ul>
+
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 1、注册组件构造器
+    const cpn = Vue.extend({
+        template: '#cpn',
+        data() {
+            return {
+                title: '你好呀',
+                categories: [
+                    { id: 101, name: '热门推荐' },
+                    { id: 102, name: '电脑办公' },
+                ],
+            }
+        },
+
+        methods: {
+            // 监听按钮点击
+            btnClick(category) {
+                // $emit(事件名称, 参数)：自定义事件
+                this.$emit('btnclick', category);
+            },
+        },
+    });
+
+    const app = new Vue({
+        el: '#app',
+        // 2、在vue实例中注册局部组件
+        components: {
+            cpn,
+        },
+
+        methods: {
+            // 父组件监听子组件的btnClick事件
+            btnClickLinster(event) {
+                console.log('父组件监听到点击事件');
+                console.log(event);
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109134505521](E:\Typora\image\image-20210109134505521.png)
+
+
+
+### 6.3. 父子通信结合双向绑定
+
+```html
+<body>
+    <div id="app">
+        <h1>父组件中的number1：{{number1}}</h1>
+        </h1>
+        <!-- 1、:number1="number1" ==> 父组件给子组件传值(props) -->
+        <!-- 2、v-on:valuechange="valuechangeListener($event)" ==> 子组件给父组件传值(自定义事件) -->
+        <cpn :number1="number1" v-on:valuechange="valuechangeListener($event)"></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>子组件中props的number1: {{number1}}</h1>
+        <h1>子组件中data的dnumber1: {{dnumber1}}</h1>
+        <!-- v-model不要绑定props -->
+        <!-- 因为props用于父组件修改子组件中的值，v-model再修改props, 代码会变得很乱 -->
+        <!-- 不要绑定props, 可以绑定data或computed来代替 -->
+        <!-- v-model <==> v-bind:value + v-on监听inputa事件 -->
+        <input type="text" :value="dnumber1" v-on:input="valueChange($event)" />
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                number1: 10,
+            }
+        },
+        methods: {
+            // 监听自定义事件
+            valuechangeListener(event) {
+                // 类型转换 string --> number
+                this.number1 = parseInt(event);
+            },
+        },
+        components: {
+            // 在vue实例中注册局部组件
+            cpn: {
+                template: '#cpn',
+                data() {
+                    return {
+                        dnumber1: this.number1,
+                    }
+                },
+                methods: {
+                    valueChange(event) {
+                        this.dnumber1 = event.target.value;
+                        // 自定义事件
+                        this.$emit('valuechange', this.dnumber1);
+                    },
+                },
+                props: {
+                    number1: {
+                        type: Number,
+                        default: 0,
+                    },
+                },
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109144147296](E:\Typora\image\image-20210109144147296.png)
+
+
+
+## 7. 组件访问
+
+### 7.1. 父访问子$children/$refs
+
+**$children和$refs会拿到所有的子组件，返回的是数组**。
+
+**用 $refs 之前必须要先给子组件添加 ref**。
+
+```html
+<body>
+    <div id="app">
+        <!-- 给子组件添加ref -->
+        <cpn1 ref="cpn1"></cpn1>
+        <cpn2 ref="cpn2"></cpn2>
+        <button @click="btnClick()">按钮</button>
+    </div>
+</body>
+
+```
+
+
+
+**$children 和 $refs 的使用**
+
+```html
+<body>
+    <div id="app">
+        <!-- 给子组件添加ref -->
+        <cpn1 ref="cpn1"></cpn1>
+        <cpn2 ref="cpn2"></cpn2>
+        <button @click="btnClick()">按钮</button>
+    </div>
+</body>
+
+<template id="cpn1">
+    <div>
+        <h1>我是cpn1</h1>
+    </div>
+</template>
+
+<template id="cpn2">
+    <div>
+        <h1>我是cpn2</h1>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+
+            }
+        },
+        methods: {
+            // 监听按钮点击事件
+            btnClick() {
+                console.log('------------this.$children------------');
+                // 1、this.$children 拿到所有的子组件 ==> 返回的是数组
+                console.log(this.$children);
+
+                // this.$children要通过数组下标来子组件
+                console.log(this.$children[0].title);
+
+
+                // 2、用的比较多的是用this.$refs来获取指定子组件
+                console.log('------------this.$refs------------');
+                // this.$refs获取的也是数组
+                console.log(this.$refs);
+
+                // 但是this.$refs可以通过名字来拿取指定的子组件
+                console.log(this.$refs.cpn1);
+            },
+        },
+        components: {
+            cpn1: {
+                template: '#cpn1',
+                data() {
+                    return {
+                        title: '我是cpn1的标题',
+                    }
+                },
+            },
+            cpn2: {
+                template: '#cpn2',
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109155947376](E:\Typora\image\image-20210109155947376.png)
+
+
+
+### 7.2. 子访问父$parent/$root
+
+`$parent`：拿到的是当前组件的上级组件。
+
+`$root`：拿到的是根组件，一般是我们的vue实例。
+
+```html
+<body>
+    <div id="app">
+        <cpn></cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>我是组件cpn</h1>
+        <!-- 在组件cpn中使用组件<cpn1></cpn1> -->
+        <cpn1></cpn1>
+    </div>
+</template>
+
+<template id="cpn1">
+    <div>
+        <h1>我是组件cpn1</h1>
+        <button @click="btnClick()">按钮</button>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        data() {
+            return {
+                name: '我是vue实例',
+            }
+        },
+        components: {
+            cpn: {
+                template: '#cpn',
+                data() {
+                    return {
+                        name: '我是cpn',
+                    }
+                },
+                components: {
+                    cpn1: {
+                        template: '#cpn1',
+                        methods: {
+                            btnClick() {
+                                console.log('----------------this.$parent----------------');
+                                console.log(this.$parent);
+                                console.log(this.$parent.name);
+
+                                console.log('----------------this.$root----------------');
+                                console.log(this.$root);
+                                console.log(this.$root.name);
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109172859739](E:\Typora\image\image-20210109172859739.png)
+
+
+
+
+
+## 8. 插槽slot
+
+### 8.1. 插槽的基本使用
+
+**使用插槽的目的：是为了让我们的组件有更强的扩展性**！
+
+**如果组件中只有一个插槽，那么所有的标签都会插入到这个插槽**。
+
+```html
+<body>
+    <div id="app">
+        <!-- 如果组件中只有一个插槽那么所有的标签都会插入到这个插槽中 -->
+        <cpn>
+            <h1>使用插槽1</h1>
+            <i>哈哈哈</i>
+            <span>呵呵呵</span>
+        </cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>我是组件cpn</h1>
+        <slot></slot>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        components: {
+            cpn: {
+                template: '#cpn',
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109175816820](E:\Typora\image\image-20210109175816820.png)
+
+
+
+### 8.2. 具名插槽
+
+**具名插槽：具名插槽只会替换指定名字的插槽**。
+
+```html
+<body>
+    <div id="app">
+        <cpn>
+            <!-- 具名插槽只会替换指定名字的插槽 -->
+            <span slot="left">span使用左边</span>
+        </cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>我是组件cpn</h1>
+        <slot name="left"><span>左边</span></slot>
+        <slot name="center"><span>中间</span></slot>
+        <slot name="right"><span>右边</span></slot>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        components: {
+            cpn: {
+                template: '#cpn',
+            },
+        },
+    });
+</script>
+
+```
+
+![image-20210109181401543](E:\Typora\image\image-20210109181401543.png)
+
+
+
+
+
+### 8.3. 作用域插槽
+
+**作用域插槽：作用在父组件中用到子组件中的数据**。
+
+```html
+<body>
+    <div id="app">
+        <cpn></cpn>
+
+        <cpn>
+            <!-- v-slot:插槽的名字="存放数据的名字" -->
+            <!-- 这样就可以拿到子组件中的数据了 -->
+            <template v-slot:up="up">
+                <span v-for="(language, index) in up.planguages" :key="index">
+                    <i>{{language}}</i>
+                </span>
+            </template>
+            <template v-slot:down="down">
+                <table>
+                    <tr>
+                        <td v-for="(movie, index) in down.movies" :key="index">
+                            {{movie}}
+                        </td>
+                    </tr>
+                </table>
+            </template>
+        </cpn>
+    </div>
+</body>
+
+<template id="cpn">
+    <div>
+        <h1>我是组件cpn</h1>
+
+        <!-- 在slot中可以自定义属性，这里的 :PLanguages 是自己起的名字 -->
+        <slot :PLanguages="PLanguages" name="up">
+            <ul>
+                <li v-for="(language, index) in PLanguages" :key="index">
+                    <span>{{language}}</span>
+                </li>
+            </ul>
+        </slot>
+
+        <!-- 展示movies -->
+        <slot :movies="movies" name="down">
+            <ul>
+                <li v-for="(movie, index) in movies" :key="index">
+                    <span>{{movie}}</span>
+                </li>
+            </ul>
+        </slot>
+    </div>
+</template>
+
+<script src="../js/vue.js"></script>
+<script>
+    const app = new Vue({
+        el: '#app',
+        components: {
+            cpn: {
+                template: '#cpn',
+                data() {
+                    return {
+                        PLanguages: ['Java', 'C', 'C++', 'Python', 'JavaScript'],
+                        movies: ['海王', '火影', '柯南'],
+                    }
+                },
+            },
+        },
+    });
+</script>
+```
+
+![image-20210109212430092](E:\Typora\image\image-20210109212430092.png)
+
+
+
+# 三、模块化开发
+
+## 1. vue/cli
+
+### 1.1. 基本介绍
 
 `vue-cli3`与`vue-cli2`有很大的区别：
 
@@ -9,16 +2941,65 @@
 - `vue-cli3`提供了`vue ui`命令，提供了可视化配置，更加人性化。
 - 移除了`static`文件夹，新增了`public`文件夹，并且`index.html`移动到`public`中。
 
-## 1.2.创建项目
+### 1.2. vue/cli2
+
+**(1) 安装和使用vue/cli2**
 
 ```shell
-# 1、安装vue/cli
+# 1、安装vue/cli2
+npm install -g @vue/cli-init
+
+# 2、创建项目 vue init webpack 项目名
+vue init webpack 001-vuecli2test
+```
+
+
+
+**package.json**：
+
+```json
+// 3、package.json
+{
+  "name": "001-vuecli2test",
+  "version": "1.0.0",
+  "description": "test vue cli2",
+  "author": "Ringo",
+  "private": true,
+  "scripts": {
+    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
+      
+    // npm run start <==> npm run dev 启动项目
+    "start": "npm run dev",
+    
+    // npm run build：打包命令 
+    "build": "node build/build.js"
+  },
+}
+```
+
+
+
+
+
+**vuecli2项目结构**：
+
+![image-20210110124213507](E:\Typora\image\image-20210110124213507.png)
+
+
+
+### 1.3. vue/cli3
+
+**(1)安装和使用vue/cli3**
+
+```shell
+# 1、安装vue/cli3
 npm install -g @vue/cli
 
 # 2、查看vue/cli的版本
 vue --version
 
 # 3、vue/cli3初始化项目
+# vue create 项目名
 vue create hello-world
 
 # 4、选择手动安装插件/使用默认选择的插件
@@ -43,7 +3024,7 @@ vue create hello-world
  ? Please pick a preset: Manually select features
  ? Check the features needed for your project: Babel
  ? Where do you prefer placing config for Babel, ESLint, etc.? (Use arrow keys)
- > In dedicated config files # 可以选择一个独立的配置文件
+ > In dedicated config files # 可以选择一个专门的配置文件
  In package.json  # 也可以选择放在package.json中
  
  # 7、之前的配置是否保存？
@@ -59,9 +3040,9 @@ vue create hello-world
 
 **`vue/cli`官网：https://cli.vuejs.org/zh/guide/**
 
-## 1.3.vue/cli3配置
 
-### 1.3.1.UI管理项目
+
+### 1.4. vue/cli3配置
 
 > UI界面的启动
 
@@ -82,13 +3063,13 @@ vue ui
 
 
 
-### 1.3.2.创建vue.config.js
+> 2.2. 创建vue.config.js
 
 `vue.config.js` 是一个可选的配置文件，如果项目的 (和 `package.json` 同级的) 根目录中存在这个文件，那么它会被 `@vue/cli-service` 自动加载。你也可以使用 `package.json` 中的 `vue` 字段，但是注意这种写法需要你严格遵照 JSON 的格式来写。
 
 **`vue.config.js`配置官网地址：https://cli.vuejs.org/zh/config/#vue-config-js**
 
-# 2.箭头函数
+## 2.箭头函数
 
 > 箭头函数基本使用
 
@@ -178,9 +3159,13 @@ vue ui
 </script>
 ```
 
-# 3.vue-router
 
-## 3.1.安装router
+
+## 3.vue-router
+
+### 3.1.安装router
+
+**(1) 手动安装router**
 
 > 安装
 
@@ -254,6 +3239,8 @@ new Vue({
 
 
 
+**(2) 在vue/cli中安装router**
+
 注意：为了让一个 `CLI `插件在` Vue CLI `项目中被正常使用，它必须遵循 `vue-cli-plugin-` 或者 `@scope/vue-cli-plugin-` 这样的命名惯例。这样你的插件才能够：
 
 - 被 `@vue/cli-service` 发现；
@@ -266,7 +3253,9 @@ new Vue({
 vue add router # 该命令执行后以上一系列操作都会自动创建！
 ```
 
-## 3.2.router-link其他属性
+
+
+### 3.2.router-link其他属性
 
 > tag属性
 
@@ -304,7 +3293,7 @@ vue add router # 该命令执行后以上一系列操作都会自动创建！
 </style>
 ```
 
-## 3.3.代码路由跳转
+### 3.3.代码路由跳转
 
 ```vue
 <template>
@@ -338,7 +3327,7 @@ export default {
 </script>
 ```
 
-## 3.4.动态路由
+### 3.4.动态路由
 
 我们经常需要把某种模式匹配到的所有路由，全都映射到同个组件。例如，我们有一个 `User` 组件，对于所有 ID 各不相同的用户，都要使用这个组件来渲染。那么，我们可以在 `vue-router` 的路由路径中使用“动态路径参数”(dynamic segment) 来达到这个效果：
 
@@ -422,7 +3411,11 @@ export default {
 </script>
 ```
 
-## 3.5.路由的懒加载
+![image-20210110154240702](E:\Typora\image\image-20210110154240702.png)
+
+
+
+### 3.5.路由的懒加载
 
 当打包构建应用时，JavaScript 包会变得非常大，影响页面加载。如果我们能把不同路由对应的组件分割成不同的代码块，然后当路由被访问的时候才加载对应组件，这样就更加高效了。
 
@@ -437,7 +3430,7 @@ export default {
   },
 ```
 
-## 3.6.路由的嵌套使用
+### 3.6.路由的嵌套使用
 
 实际生活中的应用界面，通常由多层嵌套的组件组合而成。同样地，URL 中各段动态路径也按某种结构对应嵌套的各层组件，例如：
 
@@ -456,7 +3449,7 @@ export default {
 
 > 嵌套路由的使用
 
-`App.vue`中`<router-view>`的是最顶层的出口，渲染最高级路由匹配到的组件。同样地，一个被渲染组件同样可以包含自己的嵌套 。例如，在 `User.vue` 组件的模板添加一个 `<router-view>`。
+`App.vue`中`<router-view>`的是最顶层的出口，渲染最高级路由匹配到的组件。同样地，一个被渲染组件同样可以包含自己的嵌套 。**例如，在 `User.vue` 组件的模板添加一个 `<router-view>`**。
 
 ```javascript
   {
@@ -505,7 +3498,7 @@ export default {
   }
 ```
 
-## 3.7.路由组件传参
+### 3.7.路由组件传参
 
 传递参数主要有两种类型：`params`和`query`。
 
@@ -568,11 +3561,44 @@ export default {
 </template>
 ```
 
-## 3.8.$router和$route的区别
+### 3.8.$router和$route的区别
 
 ![区别](https://img-blog.csdnimg.cn/20200725170737664.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1JyaW5nb18=,size_16,color_FFFFFF,t_70)
 
-## 3.9.导航守卫
+
+
+路由的嵌套，路径匹配成功可以拿到 **当前活跃路由(this.$route)** 的全部信息.
+
+```javascript
+const routes = [{
+  {
+    path: '/home',
+    name: 'Home',
+    component: () => import('@/views/Home.vue'),
+    meta: {
+      title: '首页',
+    },
+    children: [{
+      // 这里不加 '/' 才会匹配 '/home/test1' 路由的嵌套
+      // 这里加 '/' 匹配的是 '/test1' 路由；加不加 '/' 都可以拿到父子组件的 title
+      // 嵌套路由中 就可以在 Home 页面中添加 <router-view /> 
+      // 这样就可以在 Home 页面中显示 Test1 组件了
+      path: 'test1',   
+      name: 'Test1',
+      component: () => import('@/views/Test1.vue'),
+      meta: {
+        title: '测试1',
+      }
+    }],
+  },
+]
+```
+
+![image-20210223185557337](E:\Typora\image\image-20210223185557337.png)
+
+
+
+### 3.9.导航守卫
 
 **“导航”表示路由正在发生改变。正如其名，`vue-router` 提供的导航守卫主要用来通过跳转或取消的方式守卫导航。**
 
@@ -619,6 +3645,8 @@ router.beforeEach((to, from, next) => {
 })
 ```
 
+![image-20210222150840593](E:\Typora\image\image-20210222150840593.png)
+
 **也可以注册全局后置钩子，然而全局前置守卫不同的是，这些钩子不会接受 `next` 函数也不会改变导航本身**
 
 ```js
@@ -626,6 +3654,15 @@ router.afterEach((to, from) => {
   // ...
 })
 ```
+
+
+
+### 3.10. keep-alive
+
+- **keep-alive是vue内置的一个组件，可以使得被包含的组件保留状态，避免重新渲染**。
+- **router-view也是一个组件，如果直接被包在keep-alive里面，所有路径匹配到的视图组件都会被缓存**。
+
+
 
 # 4.vuex
 
@@ -1084,6 +4121,16 @@ Vuex 并不限制你的代码结构。但是，它规定了一些需要遵守的
         └── products.js   # 产品模块
 ```
 
+## 4.8. 前端可以存放数据的地方
+
+前端数据有几个可以存放的地方：
+
+1. sessionStorage
+2. localStorage
+3. vuex状态管理（响应式）。
+
+
+
 # 5.axios
 
 ## 5.1.vue整合axios
@@ -1092,7 +4139,7 @@ Vuex 并不限制你的代码结构。但是，它规定了一些需要遵守的
 # 1、安装axios
 npm install axios --save
 
-# 2、将下面代码加入入口文件
+# 2、将下面代码加入js文件
 import Vue from 'vue'
 import axios from 'axios'
 ```
@@ -1213,9 +4260,96 @@ export function request(config) {
 
 
 
+# 四、vue相关
+
+## 1. font-awesome
+
+```shell
+1、在项目中安装fontawesome：npm install font-awesome --save
+
+2、在main.js中引入相关的文件：import 'font-awesome/css/font-awesome.min.css'
+
+3、在需要使用的地方，class=“fa 类名”，请注意一定要在前面添加fa类，否则无法正常显示
+```
 
 
 
+## 2. vscode
+
+### 2.1. 取消代码自动换行
+
+（1）vscode–>首选项–>设置，之后在出现的界面输入`settings.json`
+
+![image-20210330172423481](E:\Typora\image\image-20210330172423481.png)
 
 
+
+（2）在`settings.json`中加入以下代码
+
+```json
+"vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+         "wrap_line_length": 900, // 数值越大，一行放的属性越多
+         "wrap_attributes": "auto",
+         "end_with_newline": false
+     },
+     "prettyhtml": {
+         "printWidth": 100,
+         "singleQuote": false,
+         "wrapAttributes": false,
+         "sortAttributes": false
+     }
+ },
+ "vetur.format.defaultFormatter.html": "js-beautify-html",
+ "vetur.format.defaultFormatter.js": "vscode-typescript",
+```
+
+![image-20210330172610486](E:\Typora\image\image-20210330172610486.png)
+
+
+
+## 3. bus消息总线
+
+**(1) 配置**
+
+```javascript
+// main.js
+// 将挂载到prototype单独抽离成一个文件
+import plugin from './utils/Bus'
+
+Vue.use(plugin)
+```
+
+```javascript
+// Bus.js
+import Bus from 'vue';
+let install = function (Vue) {
+    // 设置eventBus
+    Vue.prototype.bus = new Bus();
+}
+ 
+export default { install };
+```
+
+**(2) 发送消息**
+
+```javascript
+this.bus.$emit("confirm", 1);
+```
+
+**(3) 接收消息**
+
+```javascript
+mounted() { 
+    // 注册事件
+    this.bus.$on("confirm", content => {
+        this.getList();
+    });
+},
+
+beforeDestroy() {
+	// 注册的总线事件要在组件销毁时卸载，否则会多次挂载，造成触发一次但多个响应的情况
+	this.bus.$off("confirm", content => console.log(content));
+}
+```
 
