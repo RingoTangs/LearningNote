@@ -71,7 +71,7 @@ MyBatisPlus可以节省我们大量工作时间，所有的CRUD代码它都可�
 spring:  
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url:  jdbc:mysql://39.97.3.60:3306/mybatis_plus?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    url:  jdbc:mysql://39.97.3.60:3306/mybatis_plus?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 333
     type: com.mysql.cj.jdbc.MysqlDataSource
