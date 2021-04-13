@@ -2226,7 +2226,7 @@ public class EmployeeService {
     }
 ```
 
-> @Caching
+
 
 
 
@@ -2425,9 +2425,19 @@ public class SpringBoot10TaskApplication {
 | `C`      | 和calendar联系后计算过的值 |
 | `#`      | 星期，4#2，第二个星期四    |
 
+
+
+`@Scheduled`属性：
+
+- `fixedDelay`：上一个任务结束和下一个任务开始的间隔时间（单位毫秒）。
+- `fixedRate`：两次定时任务开始的时间间隔。
+- `initialDelay`：在第一个定时任务执行之前，需要延迟的时间。
+
+
+
 # 12.邮件任务
 
-> 依赖
+## 12.1. 依赖和配置
 
 ```xml
 <!--mail-->
@@ -2445,9 +2455,18 @@ spring:
     username: 1466637477@qq.com # 配置发送的邮箱
     password: oexnnqprsuqngcbj # 配置邮箱的授权码
     host: smtp.qq.com  # 邮箱服务器地址
+    default-encoding: UTF-8
+    port: 587
 ```
 
-> 测试发送简单邮件
+```properties
+spring.mail.properties.mail.stmp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+spring.mail.properties.mail.debug=true
+```
+
+
+
+## 12.2. 简单邮件
 
 ```java
 @Resource
@@ -2468,7 +2487,9 @@ public void senderSimpleEmail() {
 }
 ```
 
-> 测试发送复杂邮件
+
+
+## 12.3. 复杂邮件
 
 ```java
 @Resource
@@ -2490,6 +2511,129 @@ public void senderEmail() throws Exception{
 
     // 3、发送邮件
     mailSender.send(mimeMessage);
+}
+```
+
+
+
+## 12.4. Thymeleaf邮件模板
+
+**（1）依赖**
+
+```xml
+<!-- thymeleaf -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+
+
+**（2）HTML模板**
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>邮件模板</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .w {
+            width: 800px;
+            margin: 20px auto;
+        }
+
+        .tab,
+        .tab td,
+        .tab th {
+            border: 1px solid pink;
+            text-align: center;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+
+<body>
+<div class="w">
+    <!--  注意：引用一定要写 ${xxx}  -->
+    <h4>
+        Hello <span th:text="${username}"></span>, 欢迎来到xxx大家庭！
+    </h4>
+    <div>
+        <h5>您的入职信息如下！</h5>
+        <table class="tab">
+            <tr>
+                <td>职位：</td>
+                <td th:text="${position}"></td>
+            </tr>
+            <tr>
+                <td>薪水：</td>
+                <td th:text="${salary}"></td>
+            </tr>
+            <tr>
+                <td>部门：</td>
+                <td th:text="${department}"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>
+```
+
+
+
+**（3）发送邮件**
+
+```java
+/**
+ * @author Ringo
+ * @since 2021/4/13 11:45
+ */
+@SpringBootTest
+public class MainTest {
+
+    // 发送邮件
+    @Resource
+    private JavaMailSender mailSender;
+
+    // Thymeleaf 模板引擎
+    @Resource
+    private SpringTemplateEngine templateEngine;
+
+    @Autowired
+    private MailProperties mailProperties;
+
+    @Test
+    void sendMail() throws Exception {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        // 1: 解析 Thymeleaf 模板
+        Context context = new Context();
+        context.setVariable("username", "Ringo");
+        context.setVariable("position", "Java工程师");
+        context.setVariable("department", "技术部");
+        context.setVariable("salary", "8000");
+        String process = templateEngine.process("Mail.html", context);
+
+        // 2: 设置邮件内容
+        helper.setSubject("测试邮件主题");
+        helper.setText(process, true);
+        helper.setSentDate(new Date());
+        helper.setTo("594707128@qq.com");
+        helper.setFrom(mailProperties.getUsername());
+
+        // 3: 发送邮件
+        mailSender.send(message);
+    }
 }
 ```
 
