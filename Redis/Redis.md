@@ -742,7 +742,9 @@ OK
 
 ```shell
 # Hash就是Map集合 表述为key-map,map存储的是键值对！
+# Redis Hash ---> Map<String, Map<Object, Object>>
 
+# HSET key field value [field value ...]
 # 1、HSET user1 id 001 name zhangsan age 18  设置user1的字段id、name、age的值
 127.0.0.1:6379[1]> HSET user1 id 001 name zhangsan age 18
 (integer) 3
@@ -1506,46 +1508,38 @@ public void afterPropertiesSet() {
 > 自定义的RedisTemplate
 
 ```java
-package com.ymy.spring.boot.redis.conf;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.net.UnknownHostException;
-
+/**
+ * @author Ringo
+ * @date 2021/4/22 11:35
+ */
 @Configuration
-public class RedisConf {
-
-    /**
-     * 我们自己定义的RedisTemplate
-     * 为了开发方便我们使用RedisTemplate<String, Object>
-     */
+public class RedisConfig {
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+
         RedisTemplate<String, Object> template = new RedisTemplate<>();
+
         template.setConnectionFactory(redisConnectionFactory);
 
-        // 1、对象的序列化
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer=  new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-        // 2、String的序列化
+        // 1: 字符串序列化
         StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
 
-        // 3、设置RedisTemplate序列化
-        template.setDefaultSerializer(jackson2JsonRedisSerializer);
+        // 2: 对象序列化
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+
+        // 解决 Java 8 LocalDateTime 不能反序列化问题
+        ObjectMapper om = new ObjectMapper();
+        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        om.registerModule(new JavaTimeModule());
+        jackson2JsonRedisSerializer.setObjectMapper(om);
+
+        // 3: 设置 string key value hashKey hashValue 的序列化器
+        template.setStringSerializer(stringRedisSerializer);
         template.setKeySerializer(stringRedisSerializer);
+        template.setValueSerializer(jackson2JsonRedisSerializer);
         template.setHashKeySerializer(stringRedisSerializer);
+        template.setHashValueSerializer(jackson2JsonRedisSerializer);
         return template;
     }
 }
