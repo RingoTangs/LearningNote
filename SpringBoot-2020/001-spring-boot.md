@@ -5190,207 +5190,452 @@ protected void configure(HttpSecurity http) throws Exception {
 ```
 
 
+# 三、Spring相关
 
+## 1. 代理模式
 
+> 代理，就是你委托别人帮你办事，所以代理模式也有人称作委托模式的。
+>
+> 比如领导要做什么事，可以委托他的秘书去帮忙做，这时就可以把秘书看做领导的代理。
+>
+> 代理模式又分为静态代理和动态代理。
 
-## 2. OAuth2
+[参考文档](https://www.cnblogs.com/joy99/p/10865391.html)
 
-### 2.1. spring-security整合OAuth2
+### 1.1. 静态代理
 
-```xml
-<!-- spring security -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-security</artifactId>
-</dependency>
+**静态代理的使用**：
 
-<!-- spring-security整合 OAuth2 -->
-<dependency>
-    <groupId>org.springframework.security.oauth</groupId>
-    <artifactId>spring-security-oauth2</artifactId>
-    <version>2.4.1.RELEASE</version>
-</(dependency>
-```
+静态代理，代理类和被代理的类实现了同样的接口，代理类同时持有被代理类的引用，这样，当我们需要调用被代理类的方法时，可以通过调用代理类的方法来做到。
 
+举例如下：假设领导的工作是开会和给员工考评。
 
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/spring-aop/leader-secretary.png" alt="leader-secretary" style="zoom:150%;" />
 
-**(1) 配置授权服务器**
+**先定义接口**：
 
 ```java
-/**
- * 授权服务器：用来派发 token
- */
-@SuppressWarnings("deprecation")
-@Configuration
-@EnableAuthorizationServer
-public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+public interface Work {
 
-    // 在 SecurityConfig种可以配置
-    @Resource
-    private AuthenticationManager authenticationManager;
+    void meeting();
 
-    // 配置好 Redis 就有了
-    @Resource
-    private RedisConnectionFactory redisConnectionFactory;
+    int evaluate(String name);
+}
+```
 
-    // 在 SecurityConfig种可以配置
-    @Resource
-    private UserDetailsService userDetailsService;
+**然后定义领导类**：
 
-    // 配置授权服务器
+```java
+public class Leader implements Work {
+
     @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.inMemory()
-                .withClient("password")
-
-                // 授权模式
-                .authorizedGrantTypes("password", "refresh_token")
-
-                // token有效时间
-                .accessTokenValiditySeconds(1800)
-
-                // 资源 id
-                .resourceIds("rid")
-
-                // 范围
-                .scopes("all")
-
-                // 密码 123
-                .secret("$2a$10$L.uSM4CJAva4zb58LMICKOHepTmKwG0Tmc7UTQMeYNd/pJtX2dcC2");
-    }
-
-    // 配置 token 存放位置
-    @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints
-                // 设置 token 保存的位置
-                .tokenStore(new RedisTokenStore(redisConnectionFactory))
-
-                // 设置 认证管理器
-                .authenticationManager(authenticationManager)
-
-                // 设置 用户的验证
-                .userDetailsService(userDetailsService);
+    public void meeting() {
+        System.out.println("领导早上要组织会议");
     }
 
     @Override
-    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
-        security.allowFormAuthenticationForClients();
+    public int evaluate(String name) {
+        // 生成 0-20 的随机数 + 80
+        int score = new Random(System.currentTimeMillis()).nextInt(20) + 80;
+        System.out.println(String.format("领导给%s的考评为%s分", name, score));
+        return score;
     }
 }
 ```
 
+**再定义秘书类**：
+
+```java
+public class Secretary implements Work {
+
+    private Leader leader = new Leader();
+
+    @Override
+    public void meeting() {
+        System.out.println("秘书先给老板准备材料");
+        leader.meeting();
+    }
+
+    @Override
+    public int evaluate(String name) {
+        return leader.evaluate(name);
+    }
+}
+```
+
+**测试**：
+
+```java
+@Test
+public void secretaryProxyLeader() {
+    Secretary secretary = new Secretary();
+    secretary.meeting();
+    secretary.evaluate("Tom");
+}
+```
+
+```java
+// 运行结果
+秘书先给老板准备材料
+领导早上要组织会议
+领导给Tom的考评为83分
+```
 
 
-**(2) 配置资源服务器**
+
+> **代理模式与装饰着模式的区别**？
+>
+> 实际上，在装饰器模式和代理模式之间还是有很多差别的。
+>
+> - 装饰器模式关注于在一个对象上动态的添加方法，然而代理模式关注于控制对对象的访问。
+> - 换句话说，用代理模式，代理类（proxy class）可以对它的客户隐藏一个对象的具体信息。因此，当使用代理模式的时候，我们常常在一个代理类中创建一个对象的实例。并且，当我们使用装饰器模式的时候，我们通常的做法是将原始对象作为一个参数传给装饰者的构造器。
+>
+> 我们可以用另外一句话来总结这些差别：静态代理是一种编译期增强，还没运行就已经知道增强的目标对象。装饰者是运行时增强，只有运行时才知道具体增强的目标。
+
+其实代理模式和装饰者模式侧重点不一样，代理模式重点在于明确了被代理的类。如上例中，秘书很明确要代理的是的领导。而装饰者模式侧重于拓展类的方法。
+
+
+
+### 1.2. JDK动态代理
+
+动态代理的根据实现方式的不同可以分为 JDK 动态代理和 CGlib 动态代理。
+
+1. JDK 动态代理：利用反射机制生成一个实现代理接口的类，在调用具体方法前调用InvokeHandler来处理。
+
+2. CGlib 动态代理：利用ASM（开源的Java字节码编辑库，操作字节码）开源包，将代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
+
+区别：JDK代理只能对实现接口的类生成代理；CGlib是针对类实现代理，对指定的类生成一个子类，并覆盖其中的方法，这种通过继承类的实现方式，不能代理final修饰的类。
+
+还是以上面的例子为例：
+**首先，定一个类实现 InvocationHandler 接口，并实现 invoke 方法**：
 
 ```java
 /**
- * 资源服务器
+ * InvocationHandler是由代理实例的调用处理程序实现的接口 。
+ * 每个代理实例都有一个关联的调用处理程序。
+ * 当在代理实例上调用方法时，方法调用将分派到其调用处理程序的invoke()方法。
+ *
+ * @author Ringo
+ * @date 2021/4/29 19:21
  */
-@SuppressWarnings("deprecation")
-@Configuration
-@EnableResourceServer
-public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+@Slf4j
+public class WorkInvocationHandler implements InvocationHandler {
 
-    @Override
-    public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+    // 被代理对象
+    private Leader leader;
 
-        // 和 AuthorizationServerConfig 授权服务器种的 resourceId 一致
-        resources.resourceId("rid")
-                // 基于 token 来认证
-                .stateless(true);
+    public WorkInvocationHandler(Leader leader) {
+        this.leader = leader;
     }
 
     /**
-     * 资源路径
+     * 执行被代理对象每个方法前都会调用 invoke
+     * proxy: 代理对象。
+     * method: 接口中的方法。
+     * args：方法的参数。
+     *
+     * @author Ringo
+     * @date 2021/4/29
      */
     @Override
-    public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/admin/**").hasRole("admin")
-                .antMatchers("/user/**").hasRole("user")
-                .anyRequest().authenticated();
+    public Object invoke(Object proxy, Method method, 
+                         Object[] args) throws Throwable {
+        if ("meeting".equals(method.getName())) {
+            // 在执行目标方法前的操作
+            System.out.println("代理先准备会议材料...");
+            
+            // 执行目标方法
+            return method.invoke(leader, args);
+        }
+
+        if ("evaluate".equals(method.getName())) {
+            log.info("evaluate(String name)的name:" + args[0]);
+            return method.invoke(leader, args);
+        }
+
+        return null;
     }
 }
 ```
 
-
-
-**(3) 配置 spring-security**
+**测试**：
 
 ```java
-/**
- * spring-security 配置
- */
-@Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    /**
-     * 密码加密
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    protected AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
-    }
-
-    @Bean
-    protected UserDetailsService userDetailsService() {
-        return super.userDetailsService();
-    }
-
-    // 配置 username password 和角色
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("Ringo")
-            .password("$2a$10$L.uSM4CJAva4zb58LMICKOHepTmKwG0Tmc7UTQMeYNd/pJtX2dcC2")
-                .roles("admin")
-                .and()
-                .withUser("Tangs")
-                .password("$2a$10$L.uSM4CJAva4zb58LMICKOHepTmKwG0Tmc7UTQMeYNd/pJtX2dcC2")
-                .roles("user");
-    }
-
-    // 获取 token 的请求放行
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.antMatcher("/oauth/**")
-                .authorizeRequests()
-                .antMatchers("/oauth/**")
-                .permitAll()
-                .and()
-                .csrf().disable();
-    }
+@Test
+public void dynamicProxy() {
+    Leader leader = new Leader();
+    Work proxy = (Work) Proxy.newProxyInstance(
+        Leader.class.getClassLoader(),
+        new Class[]{Work.class},
+        new WorkInvocationHandler(leader));
+    proxy.meeting();
+    proxy.evaluate("Tom");
 }
+
+// loader: 类加载器
+// interfaces: 被代理对象实现的接口
+// h: InvocationHandler 实现类, 用于增强被代理对象
+public static Object newProxyInstance(ClassLoader loader,
+                                      Class<?>[] interfaces,
+                                      InvocationHandler h);
 ```
 
-![image-20210218164437180](E:\Typora\image\image-20210218164437180.png)
+```java
+// 测试结果
+代理先准备会议材料...
+领导早上要组织会议
+com.ymy.proxy.dynamic.WorkInvocationHandler - evaluate(String name)的name:Tom
+领导给Tom的考评为81分
+```
 
-![image-20210218164507227](E:\Typora\image\image-20210218164507227.png)
-
-![image-20210218164538465](E:\Typora\image\image-20210218164538465.png)
 
 
+### 1.3. CGlib动态代理
+
+**添加 cglib 依赖**：
 
 ```xml
 <dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-security</artifactId>
+    <groupId>cglib</groupId>
+    <artifactId>cglib</artifactId>
+    <version>3.3.0</version>
 </dependency>
+```
 
 
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-oauth2</artifactId>
-</dependency>
+
+**cglib 针对类进行代理，我们以上面的 Leader 类为例，先创建一个类实现 MethodInterceptor 接口**:
+
+```java
+/**
+ * cglib动态代理
+ *
+ * @author Ringo
+ * @date 2021/4/29 20:23
+ */
+@Slf4j
+public class LeaderMethodInterceptor implements MethodInterceptor {
+    /**
+     * obj: 增强的代理对象(继承自被代理对象)
+     * method: 拦截的方法(被代理对象需要执行的方法)
+     * args: 拦截方法的参数
+     * proxy: 触发父类的方法对象(执行父类的方法)
+     * 需要注意的是，实际调用是 methodProxy.invokeSuper()。
+     * 如果使用 invoke() 方法，则需要传入被代理的类对象，否则出现死循环，造成 stackOverflow 。
+     *
+     * @author Ringo
+     * @date 2021/4/29
+     */
+    @Override
+    public Object intercept(Object obj, 
+                            Method method, Object[] args, 
+                            MethodProxy proxy) throws Throwable {
+        if ("meeting".equals(method.getName())) {
+            // 执行目标方法前的业务
+            System.out.println("代理先准备会议材料...");
+
+            // 执行目标方法
+            return proxy.invokeSuper(obj, args);
+        }
+
+        if ("evaluate".equals(method.getName())) {
+            log.info("evaluate(String name)的name:" + args[0]);
+            return proxy.invokeSuper(obj, args);
+        }
+        return null;
+    }
+}
+```
+
+**测试**：
+
+```java
+@Test
+public void cglibDynamicProxy() {
+    //1. 创建字节码增强器, 用来对被代理的类扩展。
+    Enhancer enhancer = new Enhancer();
+    //2. 告诉cglib,生成的子类需要继承那个父类。
+    enhancer.setSuperclass(Leader.class);
+    //3. 设置回调
+    enhancer.setCallback(new LeaderMethodInterceptor());
+    //4. 生成源代码,编译成class文件,加载到jvm,并返回代理对象。
+    Leader proxy = (Leader)enhancer.create();
+
+    proxy.meeting();
+    proxy.evaluate("Tom");
+}
+```
+
+```java
+// 测试结果
+代理先准备会议材料...
+领导早上要组织会议
+com.ymy.proxy.dynamic.LeaderMethodInterceptor - 
+    evaluate(String name)的name:Tom
+领导给Tom的考评为99分
 
 ```
 
 
+
+## 2. AOP
+
+### 2.1. AOP介绍
+
+[参考文档](https://www.cnblogs.com/joy99/p/10941543.html)
+
+AOP 领域中的特性术语：
+
+- 通知（Advice）: AOP 框架中的增强处理。通知描述了切面何时执行以及如何执行增强处理。
+- 连接点（join point）: 连接点表示应用执行过程中能够插入切面的一个点，这个点可以是方法的调用、异常的抛出。在 Spring AOP 中，连接点总是方法的调用。
+- 切点（PointCut）: 可以插入增强处理的连接点。
+- 切面（Aspect）: 切面是通知和切点的结合。
+- 引入（Introduction）：引入允许我们向现有的类添加新的方法或者属性。
+- 织入（Weaving）: 将增强处理添加到目标对象中，并创建一个被增强的对象，这个过程就是织入。
+
+> AOP 框架有很多种， AOP 框架的实现方式有可能不同， Spring 中的 AOP 是通过动态代理实现的。不同的 AOP 框架支持的连接点也有所区别，例如，AspectJ 和 JBoss, 除了支持方法切点，它们还支持字段和构造器的连接点。而 Spring AOP 不能拦截对对象字段的修改，也不支持构造器连接点,我们无法在 Bean 创建时应用通知。
+
+
+
+### 2.2. Spring AOP通知
+
+**Spring AOP 中有 5 中通知类型，分别如下**：
+
+![通知类型](https://img2018.cnblogs.com/blog/758949/201905/758949-20190529225613898-1522094074.png)
+
+> **spring aop execution表达式:**
+>
+> execution **中第一个\*表示任何返回类型.** 
+>
+> **要注意一点,类名需要用一个.占位**。
+
+![execution表达式](https://images0.cnblogs.com/blog/442092/201409/271640360761290.jpg)
+
+### 2.3. 注解配置Spring AOP
+
+**声明一个接口和它的实现类**：
+
+```java
+public interface IBuy {
+    void buy();
+}
+
+@Component
+public class Boy implements IBuy {
+
+    @Override
+    public void buy() {
+        System.out.println("男孩买了一个游戏机！");
+    }
+}
+
+@Component
+public class Girl implements IBuy {
+
+    @Override
+    public void buy() {
+        System.out.println("女孩买了一条裙子！");
+    }
+}
+```
+
+**声明切面**：
+
+```java
+@Aspect
+@Component
+public class BuyAspectJ {
+    
+    // 切入点
+    @Pointcut("execution(* com.ymy.aop.IBuy.buy(..))")
+    public void point() {
+    }
+
+    // 前置通知
+    @Before("point()")
+    public void before() {
+        System.out.println("before");
+    }
+
+    // 后置通知
+    @After("point()")
+    public void after() {
+        System.out.println("after");
+    }
+
+    // 环绕通知
+    @Around("point()")
+    public void around(ProceedingJoinPoint pjp) {
+        try {
+            System.out.println("around before");
+            pjp.proceed();
+            System.out.println("around after");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+}
+```
+
+**测试**：
+
+```java
+@SpringBootTest
+public class TestAop {
+    @Resource
+    private Boy boy;
+
+    @Resource
+    private Girl girl;
+
+    @Test
+    public void test() {
+        boy.buy();
+        System.out.println("---- 分隔符 ---- ");
+        girl.buy();
+    }
+}
+```
+
+```java
+// 测试结果
+around before
+before
+男孩买了一个游戏机！
+after
+around after
+---- 分隔符 ---- 
+around before
+before
+女孩买了一条裙子！
+after
+around after
+```
+
+
+
+```java
+@Pointcut("execution(* com.sharpcj.aopdemo.test1.IBuy.buy(..))")
+public void point(){}
+```
+
+声明了一个切点表达式，该方法 point 的内容并不重要，方法名也不重要，实际上它只是作为一个标识，供通知使用。
+
+### 2.4. 注解处理通知的参数
+
+```java
+@Aspect
+@Component
+public class BuyAspectJ {
+    @Pointcut("execution(* com.ymy.aop.IBuy.buy(double)) && args(price)")
+    public void point1(double price) {
+
+    }
+
+    @Before("point1(price)")
+    public void before(double price) {
+        System.out.println(price);
+    }
+}
+```
 
