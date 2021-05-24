@@ -74,6 +74,37 @@
 
 
 
+```javascript
+// post请求发送 key value
+export function postKeyValueRequest(url, params) {
+    return instance8001({
+        method: 'post',
+        url,
+        data: params,
+
+        // transformRequest 允许在向服务器发送数据之前修改请求数据
+        // 只能用在 'PUT', 'POST' 和 'PATCH' 这几个请求方法
+        transformRequest: [function (data) {
+            let ret = '';
+
+            // 遍历对象时,这里的 i 是对象中的 key
+            // 遍历数组时,这里的 i 是数组中的 index 下表
+            for (let i in data) {
+                ret += encodeURIComponent(i) + '=' + encodeURIComponent(data[i]) + '&'
+            }
+            return ret;
+        }],
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
+}
+```
+
+
+
+
+
 ## 2. axios并发请求
 
 **(1) 并发请求的基本使用**
