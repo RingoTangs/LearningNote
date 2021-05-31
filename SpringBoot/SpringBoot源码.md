@@ -1,6 +1,6 @@
 # 一、Spring
 
-![bean的生命周期](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/springboot/bean _lifecycle.10gu45lpxty8.png)
+![bean的生命周期](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/springboot/Spring流程.3yw9n5ydmqk0.png)
 
 
 
