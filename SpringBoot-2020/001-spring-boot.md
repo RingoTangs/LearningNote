@@ -5344,7 +5344,7 @@ public class WorkInvocationHandler implements InvocationHandler {
             // 在执行目标方法前的操作
             System.out.println("代理先准备会议材料...");
             
-            // 执行目标方法
+            // 执行目标方法 
             return method.invoke(leader, args);
         }
 
