@@ -4942,3 +4942,541 @@ transition: 要过渡的属性 花费时间 运动曲线 何时开始；
 ```
 
 ![image-20210203135116702](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/小米官网过渡案例.6o651pl7vtg0.png)
+
+
+
+# 四、 CSS3弹性盒子布局
+
+## 1. CSS3 弹性盒子属性
+
+弹性盒子由弹性容器(Flex container)和弹性子元素(Flex item)组成。
+
+弹性容器通过设置 display 属性的值为 flex 或 inline-flex将其定义为弹性容器。
+
+弹性容器内包含了一个或多个弹性子元素。
+
+**注意：** 弹性容器外及弹性子元素内是正常渲染的。弹性盒子只定义了弹性子元素如何在弹性容器内布局。
+
+弹性子元素通常在弹性盒子内一行显示。默认情况每个容器只有一行。
+
+### 1.1. display: flex
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹性盒子</title>
+    
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+			/* 默认靠左，可以设置 direction 使得盒子靠右 */
+            direction: rtl;
+            
+            width: 400px;
+            height: 250px;
+            background-color: lightgray;
+        }
+
+        .flex-item {
+            background-color: cornflowerblue;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/弹性盒子.46ylva21mm2.png" alt="弹性盒子" style="zoom:150%;" />
+
+
+
+### 1.2. justify-content
+
+内容对齐（justify-content）属性应用在弹性容器上，把弹性项沿着弹性容器的主轴线（main axis）对齐。
+
+justify-content 语法如下：
+
+```css
+justify-content: flex-start | flex-end | center | space-between | space-around
+```
+
+各个值解析:
+
+- flex-start：弹性项目向行头紧挨着填充。这个是默认值。第一个弹性项的main-start外边距边线被放置在该行的main-start边线，而后续弹性项依次平齐摆放。
+- flex-end：弹性项目向行尾紧挨着填充。第一个弹性项的main-end外边距边线被放置在该行的main-end边线，而后续弹性项依次平齐摆放。
+- center：弹性项目居中紧挨着填充。（如果剩余的自由空间是负的，则弹性项目将在两个方向上同时溢出）。
+- space-between：弹性项目平均分布在该行上。如果剩余空间为负或者只有一个弹性项，则该值等同于flex-start。否则，第1个弹性项的外边距和行的main-start边线对齐，而最后1个弹性项的外边距和行的main-end边线对齐，然后剩余的弹性项分布在该行上，相邻项目的间隔相等。
+- space-around：弹性项目平均分布在该行上，两边留有一半的间隔空间。如果剩余空间为负或者只有一个弹性项，则该值等同于center。否则，弹性项目沿该行分布，且彼此间隔相等（比如是20px），同时首尾两边和弹性容器之间留有一半的间隔（1/2*20px=10px）。
+
+![效果图](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/justify-content 效果图.6jugvbuuzio0.png)
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>justify-content</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+
+            /* 详情看效果图 */
+            justify-content: space-around;
+
+            width: 400px;
+            height: 250px;
+            background-color: lightgray;
+        }
+
+        .flex-item {
+            background-color: cornflowerblue;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/justify-content案例.69l889okjnk0.png" alt="justify-content案例" style="zoom:150%;" />
+
+
+
+### 1.3. align-items
+
+`align-items` 设置或检索弹性盒子元素在侧轴（纵轴）方向上的对齐方式。
+
+`justify-content`可以表示水平方向的对齐。
+
+**语法**：
+
+```css
+align-items: flex-start | flex-end | center | baseline | stretch
+```
+
+各个值解析:
+
+- flex-start：弹性盒子元素的侧轴（纵轴）起始位置的边界紧靠住该行的侧轴起始边界。
+- flex-end：弹性盒子元素的侧轴（纵轴）起始位置的边界紧靠住该行的侧轴结束边界。
+- center：弹性盒子元素在该行的侧轴（纵轴）上居中放置。（如果该行的尺寸小于弹性盒子元素的尺寸，则会向两个方向溢出相同的长度）。
+- baseline：如弹性盒子元素的行内轴与侧轴为同一条，则该值与'flex-start'等效。其它情况下，该值将参与基线对齐。
+- stretch（默认）：如果指定侧轴大小的属性值为'auto'，则其值会使项目的边距盒的尺寸尽可能接近所在行的尺寸，但同时会遵照'min/max-width/height'属性的限制。
+
+
+
+### 1.4. flex-wrap
+
+**flex-wrap** 属性用于指定弹性盒子的子元素换行方式。
+
+**语法**：
+
+```css
+flex-wrap: nowrap|wrap|wrap-reverse|initial|inherit;
+```
+
+各个值解析:
+
+- **nowrap** - 默认， 弹性容器为单行。该情况下弹性子项可能会溢出容器。
+- **wrap** - 弹性容器为多行。该情况下弹性子项溢出的部分会被放置到新行，子项内部会发生断行
+- **wrap-reverse** -反转 wrap 排列。
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹性盒子换行</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+
+            background-color: darkgray;
+            width: 300px;
+            height: 250px;
+        }
+
+        .container-item {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            background-color: cornflowerblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex-container">
+        <div class="container-item">1</div>
+        <div class="container-item">2</div>
+        <div class="container-item">3</div>
+    </div>
+</body>
+</html>
+```
+
+![弹性盒子换行](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/弹性盒子换行.6refccowh1c0.png)
+
+### 1.5. align-content
+
+`align-content` 属性用于修改 `flex-wrap` 属性的行为。类似于 `align-items`, 但它不是设置弹性子元素的对齐，而是设置各个行的对齐。
+
+**语法**：
+
+```css
+align-content: flex-start | flex-end | center | space-between | space-around | stretch
+```
+
+各个值解析:
+
+- `stretch` - 默认。各行将会伸展以占用剩余的空间。
+- `flex-start` - 各行向弹性盒容器的起始位置堆叠。
+- `flex-end` - 各行向弹性盒容器的结束位置堆叠。
+- `center` -各行向弹性盒容器的中间位置堆叠。
+- `space-between` -各行在弹性盒容器中平均分布。
+- `space-around` - 各行在弹性盒容器中平均分布，两端保留子元素与子元素之间间距大小的一半。
+
+
+
+## 2. 弹性子元素属性
+
+### 2.1. order
+
+用整数值来定义排列顺序，数值小的排在前面。可以为负值。
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>order排序</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+
+            width: 400px;
+            height: 250px;
+            background-color: lightgray;
+        }
+
+        .flex-item {
+            background-color: cornflowerblue;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+        }
+
+        .first {
+            /* 设置order盒子会排序 */
+            order: -1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">1</div>
+        <div class="flex-item first">2</div>
+        <div class="flex-item">3</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/order.6oyedle10p00.png" alt="order" style="zoom:150%;" />
+
+
+
+### 2.2. 对齐
+
+设置"margin"值为"auto"值，自动获取弹性容器中剩余的空间。
+
+所以设置垂直方向margin值为"auto"，可以使弹性子元素在弹性容器的两上轴方向都完全居中。
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对齐</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+
+            width: 400px;
+            height: 250px;
+            background-color: lightgrey;
+        }
+
+        .flex-item {
+            width: 75px;
+            height: 75px;
+            margin: 10px;
+            background-color: cornflowerblue;
+        }
+
+        .flex-item:nth-child(1) {
+            /* 在第一个弹性子元素上设置了 margin-right: auto; 它将剩余的空间放置在元素的右侧. */
+            margin-right: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/对齐.223p8u9jhtz4.png" alt="对齐" style="zoom:150%;" />
+
+
+
+### 2.3. 居中
+
+弹性子元素设置 `margin: auto`。
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对齐</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+
+            width: 400px;
+            height: 250px;
+            background-color: lightgrey;
+        }
+
+        .flex-item {
+            width: 75px;
+            height: 75px;
+
+            /* 如果只有一个弹性子盒子，该子盒子就会处于正中间 */
+            margin: auto;
+            background-color: cornflowerblue;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item">1</div>
+        <div class="flex-item">2</div>
+        <div class="flex-item">3</div>
+    </div>
+</body>
+
+</html>
+```
+
+![居中](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/居中.4jam1q4z4tk0.png)
+
+
+
+### 2.4. align-self
+
+`align-self` 属性用于设置弹性元素自身在侧轴（纵轴）方向上的对齐方式。
+
+**语法**：
+
+```css
+align-self: auto | flex-start | flex-end | center | baseline | stretch
+```
+
+各个值解析:
+
+- auto：如果'align-self'的值为'auto'，则其计算值为元素的父元素的'align-items'值，如果其没有父元素，则计算值为'stretch'。
+- flex-start：弹性盒子元素的侧轴（纵轴）起始位置的边界紧靠住该行的侧轴起始边界。
+- flex-end：弹性盒子元素的侧轴（纵轴）起始位置的边界紧靠住该行的侧轴结束边界。
+- center：弹性盒子元素在该行的侧轴（纵轴）上居中放置。（如果该行的尺寸小于弹性盒子元素的尺寸，则会向两个方向溢出相同的长度）。
+- baseline：如弹性盒子元素的行内轴与侧轴为同一条，则该值与'flex-start'等效。其它情况下，该值将参与基线对齐。
+- stretch：如果指定侧轴大小的属性值为'auto'，则其值会使项目的边距盒的尺寸尽可能接近所在行的尺寸，但同时会遵照'min/max-width/height'属性的限制。
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>align-self</title>
+    <style type="text/css">
+        .flex-container {
+            display: flex;
+
+            width: 400px;
+            height: 250px;
+            background-color: lightgrey;
+        }
+
+        .flex-item {
+            width: 60px;
+            min-height: 100px;
+            background-color: cornflowerblue;
+            margin: 10px;
+        }
+
+        .item1 {
+            align-self: auto;
+        }
+
+        .item2 {
+            align-self: flex-start;
+        }
+
+        .item3 {
+            align-self: flex-end;
+        }
+
+        .item4 {
+            align-self: center;
+        }
+
+        .item5 {
+            align-self: baseline;
+        }
+
+        .item6 {
+            align-self: stretch;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item item1">auto</div>
+        <div class="flex-item item2">flex-start</div>
+        <div class="flex-item item3">flex-end</div>
+        <div class="flex-item item4">center</div>
+        <div class="flex-item item5">baseline</div>
+        <div class="flex-item item6">stretch</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/align-self.3x6mnqtqjx40.png" alt="align-self" style="zoom:150%;" />
+
+### 2.5. flex
+
+`flex` 属性用于指定弹性子元素如何分配空间。
+
+语法：
+
+```css
+flex: auto | initial | none | inherit |  [ flex-grow ] || [ flex-shrink ] || [ flex-basis ]
+```
+
+各个值解析:
+
+- auto: 计算值为 1 1 auto
+- initial: 计算值为 0 1 auto
+- none：计算值为 0 0 auto
+- inherit：从父元素继承
+- [ flex-grow ]：定义弹性盒子元素的扩展比率。
+- [ flex-shrink ]：定义弹性盒子元素的收缩比率。
+- [ flex-basis ]：定义弹性盒子元素的默认基准值。
+
+以下实例中，第一个弹性子元素占用了 2/4 的空间，其他两个各占 1/4 的空间:
+
+```css
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>flex</title>
+    <style type="text/css">
+        .flex-container {
+            display: -webkit-flex;
+            display: flex;
+            width: 400px;
+            height: 250px;
+            background-color: lightgrey;
+        }
+
+        .flex-item {
+            background-color: cornflowerblue;
+            margin: 10px;
+        }
+
+        .item1 {
+            flex: 2;
+        }
+
+        .item2 {
+            flex: 1;
+        }
+
+        .item3 {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="flex-container">
+        <div class="flex-item item1">flex-start</div>
+        <div class="flex-item item2">flex-end</div>
+        <div class="flex-item item3">center</div>
+    </div>
+</body>
+
+</html>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/flex.1y4elckw6f8.png" alt="flex" style="zoom:150%;" />
+
