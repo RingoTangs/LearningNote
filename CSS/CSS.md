@@ -66,7 +66,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-![image-20210115191437979](E:\Typora\image\image-20210115191437979.png)
+![image-20210115191437979](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/标签选择器.png)
 
 
 
@@ -120,7 +120,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210115192438252.png" alt="image-20210115192438252" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/类选择器.png" alt="image-20210115192438252" style="zoom:150%;" />
 
 
 
@@ -191,7 +191,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-![image-20210115193919895](E:\Typora\image\image-20210115193919895.png)
+![image-20210115193919895](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/一个标签可以有多个名字.png)
 
 
 
@@ -231,7 +231,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-![image-20210115194629242](E:\Typora\image\image-20210115194629242.png)
+![image-20210115194629242](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/类选择器画盒子.vvf0hgpxlfk.png)
 
 
 
@@ -267,7 +267,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210115202313308.png" alt="image-20210115202313308" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/id选择器.2pzs8ia9xfy0.png" style="zoom:150%;" />
 
 
 
@@ -334,7 +334,7 @@ CSS选择器分为**基础选择器**和**复合选择器**两大类：
 </body>
 ```
 
-![image-20210115205244081](E:\Typora\image\image-20210115205244081.png)
+![image-20210115205244081](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/font-family.4eolod23xka0.png)
 
 
 
@@ -358,7 +358,7 @@ p {
 
 ### 3.3. font-weight
 
-<img src="E:\Typora\image\image-20210115211309884.png" alt="image-20210115211309884" style="zoom: 150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/font-weight.47zd5gfr86g0.png" alt="image-20210115211309884" style="zoom: 150%;" />
 
 | 属性值  | 描述                                                     |
 | ------- | -------------------------------------------------------- |
@@ -370,7 +370,7 @@ p {
 
 ### 3.4. font-style
 
-<img src="E:\Typora\image\image-20210115211731554.png" alt="image-20210115211731554" style="zoom: 200%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/font-style.57w00zuy3bs0.png" alt="image-20210115211731554" style="zoom: 200%;" />
 
 
 
@@ -415,7 +415,7 @@ div {
 
 该属性可以用于清除<a></a>的下划线！
 
-<img src="E:\Typora\image\image-20210115220355521.png" alt="image-20210115220355521" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/text-decoration.3ribecezsi00.png" alt="image-20210115220355521" style="zoom:150%;" />
 
 
 
@@ -423,7 +423,7 @@ div {
 
 `text-indent`属性用于文本**首行**缩进。
 
-<img src="E:\Typora\image\image-20210115221456984.png" alt="image-20210115221456984" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/text-indent.1glrvcqo3ezk.png" alt="image-20210115221456984" style="zoom:150%;" />
 
 ```html
 <head>
@@ -453,7 +453,7 @@ div {
 </body>
 ```
 
-![image-20210115221752601](E:\Typora\image\image-20210115221752601.png)
+![image-20210115221752601](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/text-indent-demo.368k8fmtqs40.png)
 
 
 
@@ -467,7 +467,7 @@ p {
 }
 ```
 
-<img src="E:\Typora\image\image-20210115222122487.png" alt="image-20210115222122487" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/行间距.5dqbike7cbk0.png" alt="image-20210115222122487" style="zoom:150%;" />
 
 
 
@@ -517,7 +517,7 @@ p {
 <link rel="stylesheet" href="CSS文件路径">
 ```
 
-![image-20210116164312250](E:\Typora\image\image-20210116164312250.png)
+![image-20210116164312250](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/外部样式表.42743okk7cu0.png)
 
 
 
@@ -588,7 +588,7 @@ Emmet语法可以快速生成HTML。
 </body>
 ```
 
-![image-20210116170459717](E:\Typora\image\image-20210116170459717.png)
+![image-20210116170459717](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/Emment语法.7fxqvtquszs0.png)
 
 
 
@@ -660,7 +660,7 @@ Emmet语法可以快速生成HTML。
 </body>
 ```
 
-![image-20210116182753125](E:\Typora\image\image-20210116182753125.png)
+![image-20210116182753125](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/后代选择器.41vw07su7hs0.png)
 
 
 
@@ -677,7 +677,7 @@ div > p {
 }
 ```
 
-<img src="E:\Typora\image\image-20210116183226730.png" alt="image-20210116183226730" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/子选择器.4ta3rgl3nsw0.png" alt="image-20210116183226730" style="zoom:150%;" />
 
 
 
@@ -730,7 +730,7 @@ div > p {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210116203438330.png" alt="image-20210116203438330" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/并集选择器.lpx2kvoaqxs.png" alt="image-20210116203438330" style="zoom:150%;" />
 
 
 
@@ -858,7 +858,7 @@ input:focus {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210116210602657.png" alt="image-20210116210602657" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/focus伪类选择器.8t2iuaag554.png" alt="image-20210116210602657" style="zoom:150%;" />
 
 
 
@@ -902,7 +902,7 @@ input:focus {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210116213128600.png" alt="image-20210116213128600" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/块儿级元素.265tl45757eo.png" alt="image-20210116213128600" style="zoom:150%;" />
 
 
 
@@ -959,7 +959,7 @@ input:focus {
 </body>
 ```
 
-![image-20210116220006524](E:\Typora\image\image-20210116220006524.png)
+![image-20210116220006524](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/行内块儿元素.7ijoj58rk6k0.png)
 
 
 
@@ -1005,7 +1005,7 @@ input:focus {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210116222836003.png" alt="image-20210116222836003" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/显示模式的转换.6bcqkart67s0.png" alt="image-20210116222836003" style="zoom:150%;" />
 
 
 
@@ -1013,7 +1013,7 @@ input:focus {
 
 ### 10.1. 背景颜色
 
-<img src="E:\Typora\image\image-20210117104949369.png" alt="image-20210117104949369" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS背景颜色.2ghme0o4xedc.png" alt="image-20210117104949369" style="zoom:150%;" />
 
 
 
@@ -1023,13 +1023,13 @@ input:focus {
 
 实际开发中常见于logo或者一些装饰性的小图片或者超大的背景图片，优点是非常便于控制位置。
 
-<img src="E:\Typora\image\image-20210117105418899.png" alt="image-20210117105418899" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/背景图片.44cls8nr7920.png" alt="image-20210117105418899" style="zoom:150%;" />
 
 
 
 ### 10.3. 背景平铺
 
-<img src="E:\Typora\image\image-20210117110240986.png" alt="image-20210117110240986" style="zoom: 200%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/背景平铺.1ftezv07z7wg.png" alt="image-20210117110240986" style="zoom: 200%;" />
 
 ```html
 <head>
@@ -1055,7 +1055,7 @@ input:focus {
 </body>
 ```
 
-![image-20210117110443233](E:\Typora\image\image-20210117110443233.png)
+![image-20210117110443233](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/背景平铺案例.2ukt5rzs8300.png)
 
 
 
@@ -1145,7 +1145,7 @@ input:focus {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210117114252412.png" alt="image-20210117114252412" style="zoom:200%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/背景图片案例1.5n4g12lzc280.png" alt="image-20210117114252412" style="zoom:200%;" />
 
 
 
@@ -1304,7 +1304,7 @@ background: rgba(0, 0, 0, 0.3);
 </body>
 ```
 
-![image-20210121202217683](E:\Typora\image\image-20210121202217683.png)
+![image-20210121202217683](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/五彩导航栏.2igf152kuqq0.png)
 
 ## 12. CSS三大特性
 
@@ -1343,7 +1343,7 @@ background: rgba(0, 0, 0, 0.3);
 </body>
 ```
 
-![image-20210121214955099](E:\Typora\image\image-20210121214955099.png)
+![image-20210121214955099](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/层叠性.4y18gid1vgw0.png)
 
 
 
@@ -1375,7 +1375,7 @@ CSS中的继承：子标签会继承父标签的某些样式，如文本颜色�
 </body>
 ```
 
-![image-20210121215439207](E:\Typora\image\image-20210121215439207.png)
+![image-20210121215439207](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/继承性.3hqi650lskk0.png)
 
 
 
@@ -1420,7 +1420,7 @@ body {
 | 行内样式 style=""    | 1 0 0 0    |
 | !important 重要的    | 无穷大     |
 
-<img src="E:\Typora\image\image-20210123182853149.png" alt="image-20210123182853149"  />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/优先级.1iatl5f5l6hs.png" alt="image-20210123182853149"  />
 
 **注意**：
 
@@ -1456,15 +1456,13 @@ body {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210123183801590.png" alt="image-20210123183801590" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/优先级案例.3ks6yyd7kza0.png" alt="image-20210123183801590" style="zoom:150%;" />
 
 
 
 **(2) 权重的叠加**
 
 **权重叠加：如果是复合选择器，则会有权重叠加，需要计算权重**。
-
-<img src="E:\Typora\image\image-20210123184724737.png" alt="image-20210123184724737" style="zoom:200%;" />
 
 ```html
 <head>
@@ -1501,13 +1499,11 @@ body {
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210123184756600.png" alt="image-20210123184756600" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/权重的叠加.5ahu4pf5n340.png" alt="image-20210123184756600" style="zoom:150%;" />
 
 
 
 ## 13. 盒子模型
-
-![image-20210123213418992](E:\Typora\image\image-20210123213418992.png)
 
 ### 13.1. 边框(border)
 
@@ -1525,7 +1521,7 @@ border: border-width || border-style || border-color
 | border-style | 边框的样式               |
 | border-color | 边框的颜色               |
 
-![image-20210123214600849](E:\Typora\image\image-20210123214600849.png)
+![image-20210123214600849](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/边框.3jjl7x3gs180.png)
 
 
 
@@ -1574,7 +1570,7 @@ border-top: 1px solid red; /* 只设定上边框,其余同理 */
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210123215501364.png" alt="image-20210123215501364" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/边框的层叠性.5opulbmxiwg0.png" alt="image-20210123215501364" style="zoom:150%;" />
 
 
 
@@ -1643,7 +1639,7 @@ border-collapse: collapse;
 </body>
 ```
 
-<img src="E:\Typora\image\image-20210123221318573.png" alt="image-20210123221318573" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/合并相邻的边框.52i4i6qft140.png" alt="image-20210123221318573" style="zoom:150%;" />
 
 
 
@@ -1678,7 +1674,7 @@ border-collapse: collapse;
 </body>
 ```
 
-![image-20210123222325956](E:\Typora\image\image-20210123222325956.png)
+![image-20210123222325956](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/内边距.1qlrb4vltrwg.png)
 
 
 
@@ -1749,7 +1745,7 @@ border-collapse: collapse;
 </body>
 ```
 
-![image-20210124143515703](E:\Typora\image\image-20210124143515703.png)
+![image-20210124143515703](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/新浪导航栏.3470c90cdue0.png)
 
 
 
@@ -1798,7 +1794,7 @@ border-collapse: collapse;
 </body>
 ```
 
-![image-20210124145700959](E:\Typora\image\image-20210124145700959.png)
+![image-20210124145700959](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/小米侧边栏.3kzz03cumqm0.png)
 
 
 
@@ -1851,7 +1847,7 @@ margin: 0 auto;
 </body>
 ```
 
-![image-20210124151325337](E:\Typora\image\image-20210124151325337.png)
+![image-20210124151325337](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/外边距的应用.7f5hjxy4xjs0.png)
 
 
 
@@ -1861,7 +1857,7 @@ margin: 0 auto;
 
 对于两个嵌套关系（父子关系）的块元素，父元素有上外边距同时子元素也有上外边距，此时父元素会塌陷较大的外边距值。
 
-<img src="E:\Typora\image\image-20210124152146695.png" alt="image-20210124152146695" style="zoom:200%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/外边距合并问题.2f62apawglxc.png" alt="image-20210124152146695" style="zoom:200%;" />
 
 **浮动的盒子不会有外边距合并的问题！**
 
@@ -2005,7 +2001,7 @@ margin: 0 auto;
 </body>
 ```
 
-![image-20210124193808527](E:\Typora\image\image-20210124193808527.png)
+![image-20210124193808527](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/简单盒子布局.2cw53q2gium8.png)
 
 
 
@@ -2077,13 +2073,13 @@ margin: 0 auto;
 </body>
 ```
 
-![image-20210124200826980](E:\Typora\image\image-20210124200826980.png)
+![image-20210124200826980](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/快报案例.202jj3dqa2f4.png)
 
 
 
 ### 13.11. 圆角边框
 
-![image-20210124222601677](E:\Typora\image\image-20210124222601677.png)
+![image-20210124222601677](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/圆角边框.1e0by2xdtp8g.png)
 
 **语法**：
 
@@ -2096,7 +2092,7 @@ border-radius: length;
 - 如果是矩形，想要设置为一个圆角矩形，则数值修改为矩形高度的一半即可；
 - `border-radius`是一个**简写属性**，可以跟四个值，分别代表左上角、右上角、右下角、左下角。
 
-<img src="E:\Typora\image\image-20210124223018575.png" alt="image-20210124223018575" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/image.1rijp1rc0x34.png" alt="image-20210124223018575" style="zoom:150%;" />
 
 ### 13.12. 盒子阴影
 
@@ -2147,7 +2143,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129122127759](E:\Typora\image\image-20210129122127759.png)
+![image-20210129122127759](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/盒子阴影.5qw86d5kqn00.png)
 
 
 
@@ -2216,7 +2212,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129125133911](E:\Typora\image\image-20210129125133911.png)
+![image-20210129125133911](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动.2k2487wopmy0.png)
 
 
 
@@ -2227,7 +2223,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 - 脱离标准普通流的控制，移动到指定的位置；
 - **浮动的盒子不再保留原来的位置**。
 
-![image-20210129143809166](E:\Typora\image\image-20210129143809166.png)
+![image-20210129143809166](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动脱标.3f9zhc159cu0.png)
 
 ```html
 <head>
@@ -2268,7 +2264,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129143845347](E:\Typora\image\image-20210129143845347.png)
+![image-20210129143845347](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动脱标案例.1ex7vlqtoa5c.png)
 
 
 
@@ -2276,7 +2272,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 ### 14.3. 浮动元素一行显示
 
-![image-20210129145007077](E:\Typora\image\image-20210129145007077.png)
+![image-20210129145007077](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动元素一行显示.dqi2w04vcxk.png)
 
 
 
@@ -2324,7 +2320,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129150403928](E:\Typora\image\image-20210129150403928.png)
+![image-20210129150403928](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动元素具有行内块的性质.15p01nq2plj4.png)
 
 
 
@@ -2334,7 +2330,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 **先用标准流的父元素排列上下位置，之后內部子元素采取浮动排列左右位置，符合网页布局第一准则**。
 
-![image-20210129150933496](E:\Typora\image\image-20210129150933496.png)
+![image-20210129150933496](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动元素搭配标准流父盒子.5dc1j7laj7o0.png)
 
 
 
@@ -2415,7 +2411,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129153617740](E:\Typora\image\image-20210129153617740.png)
+![image-20210129153617740](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/小米布局案例.3ui8e6wqee00.png)
 
 
 
@@ -2468,7 +2464,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129211935400](E:\Typora\image\image-20210129211935400.png)
+![image-20210129211935400](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/布局.1vueynd5sncw.png)
 
 
 
@@ -2542,7 +2538,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210129213056122](E:\Typora\image\image-20210129213056122.png)
+![image-20210129213056122](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/手机模块布局.6jh6c2ez1kk0.png)
 
 
 
@@ -2664,7 +2660,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 **(2) 清除浮动——父元素添加overflow** 
 
-<img src="E:\Typora\image\image-20210130114118260.png" alt="image-20210130114118260" style="zoom:150%;" />
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/清除浮动.4qwjexp69hc0.png" alt="image-20210130114118260" style="zoom:150%;" />
 
 
 
@@ -2845,7 +2841,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 **(4) 边偏移**
 
-![image-20210130220150274](E:\Typora\image\image-20210130220150274.png)
+![image-20210130220150274](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/边偏移.7egoadxiexw0.png)
 
 
 
@@ -2927,7 +2923,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210130222324449](E:\Typora\image\image-20210130222324449.png)
+![image-20210130222324449](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/相对定位.3uc860s0tk20.png)
 
 
 
@@ -2990,7 +2986,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210130223439771](E:\Typora\image\image-20210130223439771.png)
+![image-20210130223439771](E:\Typora\image\image-20210629195024129.png)
 
 
 
@@ -3041,13 +3037,13 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210130224738431](E:\Typora\image\image-20210130224738431.png)
+![image-20210130224738431](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/绝对定位.5a3us6fe9zc0.png)
 
 
 
 ### 16.5. 子绝父相
 
-![image-20210131123034729](E:\Typora\image\image-20210131123034729.png)
+![image-20210131123034729](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/子绝父相.6junyjq79fk0.png)
 
 
 
@@ -3113,7 +3109,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210131133730088](E:\Typora\image\image-20210131133730088.png)
+![image-20210131133730088](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/固定定位.1xjgog1n8wn4.png)
 
 
 
@@ -3142,7 +3138,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 ### 16.8. 定位总结
 
-![image-20210131135445741](E:\Typora\image\image-20210131135445741.png)
+![image-20210131135445741](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/定位总结.zgzue075s4w.png)
 
 
 
@@ -3171,7 +3167,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 加了绝对定位的盒子不能通过 `margin: 0 auto`水平居中，但是可以通过以下计算方法实现水平和垂直居中。
 
-![image-20210131170602027](E:\Typora\image\image-20210131170602027.png)
+![image-20210131170602027](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/绝对定位盒子居中.202cfvibqti8.png)
 
 
 
@@ -3203,7 +3199,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210131170656206](E:\Typora\image\image-20210131170656206.png)
+![image-20210131170656206](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/绝对定位盒子居中.1trkzjkcrm9s.png)
 
 ### 16.11. 定位的特殊特性
 
@@ -3225,7 +3221,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 - 浮动元素不同，只会压住它下面标准流的盒子，但是不会压住下面标准流盒子里面的文字（图片）；
 - 但是绝对定位（固定定位）会压住下面标准流所有的内容。
 
-![image-20210131173437220](E:\Typora\image\image-20210131173437220.png)
+![image-20210131173437220](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/浮动的特点.19mlbwiz2ylc.png)
 
 
 
@@ -3233,7 +3229,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 ### 17.1. CSS做轮播图
 
-![image-20210131202130552](E:\Typora\image\image-20210131202130552.png)
+![image-20210131202130552](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/淘宝轮播图布局.5f3gbmqzmrw0.png)
 
 ```html
 <head>
@@ -3355,7 +3351,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 </body>
 ```
 
-![image-20210131210818638](E:\Typora\image\image-20210131210818638.png)
+![image-20210131210818638](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/淘宝轮播图.56ku448mml00.png)
 
 
 
@@ -3567,7 +3563,7 @@ box-shadow: h-shadow v-shadow blur spread color inset;
 
 ## 18. 网页布局总结
 
-![image-20210201094952322](E:\Typora\image\image-20210201094952322.png)
+![image-20210201094952322](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/网页布局总结.1xw5y1v4n880.png)
 
 
 
@@ -3592,13 +3588,13 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 
 ### 19.2. visibility
 
-![image-20210201100759881](E:\Typora\image\image-20210201100759881.png)
+![image-20210201100759881](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/visibility.mi6egohaops.png)
 
 
 
 ### 19.3. overflow溢出
 
-![image-20210201101517632](E:\Typora\image\image-20210201101517632.png)
+![image-20210201101517632](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/overflow溢出.16v8q2ina6ak.png)
 
 
 
@@ -3660,7 +3656,7 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 </body>
 ```
 
-![image-20210201103901036](E:\Typora\image\image-20210201103901036.png)
+![image-20210201103901036](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/土豆遮罩层案例.5y0ml40d2s00.png)
 
 
 
@@ -3670,13 +3666,13 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 
 ### 1.1. 为什么需要精灵图
 
-![image-20210201104333906](E:\Typora\image\image-20210201104333906.png)
+![image-20210201104333906](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/为什么使用精灵图.ddb38i3t2i8.png)
 
 
 
 ### 1.2. 精灵图的使用
 
-![image-20210201110214190](E:\Typora\image\image-20210201110214190.png)
+![image-20210201110214190](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/精灵图的使用.6fsjm9ud1mw0.png)
 
 ```html
 <head>
@@ -3710,7 +3706,7 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 </body>
 ```
 
-![image-20210201112309120](E:\Typora\image\image-20210201112309120.png)
+![image-20210201112309120](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/精灵图的应用.rvrafzv8kz4.png)
 
 
 
@@ -3727,8 +3723,6 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 3. 一旦图片制作完毕想要更换非常复杂。
 
 **字体图标展示的是图标，但是本质展示的是字体**。
-
-![image-20210201115243375](E:\Typora\image\image-20210201115243375.png)
 
 
 
@@ -3747,15 +3741,13 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 
 
 
-![image-20210201120456128](E:\Typora\image\image-20210201120456128.png)
+![image-20210201120456128](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/字体文件格式.aamubsc2koc.png)
 
 
 
 **字体图标的引入**：在下载好的字体图标中直接复制就可以了！
 
-![image-20210201120944372](E:\Typora\image\image-20210201120944372.png)
-
-![image-20210201121607414](E:\Typora\image\image-20210201121607414.png)
+![image-20210201120944372](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/字体图标的引入.7gq2nfd73ng.png)
 
 ```html
 <head>
@@ -3799,7 +3791,7 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 
 把压缩包里面的 `selection.json` 重新上传，然后选中自己想要的新的图标，重新下载压缩包，并替换原来的文件即可。
 
-![image-20210201145049887](E:\Typora\image\image-20210201145049887.png)
+![image-20210201145049887](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/字体图标的追加.32m71nlqz8s0.png)
 
 
 
@@ -3846,7 +3838,7 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 </body>
 ```
 
-![image-20210201150405738](E:\Typora\image\image-20210201150405738.png)
+![image-20210201150405738](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS画三角.31vbcax1ibs0.png)
 
 
 
@@ -3912,7 +3904,7 @@ display: block; /* 除了转换为块级元素外，同时还有显示元素的�
 </body>
 ```
 
-![image-20210201151423915](E:\Typora\image\image-20210201151423915.png)
+![image-20210201151423915](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/京东三角.1h3lgn9hxh6o.png)
 
 
 
@@ -3962,9 +3954,7 @@ textarea {
 
 ## 5. 行内块和文字垂直居中
 
-![image-20210201162255131](E:\Typora\image\image-20210201162255131.png)
-
-![image-20210201162414403](E:\Typora\image\image-20210201162414403.png)
+![image-20210201162255131](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/行内块和文字垂直居中.6nuwy8tfzxk0.png)
 
 
 
@@ -4006,7 +3996,7 @@ textarea {
 </body>
 ```
 
-![image-20210201163805102](E:\Typora\image\image-20210201163805102.png)
+![image-20210201163805102](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/文字底部默认空白缝隙.6yc899siy3c0.png)
 
 
 
@@ -4014,7 +4004,7 @@ textarea {
 
 ### 7.1. 单行文本
 
-![image-20210201164045077](E:\Typora\image\image-20210201164045077.png)
+![image-20210201164045077](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/单行文本溢出.6dn5hbowh8s0.png)
 
 
 
@@ -4046,13 +4036,13 @@ textarea {
 </body>
 ```
 
-![image-20210201164459439](E:\Typora\image\image-20210201164459439.png)
+![image-20210201164459439](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/单行文本溢出案例.2w26e1me6oo0.png)
 
 
 
 ### 7.2. 多行文本
 
-![image-20210201165021968](E:\Typora\image\image-20210201165021968.png)
+![image-20210201165021968](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/多行文本.2iaesyxwobu0.png)
 
 
 
@@ -4060,7 +4050,7 @@ textarea {
 
 ### 8.1. margin负值的应用
 
-![image-20210201184427235](E:\Typora\image\image-20210201184427235.png)
+![image-20210201184427235](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/margin负值的应用.10s5r9mlm59c.png)
 
 **(1) 细线边框**
 
@@ -4095,15 +4085,11 @@ textarea {
 </body>
 ```
 
-![image-20210201190042663](E:\Typora\image\image-20210201190042663.png)
+![image-20210201190042663](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/margin负值应用案例.4igvjpacmsc0.png)
 
 
 
 **(2) 鼠标经过边框变色**
-
-![image-20210201190308531](E:\Typora\image\image-20210201190308531.png)
-
-
 
 ```html
 <head>
@@ -4144,7 +4130,7 @@ textarea {
 </body>
 ```
 
-![image-20210201190749214](E:\Typora\image\image-20210201190749214.png)
+![image-20210201190308531](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/鼠标经过盒子边框变色.1kco45uvgb28.png)
 
 
 
@@ -4199,15 +4185,11 @@ textarea {
 </body>
 ```
 
-![image-20210201213929118](E:\Typora\image\image-20210201213929118.png)
+![image-20210201213929118](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/文字围绕浮动元素.2262bgqmk75s.png)
 
 
 
 ### 8.3. 行内块元素的巧用
-
-![image-20210201214004613](E:\Typora\image\image-20210201214004613.png)
-
-
 
 **text-align: center; 可以使盒子内所有的行内元素和行内块元素水平居中**。
 
@@ -4297,13 +4279,11 @@ textarea {
 </body>
 ```
 
-![image-20210201220217076](E:\Typora\image\image-20210201220217076.png)
+![image-20210201214004613](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/行内块的应用.1ihwt0utz0w0.png)
 
 
 
 ### 8.4. CSS画直角三角形
-
-<img src="E:\Typora\image\image-20210201221554304.png" alt="image-20210201221554304" style="zoom:150%;" />
 
 ```html
 <head>
@@ -4333,7 +4313,7 @@ textarea {
 </body>
 ```
 
-![image-20210201222556662](E:\Typora\image\image-20210201222556662.png)
+<img src="https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS画直角三角形.6zqjlnduyx80.png" alt="image-20210201221554304" style="zoom:150%;" />
 
 
 
@@ -4399,19 +4379,11 @@ textarea {
 </body>
 ```
 
-![image-20210201224528341](E:\Typora\image\image-20210201224528341.png)
-
-### 8.6. CSS初始化
-
-![image-20210202135947332](E:\Typora\image\image-20210202135947332.png)
-
-
+![image-20210201224528341](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/三角形妙用.4z9chhya33k0.png)
 
 # 三、HTML5和CSS3提高
 
 ## 1. HTML5
-
-![image-20210202140705079](E:\Typora\image\image-20210202140705079.png)
 
 
 
@@ -4426,13 +4398,13 @@ textarea {
 - `<aside>`：侧边栏标签；
 - `<footer>`：尾部标签。
 
-![image-20210202142023313](E:\Typora\image\image-20210202142023313.png)
+![image-20210202142023313](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/H5语义化标签.4z3xizfupfg0.png)
 
 
 
 ### 1.2. 视频标签
 
-![image-20210202142228049](E:\Typora\image\image-20210202142228049.png)
+![image-20210202142228049](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/视频标签.2stsjsl1xz20.png)
 
 
 
@@ -4451,25 +4423,23 @@ textarea {
 </video>
 ```
 
-![image-20210202143226983](E:\Typora\image\image-20210202143226983.png)
+![image-20210202143226983](E:\Typora\image\image-20210629202011849.png)
 
 
 
 ### 1.3. 音频标签
 
-![image-20210202143750520](E:\Typora\image\image-20210202143750520.png)
-
-![image-20210202144109301](E:\Typora\image\image-20210202144109301.png)
+![image-20210202143750520](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/音频标签.6zoo92l8sgk0.png)
 
 
 
 ### 1.4. 新增input类型
 
-![image-20210202215200440](E:\Typora\image\image-20210202215200440.png)
+![image-20210202215200440](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/新增Input类型.73ldmtyny580.png)
 
 ### 1.5. 新增表单属性
 
-![image-20210202221631155](E:\Typora\image\image-20210202221631155.png)
+![image-20210202221631155](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/新增表单属性.2vhzq4mg3e60.png)
 
 
 
@@ -4477,7 +4447,7 @@ textarea {
 
 ### 2.1. 属性选择器
 
-![image-20210202225651851](E:\Typora\image\image-20210202225651851.png)
+![image-20210202225651851](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/新增属性选择器.42p18l14fme0.png)
 
 ```html
 <head>
@@ -4538,19 +4508,17 @@ textarea {
 </body>
 ```
 
-![image-20210202225613974](E:\Typora\image\image-20210202225613974.png)
+![image-20210202225613974](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/属性选择器案例.3ky774i0esa0.png)
 
 
 
 ### 2.2. 结构伪类选择器
 
-![image-20210202232531336](E:\Typora\image\image-20210202232531336.png)
-
-![image-20210202233640612](E:\Typora\image\image-20210202233640612.png)
+![image-20210202232531336](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/结构伪类选择器.6kmi03opafo.png)
 
 ### 2.3. nth-child(n)
 
-![image-20210202231114693](E:\Typora\image\image-20210202231114693.png)
+![image-20210202231114693](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/nth-child.5u5zn5b0v000.png)
 
 ```css
 /* 选出所有奇数行  <==> nth-child(2n+1) */
@@ -4639,7 +4607,7 @@ ul li:nth-child(even) {
 </body>
 ```
 
-![image-20210202232609011](E:\Typora\image\image-20210202232609011.png)
+![image-20210202232609011](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/nth-of-type.kzj39vn2b5c.png)
 
 
 
@@ -4652,13 +4620,11 @@ ul li:nth-child(even) {
 | ::before | 在元素内部的前面插入内容 |
 | ::after  | 在元素内部的后面插入内容 |
 
-![image-20210203094744044](E:\Typora\image\image-20210203094744044.png)
+![image-20210203094744044](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/伪元素选择器.3syztchmdrs0.png)
 
 
 
 ### 2.6. 伪元素字体图标
-
-![image-20210203095725092](E:\Typora\image\image-20210203095725092.png)
 
 ```html
 <head>
@@ -4709,7 +4675,7 @@ ul li:nth-child(even) {
 </body>
 ```
 
-![image-20210203102111082](E:\Typora\image\image-20210203102111082.png)
+![image-20210203102111082](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/伪元素字体图标案例.4t90rrab3fy0.png)
 
 
 
@@ -4765,13 +4731,13 @@ ul li:nth-child(even) {
 </body>
 ```
 
-![image-20210203103243681](E:\Typora\image\image-20210203103243681.png)
+![image-20210203103243681](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/土豆防遮罩层案例.pi6xx3xeqf4.png)
 
 
 
 ### 2.8. CSS3盒子模型
 
-![image-20210203105808029](E:\Typora\image\image-20210203105808029.png)
+![image-20210203105808029](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS3盒子模型.2l3tulmc0g20.png)
 
 ```html
 <head>
@@ -4807,7 +4773,7 @@ ul li:nth-child(even) {
 </body>
 ```
 
-![image-20210203110254506](E:\Typora\image\image-20210203110254506.png)
+![image-20210203110254506](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS3盒子模型案例.5x89pm9ycw00.png)
 
 
 
@@ -4821,13 +4787,13 @@ filter: function();
 filter: blur(5px); /* blur()模糊处理  数值越大越模糊 */
 ```
 
-![image-20210203110656246](E:\Typora\image\image-20210203110656246.png)
+![image-20210203110656246](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS3图片模糊处理.7iismntf9940.png)
 
 
 
 ### 2.10. calc计算盒子宽度
 
-![image-20210203110812676](E:\Typora\image\image-20210203110812676.png)
+![image-20210203110812676](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS3 calc（）函数.5r5du19bzxw0.png)
 
 
 
@@ -4841,7 +4807,7 @@ filter: blur(5px); /* blur()模糊处理  数值越大越模糊 */
 transition: 要过渡的属性 花费时间 运动曲线 何时开始；
 ```
 
-![image-20210203111732838](E:\Typora\image\image-20210203111732838.png)
+![image-20210203111732838](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/CSS3过渡.66o613cmg340.png)
 
 ```html
 <head>
@@ -4915,7 +4881,7 @@ transition: 要过渡的属性 花费时间 运动曲线 何时开始；
 </body>
 ```
 
-![image-20210203122549528](E:\Typora\image\image-20210203122549528.png)
+![image-20210203122549528](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/过渡案例-进度条.3nmsjwaasyi0.png)
 
 
 
@@ -4975,4 +4941,4 @@ transition: 要过渡的属性 花费时间 运动曲线 何时开始；
 </body>
 ```
 
-![image-20210203135116702](E:\Typora\image\image-20210203135116702.png)
+![image-20210203135116702](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/CSS/小米官网过渡案例.6o651pl7vtg0.png)
