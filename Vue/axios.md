@@ -264,6 +264,7 @@ export function postKeyValueRequest(url, params) {
     // instance.interceptors.response.use(ret, err)
     // ret: 表示返回的数据
     // err: 表示返回的错误信息 
+    // error.response 可以拿到错误请求
     instance.interceptors.response.use(ret => {
         console.log(ret);
 
