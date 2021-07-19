@@ -359,14 +359,14 @@ db.collection.find(query, projection)
 - `query<document>`：可选。使用 **查询运算符** 指定选择过滤器。如果要返回集合中的所有文档，这个参数可以省略或者传递一个空的文档 `{}`。
 - `projection<document>`：可选。投影，指定要在与查询过滤器匹配的文档中返回的字段。要返回匹配文档中的所有字段，忽略该参数即可。
 
-### 3.2. 查询选择器
+### 3.2. 查询运算符
 
 **比较运算符**：
 
 - `$eq`：等于。
 - `$gt`：greate than 大于。
 - `$gte`：greate than equal 大于等于。
-- `$in`：匹配数组中的任意值。in ['a', 'b', 'c']。
+- `$in`：匹配数组中的任意值。in ['a', 'b', 'c'] 。`||`。
 - `$lt`：less than 小于。
 - `$lte`：less than equal 小于等于。
 - `$ne`：not equal 不等于。
@@ -376,7 +376,7 @@ db.collection.find(query, projection)
 
 - `$and`：&&。
 - `$not`：!。
-- `$nor`：两个条件都不匹配。`!(a || b)`。
+- `$nor`：两个条件都不匹配。`!(a || b) => !a && !b`。
 - `$or`：||。
 
 **Element**：
@@ -401,7 +401,7 @@ db.collection.find(query, projection)
 
 ----
 
-**一、$eq**：
+#### 3.2.1. $eq
 
 ```shell
 # 语法：
@@ -431,11 +431,14 @@ db.inventory.find( { "item.name": "ab" } );
 
 # 3：文档中的数组元素等于1个值
 # 数组中包含"B"的文档都会被差出来
+# 但是不会查出 _id:5 的文档, 因为数组中的 "B" 是 ["A", "B"]的形式
 db.inventory.find( { tags: { $eq: "B"} } );
 db.inventory.find( { tags: "B" } );
 
 # 4: 文档中的数组元素等于一个数组值
 # 数组中包含 ["A", "B"] 的文档都会差出来
+# 注意：这里表示的是 [数组] 中查找另外一个 [数组]！
+# 这里只会查出 _id:3 和 _id:5 的文档
 db.inventory.find( { tags: { $eq: ["A", "B"] } } );
 db.inventory.find( { tags: ["A", "B"] } );
 ```
@@ -469,9 +472,9 @@ db.collection.find( { company: /MongoDB/ } );			# 会按正则表达式匹配
 db.collection.find( { company: { $regex: /MongoDB/ } } );
 ```
 
+---
 
-
-**二、$gt**
+#### 3.2.2. $gt
 
 ```shell
 # 测试用例
@@ -491,7 +494,7 @@ db.inventory.find( { qty: { $gt: 20 } } );
 
 ---
 
-**三、$in**
+#### 3.2.3. $in
 
 ```shell
 # 语法 ==> in: 只要数组中有一个值和目标值匹配就查询出来! <==> or
@@ -512,11 +515,189 @@ db.inventory.find( { qty: { $in: [5, 15] } } );
 db.inventory.find( { tags: { $in: [/^A/, /^B/] } } );
 ```
 
+---
+
+#### 3.2.4. $and
+
+```shell
+# 语法
+# $and <==> 逻辑与 && 
+# 注意：short circuit evaluate 短路计算：第一个expression是false, 后面的表达式就不用执行了。
+{ $and: [ { <expression1> }, { <expression2> } , ... , { <expressionN> } ] }
+```
+
+```shell
+# 测试用例
+db.inventory.insertMany([
+{ _id: 1, item: { name: "ab", code: "123" }, qty: 15, tags: [ "A", "B", "C" ] },
+{ _id: 2, item: { name: "cd", code: "123" }, qty: 20, tags: [ "B" ] },
+{ _id: 3, item: { name: "ij", code: "456" }, qty: 25, tags: [ "A", "B" ] },
+{ _id: 4, item: { name: "xy", code: "456" }, qty: 30, tags: [ "B", "A" ] },
+{ _id: 5, item: { name: "mn", code: "000" }, qty: 20, tags: [ [ "A", "B" ], "C" ] }
+]);
+```
+
+```shell
+# 1、$and简单使用
+db.inventory.find( { 
+	$and: [ 
+		{ tags: "A" }, 
+		{ qty: { $gte: 20 } },
+		{ item: { $exists: 1 } } 
+	] 
+} );
+
+# 2、$and隐式写法
+db.inventory.find( {
+	$and: [
+		{ qty: {$exists: 1} },
+		{ qty: 15}
+	]
+} );
+
+# 等价于 
+db.inventory.find( {
+	qty: {
+		$exists: 1,
+		$eq: 15
+	}
+} );
+
+# 3、$and 具有指定相同运算符的多个表达式的查询
+# 此查询不能使用隐式AND操作构造，因为它$or多次使用运算符
+# 等价于 (qty >= 20 && qty <= 25) && ( tags || tags == "A" )
+db.inventory.find( {
+	$and: [
+		{ $and: [ { qty: { $gte: 20 } }, { qty: { $lte: 25 } } ] },
+		{ $or: [ { tags: { $exists: 1 } }, { tags: "A" } ] }
+	]
+} );
+
+# 输出结果
+{ "_id" : 2, "item" : { "name" : "cd", "code" : "123" }, "qty" : 20, "tags" : [ "B" ] }
+{ "_id" : 3, "item" : { "name" : "ij", "code" : "456" }, "qty" : 25, "tags" : [ "A", "B" ] }
+{ "_id" : 5, "item" : { "name" : "mn", "code" : "000" }, "qty" : 20, "tags" : [ [ "A", "B" ], "C" ] }
+```
+
+---
+
+#### 3.2.5. $not 非
+
+```shell
+# 语法 <==> ！<==> if (!a)
+{ field: { $not: { <operator-expression> } } }
+
+# 在集合中查询文档
+# 1. price < 1.99 or
+# 2. price == 1.99 or
+# 3. price field does not exist
+db.inventory.find( { price: { $not: { $gt: 1.99 } } } )
+```
+
+- `{ $not: { $gt: 1.99 } }` 和 `{ $lte: 1.99 }`不同。后者查询的文档属性必须 exists  并且值小于1.99或等于1.99。
+- `$not` 仅仅影响其他操作符，不会独立地检查文档和属性。
+- 使用`$not`进行逻辑取反；使用`$ne` 直接测试属性的值。
+
+```shell
+# $not的使用
+db.products.insertMany( [
+	{ price: 10, name: "苹果" },
+	{ price: null, name: "xxx"},
+	{ price: 30, name: "西红柿" }
+] );
+
+# 会搜索出null值
+db.products.find( {
+	price: { $not: { $gt: 30} } 
+} );
+
+# 会过滤出null值
+db.products.find( {
+	price: { $lte: 30 } 
+} );
+
+```
+
+---
+
+`$not`和正则表达式一起使用。
+
+```shell
+# 查询选择的所有文档 inventory集合，其中的item.name字段值并没有以字母a开始。
+db.inventory.find( { "item.name": { $not: /^a.*/ } } )
+
+#  (Starting in MongoDB 4.0.7)
+db.inventory.find( { "item.name": { $not: { $regex: "^a.*" } } } )
+db.inventory.find( { "item.name": { $not: { $regex: /^a.*/ } } } )
+```
+
+---
+
+#### 3.2.6. $nor 既不也不
+
+```shell
+# 语法
+{ $nor: [ { <expression1> }, { <expression2> }, ...  { <expressionN> } ] }
+```
 
 
 
+```shell
+# !a && !b ==> 不存在的key或null都会查询出来
+db.inventory.find( { $nor: [ { price: 1.99 }, { sale: true } ]  } )
+```
+
+- `price`字段的值不等于1.99 并且 `sale` 字段的值不是 true。
+- `price`字段的值不等于1.99 但是 `sale` 字段的值不存在。
+- `price` 字段的值不存在 但是 `sale` 字段的值不是true。
+- `price、sale`两个字段都不存在。
+
+---
+
+`$nor` 和 `$exists` 搭配使用：
+
+```shell
+db.inventory.find( { $nor: [ { price: 1.99 }, { price: { $exists: false } },
+                             { sale: true }, { sale: { $exists: false } } ] } )
+```
+
+- `price、sale`这两个字段一定存在。
+- `price` 不是 1.99（可以为null），`sale`不是true（可以为null）。
 
 
+
+#### 3.2.7. $exists
+
+```shell
+# 语法
+{ field: { $exists: <boolean> } }
+```
+
+- `<boolean> is true`：查询返回的文档中必须有这个字段（属性/key）。值可以是null。
+- `<boolean> is false`：查询仅返回不包含该字段的文档。
+- 注意：MongoDB的`$exists`确实**不**对应于SQL操作 `exists`。
+- 对于 SQL  `exists`，请参阅`$in`运算符。
+
+```shell
+# 简单使用(以下三种写法等价)
+# in [a, b] <==> a || b
+# not in [a, b] <==> ! (a || b)  <==> !a && !b <==> 既不也不
+db.inventory.find( { qty: { $exists: true, $nin: [ 5, 15 ] } } );
+db.inventory.find( {
+	$and: [
+		{ qty: { $exists: true } },
+		{ qty: { $nin: [5, 15] } }
+	]
+} );
+db.inventory.find( {
+	$and: [
+		{ qty: { $exists: true } },
+		{ $nor: [ { qty: 5 }, { qty: 15 } ] }
+	]
+} );
+```
+
+- `qty`字段必须存在，该字段的值既不等于5也不等于15。
 
 
 
