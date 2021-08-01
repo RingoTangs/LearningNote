@@ -713,629 +713,2202 @@ db.inventory.find( {
 - `$comment`：向查询谓词添加注释。
 - `$rand`：生成 0 到 1 之间的随机浮点数。
 
-## 4.更新文档
+## 4.更新操作符
 
-### 4.1. 更新操作符
+### 4.1. 属性: $currentDate
 
-#### 4.1.1. Fields
+`$currentDate`：将字段的值设置为current date，或者作为 Date 或 timestamp。
 
-- `$currentDate`：将字段的值设置为当前日期，作为日期或时间戳。
+```java
+// 语法：
+{ $currentDate: { <field1>: <typeSpecification1>, ... } }
+```
 
-  ```javascript
-  // 语法：
-  { $currentDate: { <field1>: <typeSpecification1>, ... } }
-   
-  // lastModified字段保存当前日期
-  // cancellation.date保存当前的时间戳
-  // $set 去更新指定字段
-  db.customers.updateOne(
-     { _id: 1 },
-     {
-       $currentDate: {
-          lastModified: true,
-          "cancellation.date": { $type: "timestamp" }
-       },
-       $set: {
-          "cancellation.reason": "user request",
-          status: "D"
-       }
+`<typeSpecification1>`可以是：
+
+- 布尔值true，用于将字段值设置为当前日期作为日期（ISO/GMT时间）。
+- `$type: "timestamp or $type: "date"`明确地指定了类型。这个操作符对大小写十分敏感，只能接受小写的 `timestamp、date`。
+- 如果在嵌入在文档或者数组中指定 `field` 字段，使用点表示法。
+
+注意：如果 field 字段不存在。`$currentDate` 就会将该属性添加到文档中。
+
+#### 4.1.1. 示例
+
+```javascript
+// 创建customers文档
+db.customers.insertOne(
+   // ISO时间 GMT时间
+   { _id: 1, status: "a", lastModified: ISODate("2013-10-02T01:11:18.965Z") }
+);
+```
+
+下面的操作更新 `lastModified` 字段作为为 current date。`"cancellation.date"`字段作为 current timestamp。
+
+```javascript
+// lastModified字段保存当前日期
+// cancellation.date保存当前的时间戳
+// $set 去更新指定字段
+db.customers.updateOne(
+   { _id: 1 },
+   {
+     $currentDate: {
+        // 使用当前OSI时间作为字段的值
+        lastModified: true,		
+        // 使用当前时间戳作为字段的值 
+        "cancellation.date": { $type: "timestamp" }
+     },
+     $set: {
+        "cancellation.reason": "user request",
+        status: "D"
      }
-  )
-  ```
+   }
+)
+```
 
-- `$inc`：通过具体的amount来增加字段的值。
+查询操作来查看操作结果：
 
-  - `$inc`接受正值和负值。
-  - 如果字段不存在，则`$inc`创建该字段并将该字段设置为指定值。
-  - `$inc`在具有空值的字段上使用运算符将产生错误。
-  - `$inc`是单个文档中的原子操作。
+```javascript
+db.customers.find().pretty();
 
-  ```javascript
-  // 语法
-  { $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
-  
-  // $inc 将 qty 字段的值减少1，并且增加"metrics.orders"字段
-  db.inventory.updateOne({ item: "journal" }, {
-      $inc: {
-          qty: -1,
-          "metrics.orders": 1
-      }
-  });
-  ```
+{
+	"_id" : 1,
+	"status" : "D",
+	"lastModified" : ISODate("2021-07-29T16:06:46.074Z"),
+	"cancellation" : {
+		"date" : Timestamp(1627574806, 1),
+		"reason" : "user request"
+	}
+}
+```
+#### 4.1.2. 聚合替代$currentDate
 
-- `$min`：如果指定值是**小于**该字段的当前值，则执行更新操作。
+从Mongodb 4.2开始，更新方法就能接受聚合管道操作了。
 
-  - 如果该字段不存在，则`$min`操作员将该字段设置为指定值。
-  - 对于不同类型的值之间的比较，例如数字和空值，`$min`使用[BSON 比较顺序](https://docs.mongodb.com/manual/reference/bson-type-comparison-order/#std-label-faq-dev-compare-order-for-BSON-types)。
+例如，上一个例子就可以被重写为：
 
-  ```javascript
-  // 语法
-  { $min: { <field1>: <value1>, ... } }
-  
-  // 1: $min 比较数字
-  // item: "mousepad" 的文档，qty字段的值大于24，qty字段就会被修改为24
-  db.inventory.updateOne({ item: "mousepad" }, {
-      $min: {
-          qty: 24
-      }
-  });
-   
-  // 2: $min 比较日期, 指定的字段的日期小于该字段当前的日期则替换
-  db.inventory.updateOne({ item: "canvas" }, {
-  	$min: {
-  		"cancellation.date": new Date("2020-10-1")
-  	}
-  });
-  ```
+- 使用聚合阶段操作符 `$set` 和 聚合变量 `NOW`修改为 current datetime。
+- `CLUSTER_TIME` 来修改为 current timestamp。
 
-- `$max`：如果指定值是**大于**该字段的当前值，则执行更新操作。
+注意：
 
-- `$mul`：将字段的值乘以一个数字。
+- 要使用聚合变量 `NOW、CLUSTER_TIME...` 必须添加前缀 `$$`。
 
-  - 要更新的字段必须包含一个数值。
-  - 如果该字段在文档中不存在，则`$mul`创建该字段并将值设置为零（与乘数相同的数据类型）。
-  - `$mul`是单个文档中的原子操作。
+- `CLUSTER_TIME` 仅仅使用于副本集和分片集群。
+- `NOW 、 CLUSTER_TIME` 在整个管道（流）中的值相同。
 
-  ```java
-  db.products.insertOne({ "_id": 1, "item": "ABC", "price": NumberDecimal("10.99"), "qty": 25 });
-  
-  // 1: 字段的值存在
-  // 将price字段的值乘1.25, qty乘2
-  db.products.updateOne({ _id: 1 }, {
-      $mul: {
-      	price: NumberDecimal("1.25"),
-      	qty: 2
-      }
-  });
-  
-  // 2：将$mul运算符应用于不存在的字段
-  db.products.updateOne({ _id: 1 }, {
-      $mul: {
-          amount: NumberLong(100)
-      }
-  });
-  
-  // 结果
-  { "_id" : 1, "item" : "ABC", "price" : NumberDecimal("10.99"), "qty" : 25, "amount" : NumberLong(0) }
-  ```
+```javascript
+// $$NOW 是 GMT时间
+// $$CLUSTER_TIME 是 当前时间戳
+db.customers.updateOne(
+  { _id: 1 },
+  [
+   { $set: { lastModified: "$$NOW", cancellation: {date: "$$CLUSTER_TIME", reason: "user request"}, status: "D" } }
+  ]
+);
+```
 
-  > 如果两个 32 位整数的乘积超过 32 位整数的最大值，则结果为 64 位整数。
-  >
-  > 超过 64 位整数最大值的任何类型的整数运算都会产生错误。
+更新结果：
 
-- `rename`：更新字段的名字。
+```javascript
+> db.customers.find().pretty();
+{
+	"_id" : 1,
+	"status" : "D",
+	"lastModified" : ISODate("2021-07-30T00:49:59.348Z"),
+	"cancellation" : {
+		"date" : Timestamp(1627574806, 1),
+		"reason" : "user request"
+	}
+}
+```
 
-  - 新字段名称必须与现有字段名称不同。
-  - 操作可能不会保留文档中字段的顺序；即重命名的字段可以在文档内移动。
-  - 如果要重命名的字段在文档中不存在，`$rename`则不执行任何操作（即不执行任何操作）。
 
-  ```javascript
-  // item 字段拼错了
-  db.products.insertOne({ 
-      "_id": 1, 
-      "itema": "ABC", 
-      "price": NumberDecimal("10.99"), 
-      "qty": 25 
-  });
-  
-  // 1：重命名字段
-  db.products.updateMany({}, {
-  	$rename: {
-  		"itema": "item"
-  	}
-  });
-  
-  // 2：重命名嵌入文档中的字段
-  db.person.updateMany({}, {
-  	$rename: {
-          // field需要加引号
-  		"address.home_name": "door_number"
-  	}
-  });
-  
-  // 3：重命名字段时，现有字段名称引用不存在的字段时，$rename运算符不执行任何操作。
-  ```
+### 4.2. 属性: $inc
 
-- `$set`: 用指定的值来替换当前值。
+`$inc`：通过指定的amount来增加字段的值。
 
-  - 如果字段不存在，`$set`将添加具有指定值的新字段。
-  - 如果指定多个字段，`$set`将更新或创建每个字段。
+```javascript
+// 语法
+{ $inc: { <field1>: <amount1>, <field2>: <amount2>, ... } }
+```
 
-  ```javascript
-  // 语法
-  { $set: { <field1>: <value1>, ... } }
-  
-  // 测试文档
-  db.products.insertOne({
+- `$inc`接受正值和负值。
+- 如果字段不存在，则`$inc`创建该字段并将该字段设置为指定值。
+- `$inc`在具有空值的字段上使用运算符将产生错误。
+- `$inc`是单个文档中的原子操作。
+
+```javascript
+// 创建 products 集合
+db.products.insert({
+    _id: 1,
+    sku: "abc123",
+    quantity: 10,
+    metrics: {
+        orders: 2,
+        ratings: 3.5
+    }
+});
+```
+
+下面 update 操作使用 `$inc` 操作符去减少 `quantity ` 属性，增加 `"metrics.orders"`属性。
+
+```javascript
+// $inc 将 quantity 字段的值减少2，并且使"metrics.orders"字段增加1
+db.products.updateOne(
+	{ sku: "abc123" }, 
+	{ $inc: { quantity: -2, "metrics.orders": 1 } }
+);
+```
+
+更新后文档：
+
+```javascript
+> db.products.find().pretty();
+{
+	"_id" : 1,
+	"sku" : "abc123",
+	"quantity" : 8,
+	"metrics" : {
+		"orders" : 3,
+		"ratings" : 3.5
+	}
+}
+```
+
+
+
+### 4.3. 属性: $min
+
+`$min`：如果指定值是**小于**该字段的当前值，则执行更新操作。
+
+- 如果该字段不存在，则`$min`操作员将该字段设置为指定值。
+- 对于不同类型的值之间的比较，例如数字和空值，`$min`使用[BSON 比较顺序](https://docs.mongodb.com/manual/reference/bson-type-comparison-order/#std-label-faq-dev-compare-order-for-BSON-types)。
+
+```javascript
+// 语法
+{ $min: { <field1>: <value1>, ... } }
+```
+
+#### 4.3.1. $min比较数字
+
+```javascript
+// scores 集合有如下文档
+{ _id: 1, highScore: 800, lowScore: 200 }
+```
+
+`scores` 集合中 `lowScore` 的值是200， `$min` 操作指定的 `lowScore` 值为150小于200。因此会发生更新操作。
+
+```javascript
+db.scores.updateOne({ _id: 1 }, { $min: { lowScore: 150 } });
+```
+
+操作结果如下：
+
+```javascript
+> db.scores.find().pretty();
+{ "_id" : 1, "highScore" : 600, "lowScore" : 150 }
+```
+
+#### 4.3.2. $min比较日期
+
+```javascript
+// tags集合有如下文档
+db.tags.insertOne({
+    _id: 1,
+    desc: "crafts",
+    dateEntered: ISODate("2013-10-01T05:00:00Z"),
+    dateExpired: ISODate("2013-10-01T16:38:16Z")
+});
+```
+
+`$min`操作符中指定的 `dateEntered` 值为 `new Date("2013-09-25")`，小于 `"2013-10-01T05:00:00Z"`，则会发生更新操作。
+
+```javascript
+db.tags.updateOne(
+	{ _id: 1 }, 
+	{ $min: { dateExpired: new Date("2013-9-25") } }
+);
+```
+
+文档更新结果：
+
+```javascript
+> db.tags.find().pretty();
+{
+	"_id" : 1,
+	"desc" : "crafts",
+	"dateEntered" : ISODate("2013-10-01T05:00:00Z"),
+	"dateExpired" : ISODate("2013-09-25T00:00:00Z")
+}
+```
+
+
+
+### 4.4. 属性: $max
+
+`$max`：如果指定值是**大于**该字段的当前值，则执行更新操作。
+
+参考 $min。
+
+### 4.5. 属性: $mul
+
+`$mul`：将字段的值乘以一个数字。
+
+```javascript
+// 语法
+{ $mul: { <field1>: <number1>, ... } }
+```
+
+注意：
+
+- 更新的目标字段的值必须是数字类型（要更新的字段必须包含一个数值。）。
+- 如果该字段在文档中不存在，则`$mul`创建该字段并将值设置为零（与乘数相同的数据类型）。
+- `$mul`是单个文档中的原子操作。
+
+**混合类型相乘**：
+
+| 32-bit Integer | 64-bit Integer           | Float          |       |
+| :------------- | :----------------------- | :------------- | ----- |
+| 32-bit Integer | 32-bit or 64-bit Integer | 64-bit Integer | Float |
+| 64-bit Integer | 64-bit Integer           | 64-bit Integer | Float |
+| Float          | Float                    | Float          | Float |
+
+> 注意：
+>
+> - 如果两个 32 位整数的乘积超过 32 位整数的最大值，则结果为 64 位整数。
+> - 超过 64 位整数最大值的任何类型的整数运算都会产生错误。
+
+
+
+#### 4.5.1. 指定数乘以属性的值
+
+```javascript
+// products 集合中有如下文档
+db.products.insertOne(
+    { "_id": 1, "item": "ABC", "price": NumberDecimal("10.99"), "qty": 25 }
+);
+```
+
+`$mul`将 `price` 属性原有的值乘以 `1.25`。将 `qty` 原有的值乘以 `2`。
+
+```javascript
+db.products.updateOne(
+	{ _id: 1 }, 
+	{ $mul: { price: NumberDecimal("1.25"), qty: NumberInt(2) } }
+);
+```
+
+操作结果如下：
+
+```javascript
+> db.products.find().pretty();
+{
+	"_id" : 1,
+	"item" : "ABC",
+	"price" : NumberDecimal("13.7375"),
+	"qty" : 50
+}
+```
+
+
+
+#### 4.5.2. 操作不存在的属性
+
+```javascript
+// products 集合中有如下文档
+db.products.insertOne({ _id: 2, item: "Unknown" });
+```
+
+`$mul` 操作的是不存在的属性：
+
+```javascript
+db.products.updateOne({ _id: 2 }, { $mul: { price: NumberDecimal("1.25") } });
+```
+
+该操作结果：
+
+```javascript
+// price属性不存在，就会得到0。
+{ "_id" : 2, "item" : "Unknown", "price" : NumberDecimal("0.00") }
+```
+
+
+
+#### 4.5.3. 混合相乘
+
+```javascript
+// products 集合中有如下文档
+db.products.insertOne({ _id: 3, item: "XYZ", price: NumberLong(10) });
+```
+
+`price`属性的值是 `NumberLong(10)`，乘的数是 `NumberInt(2)`。
+
+```javascript
+db.products.updateOne({ _id: 3 }, { $mul: { price: NumberInt(2) } });
+```
+
+该操作结果为：
+
+```javascript
+{ "_id" : 3, "item" : "XYZ", "price" : NumberLong(20) }
+```
+
+
+
+### 4.6. 属性: $rename
+
+`rename`：更新字段的名字。
+
+```javascript
+// 语法
+{$rename: { <field1>: <newName1>, <field2>: <newName2>, ... } }
+```
+
+注意：
+
+- 新字段名称必须与现有字段名称不同。
+- 操作可能不会保留文档中字段的顺序；即重命名的字段可以在文档内移动。
+- 如果要重命名的字段在文档中不存在，`$rename`则不执行任何操作（即不执行任何操作）。
+- 对于嵌入文档的字段，`$rename` 可以重命名这些字段并将其移出和移入嵌入文档。
+- 如果要重命名的字段是数组的元素，则 `$renmae` 不起作用。
+
+```javascript
+// students 集合包含如下文档
+db.students.insertMany([
+	{
+        "_id": 1,
+        "alias": ["The American Cincinnatus", "The American Fabius"],
+        "mobile": "555-555-5555",
+        "nmae": { "first": "george", "last": "washington" }
+    },
+    {
+        "_id": 2,
+        "alias": ["My dearest friend"],
+        "mobile": "222-222-2222",
+        "nmae": { "first": "abigail", "last": "adams" }
+    },
+    {
+        "_id": 3,
+        "alias": ["Amazing grace"],
+        "mobile": "111-111-1111",
+        "nmae": { "first": "grace", "last": "hopper" }
+    }
+]);
+```
+
+
+
+#### 4.6.1. 重命名属性
+
+`$rename`会将文档中所有的 `nmae` 修改为 `name`。
+
+```javascript
+db.students.updateMany({}, { $rename: { nmae: "name" } });
+```
+
+
+
+#### 4.6.2. 重命名嵌入文档的属性
+
+`$rename`会将文档中所有的 `name.first` 修改为 `name.fname`。
+
+```javascript
+db.students.updateMany({}, { $rename: { "name.first": "name.fname" } });
+```
+
+
+
+#### 4.6.3. 重命名不存在的属性
+
+`$rename` 重命名不存在的属性不会发生任何更改。
+
+```javascript
+> db.students.updateMany({ _id: 1 }, { $rename: { wife: "Marry" } });
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 0 }
+```
+
+
+
+### 4.7. 属性: $set
+
+`$set`: 用指定的值来替换当前值。
+
+```javascript
+// 语法
+{ $set: { <field1>: <value1>, ... } }
+```
+
+注意：
+
+- 如果字段不存在，`$set`将添加具有指定值的新字段，前提是新字段不违反类型约束。
+- 如果指定多个字段，`$set`将更新或创建每个字段。
+
+```javascript
+// products 集合有如下文档
+db.products.insertOne({
+  _id: 100,
+  sku: "abc123",
+  quantity: 250,
+  instock: true,
+  reorder: false,
+  details: { model: "14Q2", make: "xyz" },
+  tags: [ "apparel", "clothing" ],
+  ratings: [ { by: "ijk", rating: 4 } ]
+});
+```
+
+#### 4.7.1. 设置Top-Level属性
+
+`$set` 更新了 `quantity、details、tags` 这三个顶层的属性。
+
+```javascript
+db.products.updateOne({ _id: 100 }, {
+    $set: {
+        quantity: 500,
+        details: { model: "14Q3", make: "xyz" },
+        tags: ["coats", "outerwear", "clothing"]
+    }
+});
+```
+
+该操作结果如下：
+
+```javascript
+> db.products.find().pretty();
+{
+	"_id" : 100,
+	"sku" : "abc123",
+	"quantity" : 500,
+	"instock" : true,
+	"reorder" : false,
+	"details" : { "model" : "14Q3", "make" : "xyz" },
+	"tags" : [ "coats", "outerwear", "clothing" ],
+	"ratings" : [ { "by" : "ijk", "rating" : 4 } ]
+}
+```
+
+
+
+#### 4.7.2. 嵌入式文档设置属性
+
+在嵌入式的文档或者数组中指定一个 `field`，使用点表达式。
+
+```javascript
+db.products.updateOne({ _id: 100 }, { $set: { "details.make": "zzz" } });
+```
+
+
+
+#### 4.7.3.数组中设置元素
+
+在嵌入式的文档或者数组中指定一个 `field`，使用点表达式。
+
+`$set` 设置 `tags` 数组中的第二个元素。设置`ratings`数组中第一个元素（是文档）的属性。
+
+```javascript
+db.products.updateOne(
+    { _id: 100 }, 
+    { $set: { "tags.1": "kkkk", "ratings.0.rating": NumberInt(8) } }
+);
+```
+
+
+
+### 4.8. 属性: $unset
+
+`$unset`：删除文档中指定的字段。
+
+```javascript
+// 语法
+{ $unset: { <field1>: "", ... } }
+```
+
+- 如果该字段不存在，则 `$unset` 什么都不做。
+- 当用于 `$` 匹配数组元素时，`$unset` 将匹配元素替换为`null`而不是从数组中删除匹配元素。
+
+```javascript
+// products 集合中有如下文档
+db.products.insertOne({
     _id: 100,
     sku: "abc123",
     quantity: 250,
     instock: true,
     reorder: false,
     details: { model: "14Q2", make: "xyz" },
-    tags: [ "apparel", "clothing" ],
-    ratings: [ { by: "ijk", rating: 4 } ]
-  });
-  
-  // 1: 设置字段
-  // 查找到 _id: 100的文档，更新quantity、details、tags字段的值
-  db.products.updateOne({ _id: 100 }, {
-      $set: {
-          quantity: 500,
-          details: { model: "143Q3", make: "xyz" },
-          tags: ["coats", "outerwear", "clothing"]
-      }
-  });
-  
-  // 2：在嵌入文档中设置字段
-  // 要<field>在嵌入文档或数组中指定 a ，使用 "点表示法"
-  db.products.updateOne({ _id: 100 }, {
-      $set: {
-          // key需要加引号
-          "details.make": "ymy"
-      }
-  });
-  
-  // 3: 在数组中设置元素
-  // 要<field>在嵌入文档或数组中指定 a ，使用 "点表示法"
-  db.products.updateOne({ _id: 100 }, {
-      $set: {
-          "tags.0": "haha",
-          "ratings.0.by": "jk"
-      }
-  });
-  ```
+    tags: ["apparel", "clothing"],
+    ratings: [{ by: "ijk", rating: 4 }]
+});
+```
 
-- `$unset`：删除文档中指定的字段。
 
-  - 如果该字段不存在，则 `$unset` 什么都不做。
-  - 当用于 `$` 匹配数组元素时，`$unset` 将匹配元素替换为`null`而不是从数组中删除匹配元素。
 
-  ```javascript
-  // 语法
-  { $unset: { <field1>: "", ... } }
-  
-  // 删除 _id:1 的文档中的item字段
-  db.products.updateOne({ _id: 1 }, {
-  	$unset: {
-  		item: ""
-  	}
-  });
-  ```
+#### 4.8.1. 移除指定属性
 
-- `$setOnInsert`：如果带有 `unsert: true`的更新操作，导致插入文档，则可以使用该操作符指定的值分配给文档中的字段。
+`$unset` 移除了 `quantity、instock`属性。
 
-  - 如果更新操作未导致插入，`$setOnInsert`不做任何操作。
-  - `db.collection.update()、db.collection.findAndModify`方法可以指定`upsert`属性。
+```javascript
+> db.products.updateOne({ _id: 100 }, { $unset: { quantity: "", instock: "" } });
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+```
 
-  ```js
-  // 语法
-  db.collection.update(
-     <query>,
-     { $setOnInsert: { <field1>: <value1>, ... } },
-     { upsert: true }
-  )
-  
-  // 测试用例
-  db.products.insertOne({ 
-      _id: 2, item: "ABC", 
-      price: NumberDecimal("10.99"),
-       qty: 25 
-  });
-  
-  // 名为的集合products不包含文档。
-  // 然后，db.collection.update()使用upsert: true插入一个新文档。
-  db.products.update({ _id: 2 }, {
-      $set: { item: "C" },
-      $setOnInsert: { defaultQty: NumberInt(100) }
-  }, { upsert: true });
-  ```
+`$unset`移除了数组中指定的属性。
 
-#### 4.1.2. 修饰符
+```javascript
+> db.products.updateOne(
+    { _id: 100 }, 
+    { $unset: { "tags.0": "", "ratings.0.by": "" } }
+);
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+```
 
-修饰符：
+#### 4.8.2. $unset和$连用(反例)
 
-- `$each`：修饰 `push`和`$addToSet`将多个值附加到数组字段。
-- `$slice`：修饰`$push`。限数组元素的数量。需要使用`$each`修饰符。
-- `$sort`：修饰`$push`。对数组的元素进行排序。需要使用`$each`修饰符。
-- `$position`：修饰`$push`。指定数组中插入新元素的位置。需要使用`$each`修饰符。。如果没有`$position`修饰符，则插入到数组的末尾。
+查询`_id:100` 并且 `tags` 数组中包含 `apparel` 的文档，`$` 会拿到数组的下标。
 
-#### 4.1.3. 数组
+```javascript
+db.products.updateOne(
+	{ _id: 100, tags: "apparel" }, 	
+	{ $unset: {"tags.$": ""} }
+);
+```
 
-- `$`： 充当占位符以更新与查询条件匹配的**第一个元素**。
+该操作会结果如下：
 
-  ```js
-  // 测试用例
-  db.students.insertMany([
-     { "_id" : 1, "grades" : [ 85, 80, 80 ] },
-     { "_id" : 2, "grades" : [ 88, 90, 92 ] },
-     { "_id" : 3, "grades" : [ 85, 100, 90 ] }
-  ]);
-  
-  // ===========================================================================
-  // 1: 更新数组中的值
-  // 要更新数组中第一个值为80的元素，但是不知道数组下标是多少，可以用$占位。
-  // 注意：You must include the array field as part of the query document.
-  db.students.updateOne(
-     { _id: 1, grades: 80 },
-     { $set: { "grades.$" : 82 } }
-  );
-  
-  // 输出结果
-  { "_id" : 1, "grades" : [ 85, 82, 80 ] }
-  { "_id" : 2, "grades" : [ 88, 90, 92 ] }
-  { "_id" : 3, "grades" : [ 85, 100, 90 ] }
-  
-  // ===========================================================================
-  // 2: 更新数组中的文档
-  // 语法
-  db.collection.update(
-     { <query selector> },
-     { <update operator>: { "array.$.field" : value } }
-  );
-  
-  // 测试用例
-  db.students.insertOne({
-      _id: 4,
-      grades: [
-          { grade: 80, mean: 75, std: 8 },
-          { grade: 85, mean: 90, std: 5 },
-          { grade: 85, mean: 85, std: 8 }
-      ]
-  });
-  
-  // 虽然是updateMany但是也只改一条记录
-  db.students.updateMany({ _id: 4, "grades.grade": { $gt: 80 } }, {
-      $set: { "grades.$.grade": 81 }
-  });
-  
-  // 结果, 只有匹配的第一条记录被修改了！
-  { 
-      "_id" : 4, 
-      "grades" : [ 
-       	{ "grade" : 80, "mean" : 75, "std" : 8 }, 
-          { "grade" : 81, "mean" : 90, "std" : 5 },
-          { "grade" : 85, "mean" : 85, "std" : 8 }
-      ] 
-  }
-  
-  // ===========================================================================
-  // 3：数组中的对象多个字段匹配更新嵌入的文档
-  // 测试用例
-  db.students.insertOne({
-      _id: 5,
-      grades: [
-          { grade: 80, mean: 75, std: 8 },
-          { grade: 85, mean: 90, std: 5 },
-          { grade: 85, mean: 85, std: 8 }
-      ]
-  });
-  
-  // 更新文档
-  db.students.updateOne({
-      _id: 5,
-      grades: { $elemMatch: { grade: { $gt: 80 }, mean: { $lt: 90 } } }
-  }, { $set: { "grades.$.std": 6 } });
-  
-  // 结果
-  { 
-      "_id" : 5, 
-      "grades" : [ 
-          { "grade" : 80, "mean" : 75, "std" : 8 }, 
-          { "grade" : 85, "mean" : 90, "std" : 5 }, 
-          { "grade" : 85, "mean" : 85, "std" : 6 } 	// 这里被更新了
-      ] 
-  }
-  ```
+```javascript
+"tags" : [
+    null,			// 这里变成了 null
+    "clothing"
+],
+```
 
-- `$[]`: 充当占位符以更新与查询条件匹配的**所有元素**。
 
-  ```javascript
-  // 测试用例
-  db.students.insertMany([
-      { "_id": 1, "grades": [85, 82, 80] },
-      { "_id": 2, "grades": [88, 90, 92] },
-      { "_id": 3, "grades": [85, 100, 90] }
-  ]);
-  
-  // 1：更新数组中的所有元素
-  // grades数组中的所有元素都 +10
-  db.students.updateMany({}, { $inc: { "grades.$[]": 10 } });
-  
-  // 2: 更新数组中的所有文档
-  
-  // 语法：
-  db.collection.update(
-     { <query selector> },
-     { <update operator>: { "array.$[].field" : value } }
-  );
-  
-  // 测试用例
-  db.students.insertMany([{
-          "_id": 1,
-          "grades": [
-              { "grade": 80, "mean": 75, "std": 8 },
-              { "grade": 85, "mean": 90, "std": 6 },
-              { "grade": 85, "mean": 85, "std": 8 }
-          ]
+
+
+
+
+
+### 4.9. 属性: $setOnInsert（配合upsert）
+
+`$setOnInsert`： 如果更新导致插入文档，则设置字段的值。对修改现有文档的更新操作没有影响。
+
+注意：
+
+- 如果带有 `unsert: true`的更新操作，导致插入文档，则可以使用该操作符指定的值分配给文档中的字段。
+
+- 如果更新操作未导致插入，`$setOnInsert`不做任何操作。
+- `db.collection.update()、db.collection.findAndModify`方法可以指定`upsert`操作。
+
+```javascript
+// 语法
+db.collection.update(
+   <query>,
+   { $setOnInsert: { <field1>: <value1>, ... } },
+   { upsert: true }
+)
+```
+
+
+
+```js
+
+// 测试用例
+db.products.insertOne({ 
+    _id: 2, item: "ABC", 
+    price: NumberDecimal("10.99"),
+     qty: 25 
+});
+
+// 名为的集合products包含文档。
+// _id:2的文档已经存在了，所以 $setOnInsert 不会插入 defaultQty 属性。
+db.products.update(
+    { _id: 2 }, 
+    {
+        $set: { abc: "C" },
+        $setOnInsert: { defaultQty: NumberInt(100) }
+    }, 
+	{ upsert: true }
+);
+
+// _id:3的文档不存在了，所以 $setOnInsert 会插入 defaultQty 属性。
+db.products.update(
+    { _id: 3 }, 
+    {
+        $set: { abc: "C" },
+        $setOnInsert: { defaultQty: NumberInt(100) }
+    }, 
+	{ upsert: true }
+);
+```
+
+### 4.10. 数组: $（占位符）
+
+`$`： 充当占位符以更新与查询数组中元素条件匹配的**第一个元素**。
+
+使用 `$` 来更新数组不需要指定数组具体的下标。
+
+```javascript
+// 语法
+{ "<array>.$" : value }
+
+db.collection.update(
+   { <array>: value ... },
+   { <update operator>: { "<array>.$" : value } }
+)
+```
+
+注意：
+
+- `db.collection.update()、db.collection.findAndModify()`  可以和 `$` 一起使用。
+- 不要在 `unsert` 操作中使用 `$`，因为插入操作将使用 `$`  作为插入文档中的字段名称。
+- `$` 不能用于遍历多个数组的查询。例如遍历嵌套在其他数组中的数组的查询，因为 `$` 占位符替换的是单个值。
+- `$unset` 和 `$` 不可以连用，`$` 并不会移除数组中的元素，而是将其设置为 `null`。
+- 如果查询使用否定运算符（例如`$ne、$not、$nin`），则不能使用 `$` 更新数组中的值。但是如果查询的否定部分在 `elemMath` 表达式以内，则可以使用 `$`。
+
+#### 4.10.1. 更新数组中的值
+
+```javascript
+// students 集合有如下文档
+db.students.insertMany([
+    { "_id": 1, "grades": [85, 80, 80] },
+    { "_id": 2, "grades": [88, 90, 92] },
+    { "_id": 3, "grades": [85, 100, 90] }
+]);
+```
+
+在 `grades` 数组中更新第一个值为80的元素，将其更新为82。如果不知道数组中元素的具体下标，可以使用 `$` 操作符。
+
+> 注意：必须包含数组字段作为为 `<query document>` 的一部分。
+
+```javascript
+db.students.updateOne(
+    { _id: 1, grades: 80 }, 	 // grades数组字段作为查询文档的一部分
+    { $set: { "grades.$": 82 } }
+);
+```
+
+该操作结果如下：
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "grades" : [ 85, 82, 80 ] }
+{ "_id" : 2, "grades" : [ 88, 90, 92 ] }
+{ "_id" : 3, "grades" : [ 85, 100, 90 ] }
+```
+
+
+
+#### 4.10.2. 多值匹配更新嵌入文档
+
+使用 `$elemMath` 来指定多个查询条件匹配的第一个数组元素，可以使用`$` 更新。
+
+> 注意：必须包含数组字段作为为 `<query document>` 的一部分。
+
+```javascript
+// students 集合有如下文档
+db.students.insertOne({
+    _id: 5,
+    grades: [
+        { grade: 80, mean: 75, std: 8 },
+        { grade: 85, mean: 90, std: 5 },
+        { grade: 90, mean: 85, std: 3 }
+    ]
+});
+```
+
+`$elemMatch`：只要数组中有一个元素符合条件就会查到该条文档。
+
+`grades` 数组中有两个元素都匹配，但是只更新第一个匹配的。
+
+```javascript
+db.students.updateOne(
+	{ 
+        _id: 5, 
+        grades: { $elemMatch: { grade: { $lte: 90 }, mean: { $gt: 80 } } } 	   }, 
+	{ $set: { "grades.$.std": 8848 } }
+);
+```
+
+该操作的结果如下：
+
+```javascript
+> db.students.find().pretty();
+{
+	"_id" : 5,
+	"grades" : [
+		{
+			"grade" : 80,
+			"mean" : 75,
+			"std" : 8
+		},
+		{
+			"grade" : 85,
+			"mean" : 90,
+			"std" : 8848
+		},
+		{
+			"grade" : 90,
+			"mean" : 85,
+			"std" : 3
+		}
+	]
+}
+
+```
+
+
+
+### 4.11. 数组: $[]（占位符）
+
+`$[]`:  更新修改指定数组属性的所有元素。
+
+#### 4.11.1. 更新数组中的所有元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertMany([
+    { "_id": 1, "grades": [85, 82, 80] },
+    { "_id": 2, "grades": [88, 90, 92] },
+    { "_id": 3, "grades": [85, 100, 90] }
+]);
+```
+
+更新集合所有文档中数组中的全部元素：
+
+```javascript
+db.students.updateMany({}, { $inc: { "grades.$[]": 10 } });
+```
+
+操作结果如下：
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "grades" : [ 95, 92, 90 ] }
+{ "_id" : 2, "grades" : [ 98, 100, 102 ] }
+{ "_id" : 3, "grades" : [ 95, 110, 100 ] }
+```
+
+#### 4.11.2. 更新数组中的所有文档
+
+```javascript
+// 集合 students2 中有如下文档
+db.students2.insertMany([
+	{
+	    "_id": 1,
+	    "grades": [
+	        { "grade": 80, "mean": 75, "std": 8 },
+	        { "grade": 85, "mean": 90, "std": 6 },
+	        { "grade": 85, "mean": 85, "std": 8 }
+	    ]
+	}, 
+	{
+	    "_id": 2,
+	    "grades": [
+	        { "grade": 90, "mean": 75, "std": 8 },
+	        { "grade": 87, "mean": 90, "std": 5 },
+	        { "grade": 85, "mean": 85, "std": 6 }
+	    ]
+	}
+]);
+```
+
+更新 `grades` 数组中 `std` 字段。
+
+```javascript
+> db.students2.updateMany({}, { $inc: { "grades.$[].std": 10 } });
+{ "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+```
+
+#### 4.11.3.  否定运算符更新数组
+
+```javascript
+// result 集合中有如下文档
+db.result.insertMany([
+	{ "_id": 1, "grades": [85, 82, 80] }, 
+	{ "_id": 2, "grades": [88, 90, 92] }, 
+	{ "_id": 3, "grades": [85, 100, 90] }
+]);
+```
+
+除了 `grades` 中包含100的文档，`grades` 数组的所有元素都加10；
+
+```javascript
+db.result.update(
+	{ "grades": { $ne: 100 } }, 
+	{ $inc: { "grades.$[]": 10 } },
+	{ multi: true }
+);
+```
+
+该操作的结果：
+
+```javascript
+> db.result.find().pretty();
+{ "_id" : 1, "grades" : [ 95, 92, 90 ] }
+{ "_id" : 2, "grades" : [ 98, 100, 102 ] }
+{ "_id" : 3, "grades" : [ 85, 100, 90 ] }
+```
+
+#### 4.11.4. 结合$[identifier]更新嵌套数组
+
+```javascript
+// students3 集合中有如下文档
+db.students3.insertOne({
+    "_id": 1,
+    "grades": [
+        { type: "quiz", questions: [10, 8, 5] },
+        { type: "quiz", questions: [8, 9, 6] },
+        { type: "hw", questions: [5, 4, 3] },
+        { type: "exam", questions: [25, 10, 23, 0] },
+    ]
+});
+```
+
+将`questions`数组中所有大于8的元素加2。
+
+```javascript
+db.students3.updateMany(
+	{},  // 这一步其实就是来查询文档的
+	{ $inc: { "grades.$[].questions.$[score]": 2 } },
+	{ arrayFilters: [{ "score": { $gt: 8 } }] } // 过滤数组元素的
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{
+    "_id" : 1, 
+    "grades" : [ 
+        { "type" : "quiz", "questions" : [ 12, 8, 5 ] }, 
+        { "type" : "quiz", "questions" : [ 8, 11, 6 ] }, 
+        { "type" : "hw", "questions" : [ 5, 4, 3 ] }, 
+        { "type" : "exam", "questions" : [ 27, 12, 25, 0 ] } 
+    ] 
+}
+```
+
+
+
+### 4.12. 数组: $[identifier]（占位符）
+
+`$[identifier]`：充当占位符更新所有的元素。其中要更新的文档要匹配查询条件。待更新的数组元素要匹配 `arrayFilters` 的条件。
+
+```javascript
+// 语法
+db.collection.updateMany(
+   { <query conditions> },
+   { <update operator>: { "<array>.$[<identifier>]" : value } },
+   { arrayFilters: [ { <identifier>: <condition> } ] }
+)
+```
+
+> 注意：在`<identifier>` 必须以小写字母开头，并且只包含字母数字字符。
+
+
+
+#### 4.12.1. upsert和$[identifier]连用
+
+如果`upsert`操作导致了插入，`query`查询文档必须包含数组字段的精确匹配（equality match），以便于 `<identifier>` 在更新语句中使用。
+
+例如，`$[]` 更新文档中使用的以下 upsert 操作在数组字段上指定了完全相等匹配条件：
+
+```javascript
+db.collection.update(
+   { myArray: [ 0, 1 ] },			// 等值查询
+   { $set: { "myArray.$[element]": 2 } },
+   { arrayFilters: [ { element: 0 } ],
+     upsert: true }
+)
+```
+
+如果不存在这样的文档，则该操作将导致插入类似于以下内容的文档：
+
+```javascript
+{ "_id" : ObjectId(...), "myArray" : [ 2, 1 ] }
+```
+
+如果 upsert 操作不包括完全相等的匹配并且没有找到要更新的匹配文档，则 upsert 操作会出错。例如，如果没有找到要更新的匹配文档，则以下操作将出错：
+
+```javascript
+db.array.update(
+   { },
+   { $set: { "myArray.$[element]": 10 } },
+   { arrayFilters: [ { element: 9 } ],
+     upsert: true }
+)
+```
+
+该操作将返回类似于以下内容的错误：
+
+```javascript
+WriteResult({
+   "nMatched" : 0,
+   "nUpserted" : 0,
+   "nModified" : 0,
+   "writeError" : {
+      "code" : 2,
+      "errmsg" : "The path 'myArray' must exist in the document in order to apply array updates."
+   }
+})
+```
+
+#### 4.12.2. 更新匹配arrayFilters的所有元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertMany([
+    { "_id": 1, "grades": [95, 92, 90] },
+    { "_id": 2, "grades": [98, 100, 102] },
+    { "_id": 3, "grades": [95, 110, 100] }
+]);
+```
+
+更新`grades`数组中大于等于100的元素。
+
+```javascript
+db.students.update(
+    { }, 
+    { $inc: { "grades.$[score]": 10 } }, 
+    {
+        arrayFilters: [{ "score": { $gte: 100 } }],
+        multi: true
+    }
+);
+```
+
+该操作的结果如下所示：
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "grades" : [ 95, 92, 90 ] }
+{ "_id" : 2, "grades" : [ 98, 110, 112 ] }
+{ "_id" : 3, "grades" : [ 95, 120, 110 ] }
+```
+
+#### 4.12.3. 更新在数组中匹配arrayFilters的所有文档
+
+```javascript
+// 语法
+db.collection.update(
+   { <query selector> },
+   { <update operator>: { "array.$[<identifier>].field" : value } }, 
+   { arrayFilters: [ { <identifier>: <condition> } } ] }
+)
+```
+
+`$[<identifierr>] `访问嵌入式的文档用点表示法
+
+```javascript
+// students2包含以下集合
+db.students2.insertMany([
+    {
+        "_id": 1,
+        "grades": [
+            { "grade": 80, "mean": 75, "std": 6 },
+            { "grade": 85, "mean": 90, "std": 4 },
+            { "grade": 85, "mean": 85, "std": 6 }
+        ]
+    },
+    {
+        "_id": 2,
+        "grades": [
+            { "grade": 90, "mean": 75, "std": 6 },
+            { "grade": 87, "mean": 90, "std": 3 },
+            { "grade": 85, "mean": 85, "std": 4 }
+        ]
+    }
+]);
+```
+
+修改`grades`数组中的`mean`属性。数组过滤条件是 `grade` 属性大于等于85。
+
+数组过滤之后，如果对象中的 `mean` 比 80小就执行更新操作。 
+
+```javascript
+db.students2.updateMany(
+    { }, 
+    { $max: { "grades.$[item].mean": 80 } },
+    { arrayFilters: [ { "item.grade": { $gte: 85 } } ] }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+> db.students2.find();
+{ 
+    "_id" : 1, 
+    "grades" : [ 
+        { "grade" : 80, "mean" : 75, "std" : 6 }, 
+        { "grade" : 85, "mean" : 90, "std" : 4 }, 
+        { "grade" : 85, "mean" : 85, "std" : 6 } 
+    ] 
+}
+{ 
+    "_id" : 2, 
+    "grades" : [ 
+        { "grade" : 90, "mean" : 80, "std" : 6 }, // 只更新了这个字段
+        { "grade" : 87, "mean" : 90, "std" : 3 }, 
+        { "grade" : 85, "mean" : 85, "std" : 4 } 
+    ] 
+}
+
+```
+
+#### 4.12.4. 多条件匹配更新数组元素
+
+```javascript
+// students2 集合中有如下文档
+db.students2.insertMany([
+    {
+        "_id": 1,
+        "grades": [
+            { "grade": 80, "mean": 75, "std": 6 },
+            { "grade": 85, "mean": 100, "std": 4 },
+            { "grade": 85, "mean": 100, "std": 6 }
+        ]
+    },
+    {
+        "_id": 2,
+        "grades": [
+            { "grade": 90, "mean": 100, "std": 6 },
+            { "grade": 87, "mean": 100, "std": 3 },
+            { "grade": 85, "mean": 100, "std": 4 }
+        ]
+    }
+]);
+```
+
+`grades`数组的 `std` 需要减一。数组过滤条件 `grade` 属性大于等于80，`std` 属性大于5。
+
+```javascript
+db.students2.update(
+    { }, 
+    { $inc: { "grades.$[elem].std": -1 } }, 
+    {
+        arrayFilters: [{ "elem.grade": { $gte: 80 }, "elem.std": { $gt: 5 } }],
+        multi: true
+    }
+);
+```
+
+以上操作的结果：
+
+```javascript
+{  "_id" : 1,
+   "grades" : [
+      { "grade" : 80, "mean" : 75, "std" : 5 },
+      { "grade" : 85, "mean" : 100, "std" : 4 },
+      { "grade" : 85, "mean" : 100, "std" : 5 }
+   ]
+}
+{
+   "_id" : 2,
+   "grades" : [
+      { "grade" : 90, "mean" : 100, "std" : 5 },
+      { "grade" : 87, "mean" : 100, "std" : 3 },
+      { "grade" : 85, "mean" : 100, "std" : 4 }
+   ]
+}
+```
+
+
+
+#### 4.12.5. 否定操作符更新所有数组元素
+
+```javascript
+// alumni 集合有如下文档
+db.alumni.insertMany([
+    {
+        "_id": 1,
+        "name": "Christine Franklin",
+        "degrees": [
+            {
+                "level": "Master",
+                "major": "Biology",
+                "completion_year": 2010,
+                "faculty": "Science"
+            },
+            {
+                "level": "Bachelor",
+                "major": "Biology",
+                "completion_year": 2008,
+                "faculty": "Science"
+            }
+        ],
+        "school_email": "cfranklin@example.edu",
+        "email": "christine@example.com"
+    },
+    {
+        "_id": 2,
+        "name": "Reyansh Sengupta",
+        "degrees": [{
+            "level": "Bachelor",
+            "major": "Chemical Engineering",
+            "completion_year": 2002,
+            "faculty": "Engineering"
+        }],
+        "school_email": "rsengupta2@example.edu"
+    }
+]);
+```
+
+更新所有的文档。`degrees` 中 `level` 属性值不是 `Bachelor` 的再添加一个新属性。
+
+```javascript
+db.alumni.updateMany(
+    { }, 
+    { $set: { "degrees.$[degree].gradcampaign": 1 } },
+    { arrayFilters: [{ "degree.level": { $ne: "Bachelor" } }] }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{
+   "_id" : 1,
+   "name" : "Christine Franklin",
+   "degrees" : [
+      {
+         "level" : "Master",
+         "major" : "Biology",
+         "completion_year" : 2010,
+         "faculty" : "Science",
+         "gradcampaign" : 1
       },
       {
-          "_id": 2,
-          "grades": [
-              { "grade": 90, "mean": 75, "std": 8 },
-              { "grade": 87, "mean": 90, "std": 5 },
-              { "grade": 85, "mean": 85, "std": 6 }
-          ]
+         "level" : "Bachelor",
+         "major" : "Biology",
+         "completion_year" : 2008,
+         "faculty" : "Science"
       }
-  ]);
-  ```
-
-- `$addToSet`：仅当集合中尚不存在元素时，才将元素添加到数组中。
-
-  - 如果使用`$addToSet`文档中不存在的字段进行更新，则`$addToSet`具有指定值的数组字段作为其元素。
-
-  - `$addToset`在不是数组的字段上使用，操作失败。
-
-  - 如果值是一个数组，`$addToSet`则将整个数组作为*单个*元素附加。
-
-    ```java
-    // 测试文档 test
-    { _id: 1, letters: ["a", "b"] }
-    
-    db.test.update(
-       { _id: 1 },
-       { $addToSet: { letters: [ "c", "d" ] } }
-    )
-        
-    //   [ "c", "d" ] 作为一个整体添加到数组中   
-    { _id: 1, letters: [ "a", "b", [ "c", "d" ] ] }    
-    ```
-
-  - **要添加的值是一个文档**
-
-    ```java
-    // 测试文档 inventory
-    { _id: 1, item: "polarizing_filter", tags: [ "electronics", "camera" ] }
-    
-    // 添加成功
-    db.inventory.update(
-       { _id: 1 },
-       { $addToSet: { tags: "accessories" } }
-    )
-    
-    // 操作无效 因为 "camera"它已经是tags数组的一个元素：
-    db.inventory.update(
-       { _id: 1 },
-       { $addToSet: { tags: "camera"  } }
-    )
-    ```
-
-  - `$each`修饰符
-
-    ```java
-    // inventory文档
-    { _id: 2, item: "cable", tags: [ "electronics", "supplies" ] }
-    
-    // 更新文档
-    // 该操作仅将"camera"和添加"accessories"到 tags数组中，因为数组中"electronics"已存在：
-    db.inventory.update(
-       { _id: 2 },
-       { $addToSet: { tags: { $each: [ "camera", "electronics", "accessories" ] } } }
-    )
-    ```
-
-- `$push`：添加元素到数组。
-
-  - 如果要更新的文档中不存在该字段，则`$push`添加具有该值的数组字段作为其元素。
-  - 如果该字段**不是**数组，则操作将失败。
-
-  ```java
-  // 语法
-  { $push: { <field1>: <value1>, ... } }
-  
-  // 含有修饰符的语法
-  { $push: { <field1>: { <modifier1>: <value1>, ... }, ... } }
-  
-  // 1: 添加89到scores数组：
-  db.students.update(
-     { _id: 1 },
-     { $push: { scores: 89 } }
-  )
-      
-  // 2: 将多个值附加到数组
-  // $push与$each修饰符一起使用可将多个值附加到数组字段。
-  db.students.update(
-     { name: "joe" },
-     { $push: { scores: { $each: [ 90, 92, 85 ] } } }
-  )
-      
-      
-  // 3: 使用$push带有多个修饰符的运算符
-  // 集合students具有以下文档：
-  db.students.insertOne({
-      "_id": 5,
-      "quizzes": [
-          { "wk": 1, "score": 10 },
-          { "wk": 2, "score": 8 },
-          { "wk": 3, "score": 5 },
-          { "wk": 4, "score": 6 }
-      ]
-  });
-  
-  // 以下$push操作使用：
-  
-  // $each将多个文档添加到quizzes数组。
-  // $sort修饰将所有元素按照scor降序排序。
-  // $slice修饰符仅保留排好序的前3个。
-  db.students.update(
-      { _id: 5 },
+   ],
+   "school_email" : "cfranklin@example.edu",
+   "email" : "christine@example.com"
+}
+{
+   "_id" : 2,
+   "name" : "Reyansh Sengupta",
+   "degrees" : [
       {
-          $push: {
-              quizzes: {
-                  $each: [ { wk: 5, score: 8 }, { wk: 6, score: 7 }, { wk: 7, score: 6 } ],
-                  $sort: { score: -1 },
-                  $slice: 3
-              }
-          }
+         "level" : "Bachelor",
+         "major" : "Chemical Engineering",
+         "completion_year" : 2002,
+         "faculty" : "Engineering"
       }
-  )
-      
-  // 操作的结果是只保留三个最高分的测验： 
-  {
-    "_id" : 5,
-    "quizzes" : [
-       { "wk" : 1, "score" : 10 },
-       { "wk" : 2, "score" : 8 },
-       { "wk" : 5, "score" : 8 }
+   ],
+   "school_email" : "rsengupta2@example.edu"
+}
+```
+
+#### 4.12.6. 配合$[]更新嵌套数组
+
+```javascript
+// students3 有如下文档
+db.students3.insertOne(
+    {
+        "_id": 1,
+        "grades": [
+            { type: "quiz", questions: [10, 8, 5] },
+            { type: "quiz", questions: [8, 9, 6] },
+            { type: "hw", questions: [5, 4, 3] },
+            { type: "exam", questions: [25, 10, 23, 0] },
+        ]
+    }
+);
+```
+
+`grades`数组元素命名为 `grade`。
+
+`questions` 数组元素命名为 `question`。
+
+```javascript
+db.students3.updateMany(
+    { }, 
+    { $inc: { "grades.$[grade].questions.$[question]": 2 } }, 
+    { arrayFilters: [{ "grade.type": "quiz" }, { "question": { $gte: 8 } }] }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{
+   "_id" : 1,
+   "grades" : [
+      { "type" : "quiz", "questions" : [ 12, 10, 5 ] },
+      { "type" : "quiz", "questions" : [ 10, 11, 6 ] },
+      { "type" : "hw", "questions" : [ 5, 4, 3 ] },
+      { "type" : "exam", "questions" : [ 25, 10, 23, 0 ] }
+   ]
+}
+```
+
+---
+
+要更新嵌套 `grades.questions` 数组中大于或等于8的所有值（无论 `type` 如何），请执行以下操作：
+
+```javascript
+db.students3.update(
+   {},
+   { $inc: { "grades.$[].questions.$[score]": 2 } },
+   { arrayFilters: [  { "score": { $gte: 8 } } ], multi: true}
+)
+```
+
+
+
+### 4.13. 数组: $addToSet
+
+`$addToSet`：仅当集合中不存在该元素时，才将元素添加到数组中。如果该元素已经存在数组中，`$addToSet`不会发生任何影响。
+
+```javascript
+// 语法
+{ $addToSet: { <field1>: <value1>, ... } }
+```
+
+- `$addToset`只确保没有重复的元素添加到集合中, 并不影响现有的重复的存在的元素。`$addToSet`不能保证元素的特定顺序。
+
+- 如果使用`$addToSet`文档中不存在的字段进行更新，则`$addToSet`具有指定值的数组字段作为其元素。
+
+- `$addToset`在不是数组的字段上使用，操作失败。
+
+- 如果值是一个数组，`$addToSet`则将整个数组作为*单个*元素附加。
+
+
+#### 4.13.1. 属性不是数组
+
+如果`$addToSet` 操作的属性不是数组，该操作会失败。
+
+```javascript
+// 集合 foo 包含如下文档
+{ _id: 1, colors: "blue,green,red" }
+```
+
+`$addToSet`操作 `colors`字段：操作非数组字段就会出错！
+
+```javascript
+db.foo.update(
+   { _id: 1 },
+   { $addToSet: { colors: "c" } }
+);
+```
+
+#### 4.13.2. 添加的值是数组
+
+如果`$addToSet`的值是数组，那么会将整个数组作为一个元素追加到原数组上。
+
+```javascript
+// 集合 test 包含如下文档
+db.test.insertOne({ _id: 1, letters: ["a", "b"] });
+```
+
+下面操作，数组`["c", "d"]`追加到 `letters` 中。
+
+```javascript
+db.test.update(
+   { _id: 1 },
+   { $addToSet: { letters: [ "c", "d" ] } }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+> db.test.find().pretty();
+{ "_id" : 1, "letters" : [ "a", "b", [ "c", "d" ] ] }
+```
+
+> 注意：要单独添加数组中每个元素到原来的数组，使用 `$each` 修饰符配合 `$addToSet`使用。
+>
+> ```javascript
+> db.test.updateOne(
+>     { _id: 1 }, 
+>     { $addToSet: { letters: { $each: ["x", "y"] } } }
+> );
+> ```
+>
+> 这样数组["x", "y"]就不会作为整体追加了。
+
+
+
+#### 4.13.3. 添加的值是文档
+
+如果值是文档，则如果数组中存在的文档与要添加的文档完全匹配，则MongoDB确定该文档是重复的；即现有文档具有完全相同的字段和值，*并且*这些字段的顺序相同。
+
+因此，字段顺序很重要，您不能指定 MongoDB 仅比较文档中字段的子集以确定文档是否与现有数组元素重复。
+
+```javascript
+// inventory 集合有如下文档
+db.inventory.insertOne(
+    {
+        _id: 1,
+        item: "polarizing_filter",
+        tags: [{ k1: "v1", k2: "v2" }]
+    }
+);
+```
+
+（1）如果插入相同的文档（顺序相同），`$addToSet`不会对原数组有任何影响。
+
+```javascript
+db.inventory.updateOne(
+    { _id: 1 }, 
+    { $addToSet: { tags: { k1: "v1", k2: "v2" } } }
+);
+```
+
+（2）如果插入相同的文档（顺序不同），`$addToSet`会执行插入操作。
+
+```javascript
+db.inventory.updateOne(
+    { _id: 1 }, 
+    { $addToSet: { tags: { k2: "v2", k1: "v1" } } }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+> db.inventory.find().pretty();
+{
+	"_id" : 1,
+	"item" : "polarizing_filter",
+	"tags" : [
+		{ "k1" : "v1", "k2" : "v2" },
+		{ "k2" : "v2", "k1" : "v1" }
+	]
+}
+```
+
+#### 4.13.4. 结合$each连用
+
+```javascript
+// inventory 集合有如下文档
+db.inventory.insertOne(
+    { _id: 2, item: "cable", tags: ["electronics", "supplies"] }
+);
+```
+
+使用 `$each` 修饰符将数组中多个元素添加到 `tags`数组中。
+
+`tags`中已经存在了 `"electronics"`， 所以不会重复添加。
+
+```javascript
+db.inventory.updateOne(
+    { _id: 2 }, 
+    { $addToSet: { tags: { $each: ["electronics", "a", "b"] } } }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{
+	"_id" : 2,
+	"item" : "cable",
+	"tags" : ["electronics", "supplies", "a", "b"]
+}
+```
+
+
+
+### 4.14. $pop
+
+`$pop`：移除数组中的第一个或者最后一个元素。如果值是`-1`会移除数组的第一个元素。值是`1`会移除数组的最后一个元素。
+
+```javascript
+// 语法
+{ $pop: { <field>: <-1 | 1>, ... } }
+```
+
+注意：
+
+- 操作的字段不是数组，`$pop`会失败。
+- 如果`$pop`移除了`<field>`的最后一个元素，这个`<field>` 就会变成空数组。
+
+#### 4.14.1. 移除数组第一个元素
+
+```java
+// students 集合中有如下文档
+db.students.insertOne({ _id: 1, scores: [8, 9, 10] });
+```
+
+移除`scores`数组的第一个元素：
+
+```javascript
+db.students.updateOne({ _id: 1 }, { $pop: { scores: -1 } });
+```
+
+该操作结果如下所示：
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "scores" : [ 9, 10 ] }
+```
+
+#### 4.14.2. 数组中无元素？
+
+当`$pop`后，数组的长度===0，也就是数组为空，会有如下显示。
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "scores" : [ ] }
+```
+
+### 4.15. 数组：$pull
+
+`$poll`：从现有数组中删除一个或多个与指定条件匹配的值的所有实例。
+
+```javascript
+// 语法
+{ $pull: { <field1>: <value|condition>, <field2>: <value|condition>, ... } }
+```
+
+注意：
+
+- 如果指定的删除的 `<value>`是数组，`$pull`则只删除数组中与指定`<value>`完全匹配的元素 ，包括顺序。
+- 如果指定的删除的 `<value>`是文档，`$pull`仅删除数组中具有完全相同字段和值的元素。字段的顺序可以不同。
+
+#### 4.15.1. 等值条件下删除所有元素
+
+```javascript
+// stores 集合中有如下文档
+db.stores.insertMany([{
+        _id: 1,
+        fruits: ["apples", "pears", "oranges", "grapes", "bananas"],
+        vegetables: ["carrots", "celery", "squash", "carrots"]
+    },
+    {
+        _id: 2,
+        fruits: ["plums", "kiwis", "oranges", "bananas", "apples"],
+        vegetables: ["broccoli", "zucchini", "carrots", "onions"]
+    }
+]);
+```
+
+删除 `fruits` 集合中 `"apples"、"oranges"`。
+
+删除 `vegetables` 集合中 `carrots`。
+
+```javascript
+db.stores.update(
+    { }, 
+    { 
+        $pull: { 
+            fruits: { $in: ["apples", "oranges"] },
+            vegetables: "carrots" 
+        } 
+    }, 
+    { multi: true }
+);
+```
+
+该操作结果如下：
+
+```java
+> db.stores.find();
+{ 
+    "_id" : 1, 
+    "fruits" : [ "pears", "grapes", "bananas" ], 
+    "vegetables" : [ "celery", "squash" ] 
+}
+{ 
+    "_id" : 2, 
+    "fruits" : [ "plums", "kiwis", "bananas" ], 
+    "vegetables" : [ "broccoli", "zucchini", "onions" ] 
+}
+```
+
+---
+
+如果更新操作是如下：
+
+```javascript
+db.stores.update(
+    { }, 
+    { 
+        $pull: { 
+            fruits: ["apples", "oranges"],  // 这里不是$in
+            vegetables: "carrots" 
+        } 
+    }, 
+    { multi: true }
+);
+```
+
+这就相当于删除 `fruits: [["apples", "oranges"], "apples", "pears", "oranges", "grapes", "bananas"]`中的嵌套数组。 
+
+#### 4.15.2. 移除所有符合指定$pull条件的元素
+
+```javascript
+// profiles 集合中有以下文档
+db.profiles.insertOne({ _id: 1, votes: [3, 5, 6, 7, 7, 8] });
+```
+
+下面操作将会移除`votes`数组中所有大于等于6的元素：
+
+```javascript
+db.profiles.updateMany({ _id: 1 }, { $pull: { votes: { $gte: 6 } } });
+```
+
+该操作的结果如下所示：
+
+```javascript
+> db.profiles.find().pretty();
+{ "_id" : 1, "votes" : [ 3, 5 ] }
+```
+
+#### 4.15.3. 从文档数组中移除元素
+
+```javascript
+// survey 集合中存在以下文档
+db.survey.insertMany([
+    {
+        _id: 1,
+        results: [
+            { item: "A", score: 5 },
+            { item: "B", score: 8, comment: "Strongly agree" }
+        ]
+    },
+    {
+        _id: 2,
+        results: [
+            { item: "C", score: 8, comment: "Strongly agree" },
+            { item: "B", score: 4 }
+        ]
+    }
+]);
+```
+
+下面的操作将会从`results`数组移除元素，要移除的元素包含 `score` 属性值大于6，并且 `item` 属性值等于`"B"`。
+
+```javascript
+db.survey.updateMany(
+    { },
+    { $pull: { results: { score: { $gt: 6 }, item: "B" } } }
+);
+```
+
+该操作结果如下：
+
+```javascript
+> db.survey.find();
+{ "_id" : 1, "results" : [ { "item" : "A", "score" : 5 } ] }
+{ 
+    "_id" : 2, 
+    "results" : [ 
+        { "item" : "C", "score" : 8, "comment" : "Strongly agree" }, 
+        { "item" : "B", "score" : 4 } 
+    ] 
+}
+```
+
+
+
+#### 4.15.3. 要不要用$elemMatch
+
+该[`$pull`](https://docs.mongodb.com/manual/reference/operator/update/pull/#mongodb-update-up.-pull)表达式将条件应用于`results`数组的每个元素，就好像它是一个顶级文档。
+
+由于[`$pull`](https://docs.mongodb.com/manual/reference/operator/update/pull/#mongodb-update-up.-pull)运算符将其查询应用于每个元素，就好像它是顶级对象一样，表达式不需要使用[`$elemMatch`](https://docs.mongodb.com/manual/reference/operator/query/elemMatch/#mongodb-query-op.-elemMatch)来指定`score` 字段等于`8`和`item`字段等于的条件`"B"`。实际上，下面的操作不会从原始集合中拉取任何元素。
+
+```javascript
+// 反例
+db.survey.update(
+  { },
+  { $pull: { results: { $elemMatch: { score: 8 , item: "B" } } } },
+  { multi: true }
+);
+```
+
+但是，如果`survey`集合包含以下文档，其中`results`数组包含也包含数组的嵌入文档：
+
+```javascript
+db.survey.insertMany([
+    {
+        _id: 1,
+        results: [
+            { item: "A", score: 5, answers: [{ q: 1, a: 4 }, { q: 2, a: 6 }] },
+            { item: "B", score: 8, answers: [{ q: 1, a: 8 }, { q: 2, a: 9 }] }
+        ]
+    },
+    {
+        _id: 2,
+        results: [
+            { item: "C", score: 8, answers: [{ q: 1, a: 8 }, { q: 2, a: 7 }] },
+            { item: "B", score: 4, answers: [{ q: 1, a: 0 }, { q: 2, a: 8 }] }
+        ]
+    }
+]);
+```
+
+然后，您可以使用以下命令在`answers`数组元素上指定多个条件 [`$elemMatch`](https://docs.mongodb.com/manual/reference/operator/query/elemMatch/#mongodb-query-op.-elemMatch)：
+
+该操作从`results`数组中删除了那些嵌入文档的`answers`字段，
+
+```javascript
+db.survey.updateMany(
+    { }, 
+    {
+        $pull: {
+            results: {
+                score: { $gt: 3 },
+                item: "B",
+                answers: { $elemMatch: { a: 0, q: { $gte: 1 } } }
+            }
+        }
+    }
+);
+```
+
+该操作的结果如下：
+
+```javascript
+{
+    _id: 1,
+    results: [
+        { item: "A", score: 5, answers: [{ q: 1, a: 4 }, { q: 2, a: 6 }] },
+        { item: "B", score: 8, answers: [{ q: 1, a: 8 }, { q: 2, a: 9 }] }
     ]
-  }    
-  ```
+},
+{
+    _id: 2,
+    results: [
+        { item: "C", score: 8, answers: [{ q: 1, a: 8 }, { q: 2, a: 7 }] },
+    ]
+}
+```
 
-- `$pop`：移除数组中的第一个或者最后一个元素。
 
-  - 值`-1`删除数组的第一个元素、`1`删除数组中的最后一个元素.
 
-     ```js
-  { $pop: { <field>: <-1 | 1>, ... } }
-     ```
+### 4.16. 数组：$pullAll
 
-  - 操作的字段不是数组，操作失败。
-  - `$pop`删除数组中的最后一项，则`filed`将保存一个空数组。
+`$pullAll`：从现有数组中删除指定值的所有元素。
 
-  ```java
-  // 1: 删除数组的第一项
-  // 测试文档 Students
-  { _id: 1, scores: [ 8, 9, 10 ] }
-  
-  // 删除数组中的第一个元素
-  db.students.update( { _id: 1 }, { $pop: { scores: -1 } } )
-      
-  // 结果
-  { _id: 1, scores: [ 9, 10 ] }
-  
-  // 2: 删除数组最后一项
-  // 测试文档 Students
-  { _id: 1, scores: [ 9, 10 ] }
-  
-  // 删除数组中的最后一个元素
-  db.students.update( { _id: 1 }, { $pop: { scores: 1 } }
-  
-  // 结果                   
-  { _id: 1, scores: [ 9 ] })
-  ```
+和`$pull`按照条件删除不同，`$pullAll`会删除匹配列表的所有元素
 
-- `pull`：删除与指定查询匹配的所有数组元素。
+```javascript
+// 语法
+// 注意：<field1> 后面跟的是数组
+{ $pullAll: { <field1>: [ <value1>, <value2> ... ], ... } }
+```
 
-  - `pull`运算符从现有数组中删除一个或多个与指定条件匹配的值的所有实例。
+> 注意：如果`<value>`要删除的是数组，则 [`$pullAll`](https://docs.mongodb.com/manual/reference/operator/update/pullAll/#mongodb-update-up.-pullAll)仅删除数组中与指定`<value>`完全匹配的元素，包括顺序。
 
-     ```js
-     // 语法
-     { $pull: { <field1>: <value|condition>, <field2>: <value|condition>, ... } }
-     
-     // 1: 删除所有等于指定值的项目
-     // 测试案例
-     db.store.insertMany([{
-         _id: 1,
-         fruits: ["apples", "pears", "oranges", "grapes", "bananas"],
-         vegetables: ["carrots", "celery", "squash", "carrots"]
-     }, {
-         _id: 2,
-         fruits: ["plums", "kiwis", "oranges", "bananas", "apples"],
-         vegetables: ["broccoli", "zucchini", "carrots", "onions"]
-     }]);
-     
-     // 更新所有文档。fruits数组中去除"apples", "oranges"。
-     // vegetables 数组中去除 "carrots"
-     db.stores.update(
-         { },
-         { $pull: { fruits: { $in: [ "apples", "oranges" ] }, vegetables: "carrots" } },
-         { multi: true }
-     )
-     
-     // 2: 删除所有符合指定$pull条件的项目
-     
-     // 测试文档 profiles
-     { _id: 1, votes: [ 3, 5, 6, 7, 7, 8 ] }
-     
-     // 更新文档 
-     db.profiles.update( { _id: 1 }, { $pull: { votes: { $gte: 6 } } } )
-     
-     // 更新操作后，文档只有小于 6 的值： 
-     { _id: 1, votes: [  3,  5 ] }
-     
-     // 3: 从文档数组中删除元素
-     
-     // 测试文档 survey 
-     {
-        _id: 1,
-        results: [
-           { item: "A", score: 5 },
-           { item: "B", score: 8, comment: "Strongly agree" }
+#### 4.16.1. 删除数组中的嵌套数组
+
+```javascript
+// survery 集合中有如下文档
+db.survey.insertOne( { _id: 1, tags: [ [0, 1], [3, 4] ] } );
+```
+
+下面操作来删除 `tags` 数组中的嵌套数组:
+
+```javascript
+// Java里要这么写 Arrays.asList(Arrays.asList(0, 1))
+db.survey.updateOne({ _id: 1 }, { $pullAll: { tags: [ [0, 1] ] } });
+```
+
+该操作结果如下：
+
+```javascript
+> db.survey.find().pretty();
+{ "_id" : 1, "tags" : [ [ 3, 4 ] ] }
+```
+
+---
+
+```javascript
+// 这俩都可以删除
+db.survey.updateOne({ _id: 1 }, { $pullAll: { tags: [ [0, 1], [3, 4] ] } });
+db.survey.updateOne({ _id: 1 }, { $pullAll: { tags: [ [3, 4], [0, 1] ] } });
+
+// 无法删除（顺序错了）
+db.survey.updateOne({ _id: 1 }, { $pullAll: { tags: [ [1, 0] ] } });
+```
+
+
+
+#### 4.16.2. 删除数组中嵌套文档
+
+```javascript
+// survey 集合中有如下文档
+db.survey.insertOne({ _id: 2, tags: [{ k1: "v1" }, { k2: "v2" }] });
+```
+
+删除`tags`数组中的文档 `{k2: "v2"}`：
+
+```javascript
+// Java 中要这么写 Arrays.asList(map) map中存的是 { k2: "v2" }
+db.survey.updateOne({ _id: 2 }, { $pullAll: { tags: [{ k2: "v2" }] } });
+```
+
+操作结果如下：
+
+```javascript
+{ "_id" : 2, "tags" : [ { "k1" : "v1" } ] }
+```
+
+#### 4.16.3.  删除数组中多个元素
+
+```javascript
+// survey 集合有以下文档
+db.survey.insertOne({ _id: 3, scores: [0, 2, 5, 5, 1, 0] });
+```
+
+以下操作删除 `scores` 数组中的 `0、5`：
+
+```javascript
+db.survey.updateOne({ _id: 3 }, { $pullAll: { scores: [0, 5] } });
+```
+
+操作结果如下所示：
+
+```javascript
+{ "_id" : 3, "scores" : [ 2, 1 ] }
+```
+
+### 4.17. 数组: $push
+
+`$push`：添加元素到数组。
+
+```javascript
+// 语法
+{ $push: { <field1>: <value1>, ... } }
+```
+
+注意：
+
+- 如果更新的文档中 `field` 不存在，`$push` 添加值作为其元素的数组字段。
+- 如果 `<field>` 不是数组，操作失败。
+- 如果 `<value>` 是数组，会将整个数组作为一个整体加入到原数组中。使用 `$each` 将数组中每个元素追加到原数组中。
+
+```javascript
+// $each 修饰符  
+// 带有修饰符的语法
+{ $push: { <field1>: { <modifier1>: <value1>, ... }, ... } }
+```
+
+#### 4.17.1. $push的field不存在？
+
+```javascript
+// students 集合中存在如下文档
+db.students.insertOne({ _id: 1, scores: [50, 60, 70] });
+```
+
+`$push` 下的 `<field>` 不存在？==> 直接创建这个字段，并添加值。
+
+```javascript
+db.students.updateOne({ _id: 1 }, { $push: { grades: [90, 91] } });
+```
+
+该操作的结果如下所示：
+
+```javascript
+> db.students.find();
+{ "_id" : 1, "scores" : [ 50, 60, 70 ], "grades" : [ [ 90, 91 ] ] }
+```
+
+#### 4.17.2. 数组中添加一个元素
+
+```javascript
+// students 集合中存在如下文档
+db.students.insertOne({ _id: 2, scores: [50, 60, 70] });
+```
+
+向`scores`数组中添加一个元素：
+
+```javascript
+db.students.updateOne({ _id: 2 }, { $push: { scores: 30 } });
+```
+
+该操作的结果如下：
+
+```javascript
+{ "_id" : 2, "scores" : [ 50, 60, 70, 30 ] }
+```
+
+---
+
+但是如果下面这个操作呢？
+
+```javascript
+db.students.updateOne({ _id: 2 }, { $push: { scores: [30, 40] } });
+```
+
+操作结果如下所示：
+
+```javascript
+> db.students.find();
+{ "_id" : 2, "scores" : [ 50, 60, 70, [ 30, 40 ] ] }
+```
+
+#### 4.17.3. 数组中添加多个元素
+
+```javascript
+// students 集合中存在如下文档
+db.students.insertOne({ _id: 3, scores: [50, 60, 70] });
+```
+
+下面操作，向`scores`数组中添加多个元素：
+
+```javascript
+db.students.updateOne({ _id: 3 }, { $push: { scores: { $each: [30, 40] } } })
+```
+
+操作结果如下所示：
+
+```javascript
+{ "_id" : 3, "scores" : [ 50, 60, 70, 30, 40 ] }
+```
+
+
+
+#### 4.17.4. $push配合多个修饰符
+
+```javascript
+// students 集合中有如下文档
+db.students.insertOne(
+    {
+        "_id": 5,
+        "quizzes": [
+            { "wk": 1, "score": 10 },
+            { "wk": 2, "score": 8 },
+            { "wk": 3, "score": 5 },
+            { "wk": 4, "score": 6 }
         ]
+    }
+);
+```
+
+`$push`配合多个修饰符使用：
+
+- `$each`将多个文档添加到 `quizzes` 数组。
+- `$sort` 使得 `quizzes` 数组元素按照倒序排序。
+- `$slice`保存 `quizzes` 数组排序后的前三个元素。
+
+```javascript
+db.students.updateOne(
+    { _id: 5 },
+    {
+        $push: { 
+            quizzes: { 
+                $each: [{ wk: 5, score: 8 }, { wk: 6, score: 7 }, { wk: 7, score: 6 } ],
+                $sort: { score: -1 },
+                $slice: 3
+            }
+        } 
+    }
+);
+```
+
+该操作结果如下：
+
+```javascript
+> db.students.find();
+{
+    "_id" : 5, 
+    "quizzes" : [ 
+        { "wk" : 1, "score" : 10 }, 
+        { "wk" : 2, "score" : 8 }, 
+        { "wk" : 5, "score" : 8 } 
+    ]
+}
+```
+
+
+
+### 4.18. 数组修饰符：$each
+
+`$each`：用来修饰 `$push、$addToSet`向数组中添加多个元素。
+
+ ```javascript
+// 语法
+// 注意：<field> 在这里指的都是数组
+
+// 原数组中没有这个值才添加
+{ $addToSet: { <field>: { $each: [ <value1>, <value2> ... ] } } }
+
+// 追到多个元素到数组中
+{ $push: { <field>: { $each: [ <value1>, <value2> ... ] } } }
+ ```
+
+### 4.19. 数组修饰符: $position
+
+`$position`：用来修饰 `$push`。
+
+指定了`$pusn`在数组中插入元素的位置。没有写`$position`，默认将元素添加到数组末尾。
+
+要使用 `$position` 修饰符，必须和 `$each` 一起用！
+
+```javascript
+// 语法
+{
+  $push: {
+    <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $position: <num>
+    }
+  }
+}
+```
+
+*在3.6版更改*：[`$position`](https://docs.mongodb.com/manual/reference/operator/update/position/#mongodb-update-up.-position)可以接受负数索引值来指示从末尾开始的位置，从（但不包括）数组的最后一个元素开始计数。
+
+#### 4.19.1. 从数组开头添加元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertOne({ _id: 1, scores: [10, 20, 30] });
+```
+
+在`scores`数组开头添加元素：
+
+```javascript
+db.students.updateOne(
+    { _id: 1 }, 
+    { $push: { scores: { $each: [3, 4, 5], $position: 0} } }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{ "_id" : 1, "scores" : [ 3, 4, 5, 10, 20, 30 ] }
+```
+
+
+
+#### 4.19.2. 在数组中添加元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertOne({ _id: 2, scores: [10, 20, 30] });
+```
+
+如果 `$position:1`呢？
+
+```javascript
+db.students.updateOne(
+    { _id: 2 }, 
+    { $push: { scores: { $each: [3, 4, 5], $position: 1} } }
+);
+```
+
+操作结果如下所示：
+
+```javascript
+> db.students.find();
+{ "_id" : 1, "scores" : [ 10, 3, 4, 5, 20, 30 ] }
+```
+
+
+
+#### 4.19.3. 负数索引向数组添加元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertOne({ _id: 3, scores: [10, 20, 30] });
+```
+
+在数组的倒数第一个元素之前添加元素：
+
+```javascript
+db.students.updateOne(
+    { _id: 3 }, 
+    { $push: { scores: { $each: [3, 4, 5], $position: -1} } }
+);
+```
+
+该操作结果如下所示：
+
+```javascript
+{ "_id" : 3, "scores" : [ 10, 20, 3, 4, 5, 30 ] }
+```
+
+
+
+### 4.20. 数组修饰符：$sort
+
+`$sort`：在 `$push` 的时候会根据数组字段排序。用来修饰`$push`。
+
+> 注意：
+>
+> - `$sort`必须结合`$each`一起使用！
+> - 可以使用一个空数组`[]`来使用 `$each` 修饰符，以便于只使用 `$sort` 排序的作用。
+
+```javascript
+// 语法
+// 注意：<field> 代表的就是数组
+{
+  $push: {
+     <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $sort: <sort specification>
      }
-     {
-        _id: 2,
-        results: [
-           { item: "C", score: 8, comment: "Strongly agree" },
-           { item: "B", score: 4 }
+  }
+}
+```
+
+对于 `<sort specification>`：
+
+- 要对不是文档的数组元素进行排序，或者如果数组元素是文档，要按整个文档排序，请指定 `1`升序或`-1`降序。
+- 如果数组元素是文档，要按文档中的字段排序，指定一个带有字段和方向的排序文档，即`{ field: 1 }`or `{ field: -1 }`。如果这样写`{ "arrayField.field": 1 }`是不正确的.
+
+注意：
+
+- `$sort`可以对数组中的非文档元素排序。
+- 如果数组元素是文档，则修饰符可以按整个文档或文档中的特定字段进行排序。
+- 使用`$sort`没有$each`修饰符会导致错误。 
+- `$sort` 修饰符的使用不需要 `$slice`。
+
+#### 4.20.1. 按字段对文档数组排序
+
+```javascript
+// students 集合中包含以下文档
+db.students.insertOne(
+    {
+        "_id": 1,
+        "quizzes": [
+            { "id": 1, "score": 6 },
+            { "id": 2, "score": 9 }
         ]
-     } 
-     
-     // 更新操作 
-     db.survey.update(
-       { },
-       { $pull: { results: { score: 8 , item: "B" } } },
-       { multi: true }
-     ) 
-     
-     // 但是，如果survey集合包含以下文档，其中results数组包含也包含数组的嵌入文档： 
-     {
-        _id: 1,
-        results: [
-           { item: "A", score: 5, answers: [ { q: 1, a: 4 }, { q: 2, a: 6 } ] },
-           { item: "B", score: 8, answers: [ { q: 1, a: 8 }, { q: 2, a: 9 } ] }
-        ]
+    }
+);
+```
+
+下面的更新操作向 `quizzes` 数组中添加元素，并且按照 `score` 属性值升序排序，值相同则按照 `id` 字段降序排序。
+
+```javascript
+db.students.updateOne({ _id: 1 }, {
+    $push: {
+        quizzes: {
+            $each: [{ id: 3, score: 8 }, { id: 4, score: 7 }, { id: 5, score: 6 }],
+            $sort: { score: 1, id: -1 }
+        }
+    }
+});
+```
+
+> 注意：
+>
+> 排序文档直接引用文档中的字段，不引用包含数组的字段 `quizzes`；即`{ score: 1 }`而**不是** `{ "quizzes.score": 1}`。
+
+该操作结果如下所示：
+
+```javascript
+> db.students.find();
+{ 
+    "_id" : 1, 
+    "quizzes" : [ 
+        { "id" : 5, "score" : 6 }, 
+        { "id" : 1, "score" : 6 }, 
+        { "id" : 4, "score" : 7 }, 
+        { "id" : 3, "score" : 8 }, 
+        { "id" : 2, "score" : 9 } 
+    ] 
+}
+```
+
+#### 4.20.2. 排序不是文档的数组元素
+
+```javascript
+// students 集合中包含以下文档
+db.students.insertOne({ "_id": 2, "tests": [89, 70, 89, 50] });
+```
+
+以下操作将另外两个元素添加到`scores`数组中并对数组元素进行升序排序：
+
+```javascript
+db.students.updateOne(
+    { _id: 2 }, 
+    {
+        $push: {
+            tests: {
+                $each: [40, 60],
+                $sort: 1
+            }
+        }
+    }
+);
+```
+
+#### 4.20.3. 仅用排序更新数组
+
+```javascript
+// students 集合中有以下文档
+db.students.insertOne({ "_id": 3, "tests": [89, 70, 100, 20] });
+```
+
+`$each`使用空数组 `[]`，就可以只使用 `$sort` 排序了。
+
+```javascript
+db.students.updateOne(
+    { _id: 3 }, 
+    {
+        $push: {
+            tests: {
+                $each: [],
+                $sort: 1
+            }
+        }
+    }
+);
+```
+
+操作结果如下所示：
+
+```javascript
+{ "_id" : 3, "tests" : [ 20, 70, 89, 100 ] }
+```
+
+
+
+### 4.21. 数组修饰符：$slice
+
+`$slice`：该修饰符会在 `$push` 操作中限制数组元素的数量。
+
+使用 `$slice` 修饰符，必须和`$push`一起用。
+
+```javascript
+// 语法
+// <field> 指的是数组
+{
+  $push: {
+     <field>: {
+       $each: [ <value1>, <value2>, ... ],
+       $slice: <num>
      }
-     {
-        _id: 2,
-        results: [
-           { item: "C", score: 8, answers: [ { q: 1, a: 8 }, { q: 2, a: 7 } ] },
-           { item: "B", score: 4, answers: [ { q: 1, a: 0 }, { q: 2, a: 8 } ] }
-        ]
-     } 
-     
-     // 然后，您可以使用以下命令在answers数组元素上指定多个条件 $elemMatch： 
-     db.survey.update(
-       { },
-       { $pull: { results: { answers: { $elemMatch: { q: 2, a: { $gte: 8 } } } } } },
-       { multi: true }
-     )  
-     ```
-  
+  }
+}
+```
 
+`<num>`可以是：
 
+| Value | value                           |
+| :---- | :------------------------------ |
+| 零    | 将数组更新为空数组。            |
+| 负数  | 更新数组包含最后`<num>`个元素。 |
+| 正数  | 更新数组包含前`<num>`个元素。   |
 
-## 5. 聚合操作
+注意：
+
+- 修饰符出现的顺序无关紧要。
+- 使用 `$slice` 没有 `$each` 会报错。
+
+## 5.Aggregation stage
+
+在 `db.collection.aggregate()` 方法中，这些 stages 都出现在一个数组中。
+
+文档按照顺序来通过这些 stages。
+
+除了`$out、$mergr、$geoNear`这3个 stages，其他 stages 都可以出现多次。
+
+```javascript
+// 语法
+db.collection.aggregate( [ { <stage> }, ... ] )
+```
 
 ###  5.1. $addFields
 
@@ -1393,6 +2966,9 @@ db.score.aggregate([{
     }
 ]);
 ```
+
+- `$sum`：计算并返回数值的总和。会忽略非数值字段。
+- `$add`：将数字相加，或者将日期相加。如果是数字 + 日期，数字就会作为毫秒增加。
 
 该操作会返回以下文档：
 
@@ -1539,6 +3115,8 @@ db.scores.aggregate([
 ]);
 ```
 
+- `$concatArrays`：将数组进行连接，返回一个连接好的数组。
+
 该操作返回以下文档：
 
 ```javascript
@@ -1634,6 +3212,10 @@ db.artists.aggregate( [
   }
 ] )
 ```
+
+- `$sum: 1`表示每个bucket的计数器，符合条件就加1。
+- `$push`：将元素添加到数组中。
+- `boundaries: [ 1840, 1850, 1860, 1870, 1880 ]` 实际上是划分了4个边界范围。
 
 **第一阶段**：`$bucket` 阶段按照 `year_born` 字段来分组放入 `bucket`中，该 `bucket` 包含以下边界：
 
