@@ -541,6 +541,27 @@ docker run --name mysql -d -p 3306:3306 \
 mysql:5.7
 ```
 
+
+
+### 4.3.1. MySQL8
+
+```shell
+docker run \
+    -p 3306:3306 \
+    -e MYSQL_ROOT_PASSWORD=333 \
+    -v /root/mysql8/data:/var/lib/mysql \
+    -v /root/mysql8/log:/var/log/mysql \
+    -v /root/mysql8/config:/etc/mysql \
+    -v /etc/localtime:/etc/localtime \
+    -v /root/mysql8/mysql-files:/var/lib/mysql-files \
+    --name mysql8 \
+    -d mysql:8.0.26
+```
+
+
+
+
+
 ## 4.4.具名挂载和匿名挂载
 
 > 匿名挂载和具名挂载展示
