@@ -2382,6 +2382,59 @@ db.survey.updateMany(
 
 
 
+#### 4.15.4. 移除嵌套数组中的文档
+
+```javascript
+// tab 集合中有如下文档
+db.tab.insertOne({
+    budgetSid: "T2551",
+    rowData: [
+        {
+            wdItem: 2,
+            children: [ { wdItem: 21 }, { wdItem: 22 } ]
+        },
+        {
+            wdItem: 3,
+            children: [ { wdItem: 31 }, { wdItem: 32 } ]
+        }
+    ]
+}); 
+```
+
+删除嵌套数组中的文档：
+
+```javascript
+db.tab.updateOne(
+    { budgetSid: "T2551" }, 
+    { $pull: { "rowData.$[row].children": { wdItem: 21 } } }, 
+    { arrayFilters: [{ "row.wdItem": 2 }] }
+);
+```
+
+> 注意：`$pull: {key: value}`，这里的 key 应该表示的是数组！
+
+该操作后的结果：
+
+```javascript
+> db.tab.find();
+{ 
+    "_id" : ObjectId("6107f41e662f5a3fbe33d009"), 
+     "budgetSid" : "T2551", 
+     "rowData" : [ 
+         { 
+             "wdItem" : 2, 
+             "children" : [ { "wdItem" : 22 } ] 
+         }, 
+         { 
+             "wdItem" : 3, 
+             "children" : [ { "wdItem" : 31 }, { "wdItem" : 32 } ] 
+         } 
+     ] 
+}
+```
+
+
+
 ### 4.16. 数组：$pullAll
 
 `$pullAll`：从现有数组中删除指定值的所有元素。
@@ -2897,7 +2950,555 @@ db.students.updateOne(
 - 修饰符出现的顺序无关紧要。
 - 使用 `$slice` 没有 `$each` 会报错。
 
-## 5.Aggregation stage
+
+
+
+
+## 5. 更新方法
+
+### 5.1. findOneAndReplace()
+
+```javascript
+// 语法
+db.collection.findOneAndReplace(
+   <filter>,
+   <replacement>,
+   {
+     projection: <document>,
+     sort: <document>,
+     maxTimeMS: <number>,
+     upsert: <boolean>,
+     returnNewDocument: <boolean>,
+     collation: <document>
+   }
+);
+```
+
+注意：
+
+- 返回值：默认返回原始文档，如果没有匹配到原始文档则返回 `null`。设置 `returnNewDocument: true` 返回替换的文档。
+- 该方法替换第一个匹配的文档。该`sort`参数可用于影响修改哪个文档。
+
+#### 5.1.1. 替换一个文档
+
+```javascript
+// scores 集合中有如下文档
+db.scores.insertMany([
+   { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+]);
+```
+
+下面的操作会匹配 `score` 属性值小于 `20000` 的文档并且 replace it：
+
+```javascript
+> db.scores.findOneAndReplace(
+...     { score: { $lt: 20000 } }, 
+...     { "team": "Observant Badgers", "score": 20000 }
+... );
+
+// 默认返回旧的文档（替换前的文档）
+// 如果 returnNewDocument: true, 这里就会返回新替换的文档了！
+{ "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 }
+```
+
+该操作更新结果如下：
+
+```javascript
+> db.scores.find();
+{ "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 }
+{ "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 }
+{ "_id" : 3, "team" : "Observant Badgers", "score" : 20000 }	// 被更新的文档
+{ "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 }
+{ "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+```
+
+注意：尽管多个文档符合过滤条件，但是 `findOneAndReplace()` 只会替换一个文档。
+
+#### 5.1.2. 排序并替换文档
+
+```javascript
+// scores 集合中有如下文档
+db.scores.insertMany([
+   { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+]);
+```
+
+通过 `score` 字段将整个文档正序排序，然后再替换文档。
+
+```javascript
+> db.scores.findOneAndReplace(
+...     { score: { $lt: 20000 } }, 
+...     { "team": "Observant Badgers", "score": 20000 },
+...     { sort: { score: 1 } }
+... );
+
+// 排序替换
+{ "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 }
+```
+
+该操作更新后的文档为：
+
+```javascript
+> db.scores.find();
+{ "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 }
+{ "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 }s
+{ "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 }
+{ "_id" : 4, "team" : "Observant Badgers", "score" : 20000 }  // 替换的文档
+{ "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+```
+
+#### 5.1.3. 返回文档中的投影字段
+
+```javascript
+// scores 集合中有如下文档
+db.scores.insertMany([
+   { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+]);
+```
+
+以下操作使用投影仅仅展示 `team` 字段（在返回的文档中）。
+
+```javascript
+> db.scores.findOneAndReplace(
+...    { "score" : { $lt : 22250 } },
+       // 替换文档时这里不建议写 _id
+...    { "team" : "Therapeutic Hamsters", "score" : 22250 },
+...    { sort : { "score" : 1 }, projection: { "_id" : 0, "team" : 1 } }
+... );
+{ "team" : "Cuddly Zebras" }
+```
+
+该操作返回的结果如下所示：
+
+```javascript
+> db.scores.find();
+{ "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 }
+{ "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 }
+{ "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 }
+{ "_id" : 4, "team" : "Therapeutic Hamsters", "score" : 22250 }  // 替换的文档
+{ "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+```
+
+#### 5.1.4. 有时间限制的替换文档
+
+```javascript
+// scores 集合中有如下文档
+db.scores.insertMany([
+   { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+]);
+```
+
+下面的操作需要在5ms内完成：
+
+```javascript
+> db.scores.findOneAndReplace(
+...   { "score" : { $lt : 25000 } },
+...   { "team" : "Emphatic Rhinos", "score" : 25010 },
+...   { maxTimeMS: 5 }
+... );
+
+// 返回结果
+{ "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 }
+```
+
+如果操作时间超时了，就会返回：
+
+```javascript
+Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+```
+
+#### 5.1.5. 使用upsert替换文档
+
+```javascript
+db.scores.insertMany([
+   { "_id" : 1, "team" : "Fearful Mallards", "score" : 25000 },
+   { "_id" : 2, "team" : "Tactful Mooses", "score" : 23500 },
+   { "_id" : 3, "team" : "Aquatic Ponies", "score" : 19250 },
+   { "_id" : 4, "team" : "Cuddly Zebras", "score" : 15235 },
+   { "_id" : 5, "team" : "Garrulous Bears", "score" : 18000 }
+]);
+```
+
+如果 `<filter>` 没有匹配到文档，就会在集合中插入 `replacement document`。
+
+```javascript
+> db.scores.findOneAndReplace(
+...     { "team" : "Fortified Lobsters" },
+...     { "_id" : 6019, "team" : "Fortified Lobsters" , "score" : 32000},
+...     { upsert : true, returnNewDocument: true }
+... );
+{ "_id" : 6019, "team" : "Fortified Lobsters", "score" : 32000 } // 集合中新增一条记录！
+```
+
+如果 `returnNewDocument: false`，没有文档匹配，这个操作就会返回 `null`。
+
+### 5.2. findAndModify()
+
+`findAndModify()`：修改并返回单个文档。
+
+```javascript
+// 语法
+db.collection.findAndModify({
+    query: <document>,
+    sort: <document>,
+    remove: <boolean>,
+    update: <document or aggregation pipeline>, // Changed in MongoDB 4.2
+    new: <boolean>,
+    fields: <document>,
+    upsert: <boolean>,
+    bypassDocumentValidation: <boolean>,
+    writeConcern: <document>,
+    collation: <document>,
+    arrayFilters: [ <filterdocument1>, ... ],
+    let: <document> // Added in MongoDB 5.0
+});
+```
+
+返回数据：
+
+- 对于 `remove` 操作，如果查询匹配了一个文档。`findAndModify()` 会返回移除的文档。如果查询并没有匹配到文档，`findAndModify()`就会返回 null。
+- 对于 `update` 操作，`findAndModify()` 会返回以下一个：
+  - 如果 `new` 参数没有设置 或者 是 `false`：
+    - 如果查询匹配文档，则为修改前文档；
+    - 其他情况下返回 null。
+  - 如果 `new` 参数是 `true`：
+    - 如果查询匹配到文档，返回修改后的文档；
+    - 查询没有匹配文档，但是 `upsert:true`，返回新插入的文档；
+    - 其他情况下返回null。
+
+#### 5.2.1. 更新和返回
+
+```javascript
+// people 集合中有如下文档
+db.people.insertMany([
+    { name: "Tom", state: "active", rating: 20, score: 10 },
+    { name: "Jerry", state: "active", rating: 18, score: 5 },
+    { name: "Britha", state: "active", rating: 15, score: 6 },
+]);
+```
+
+下面的操作有如下几步：
+
+1. 查询方法会根据 `rating` 大于 10来查询匹配的文档。
+2. 查询的结果按照`rating`字段升序排序。如果查询匹配的文档有多个，则选择排序后的第一个文档作为更新文档。
+3. 将目标文档的`score`字段值加1。
+4. 该方法会返回更新之前的值。
+
+```javascript
+> db.people.findAndModify({
+...     query: { rating: { $gt: 10 } },
+...     sort: { rating: 1 },
+...     update: { $inc: { score: 1 } }
+... });
+{
+	"_id" : ObjectId("61077dc56dc5e6430ce4a9c8"),
+	"name" : "Britha",
+	"state" : "active",
+	"rating" : 15,
+	"score" : 6
+}
+```
+
+该操作的结果如下所示：
+
+```javascript
+> db.people.find().pretty();
+{
+	"_id" : ObjectId("61077dc56dc5e6430ce4a9c6"),
+	"name" : "Tom",
+	"state" : "active",
+	"rating" : 20,
+	"score" : 10
+}
+{
+	"_id" : ObjectId("61077dc56dc5e6430ce4a9c7"),
+	"name" : "Jerry",
+	"state" : "active",
+	"rating" : 18,
+	"score" : 5
+}
+{
+	"_id" : ObjectId("61077dc56dc5e6430ce4a9c8"),
+	"name" : "Britha",
+	"state" : "active",
+	"rating" : 15,
+	"score" : 7
+}
+```
+
+**注意**：
+
+```javascript
+// 在 Spring Boot 中可以这样写
+Update update = new Update().inc("score", 1);
+mongoTemplate.findAndModify(query(where("rating").gt(10)).with(Sort.by("rating").ascending()), update, Object.class, "people");
+```
+
+
+
+#### 5.2.2. Upsert And New
+
+```javascript
+// people 集合中有如下文档
+db.people.insertMany([
+    { name: "Tom", state: "active", rating: 20, score: 10 },
+    { name: "Jerry", state: "active", rating: 18, score: 5 },
+    { name: "Britha", state: "active", rating: 15, score: 6 },
+]);
+```
+
+下面的方法中 包含`upsert: true`选项 。
+
+该方法更新匹配的文档并返回匹配到的文档，或者 `<query>` 查询不到匹配的文档，则添加一个新文档。
+
+```javascript
+> db.people.findAndModify({
+...     query: { name: "Gus", state: "active", rating: 100 },
+...     sort: { rating: 1 },
+...     update: { $inc: { score: 1 } },
+...     // new: true,  					// 这里写的是true, 就会返回更改后的文档了！
+...     upsert: true
+... });
+null     								// 返回的结果
+```
+
+该操作的结果如下所示：
+
+```javascript
+> db.people.find().pretty();
+{
+	"_id" : ObjectId("610784e86dc5e6430ce4a9cf"),
+	"name" : "Tom",
+	"state" : "active",
+	"rating" : 20,
+	"score" : 10
+}
+{
+	"_id" : ObjectId("610784e86dc5e6430ce4a9d0"),
+	"name" : "Jerry",
+	"state" : "active",
+	"rating" : 18,
+	"score" : 5
+}
+{
+	"_id" : ObjectId("610784e86dc5e6430ce4a9d1"),
+	"name" : "Britha",
+	"state" : "active",
+	"rating" : 15,
+	"score" : 6
+}
+// 这里是新增的文档
+{
+	"_id" : ObjectId("61078509e32b793ade309af0"),
+	"name" : "Gus",
+	"rating" : 100,
+	"state" : "active",
+	"score" : 1
+}
+```
+
+
+
+#### 5.2.3. 排序和删除
+
+```javascript
+// people 集合中有如下文档
+db.people.insertMany([
+    { name: "Tom", state: "active", rating: 20, score: 10 },
+    { name: "Jerry", state: "active", rating: 18, score: 5 },
+    { name: "Britha", state: "active", rating: 15, score: 6 },
+]);
+```
+
+下面的操作按照查询结果进行排序，删除排序后的第一个文档。
+
+```javascript
+> db.people.findAndModify(
+...    {
+...      query: { state: "active" },
+...      sort: { rating: 1 },
+...      remove: true
+...    }
+... );
+{
+	"_id" : ObjectId("610789646dc5e6430ce4a9d4"),
+	"name" : "Britha",
+	"state" : "active",
+	"rating" : 15,
+	"score" : 6
+}
+```
+
+该操作后的集合为：
+
+```javascript
+> db.people.find().pretty();
+{
+	"_id" : ObjectId("610789646dc5e6430ce4a9d2"),
+	"name" : "Tom",
+	"state" : "active",
+	"rating" : 20,
+	"score" : 10
+}
+{
+	"_id" : ObjectId("610789646dc5e6430ce4a9d3"),
+	"name" : "Jerry",
+	"state" : "active",
+	"rating" : 18,
+	"score" : 5
+}
+```
+
+
+
+#### 5.2.4. 更新数组指定元素
+
+```javascript
+// students 集合中有如下文档
+db.students.insertMany([
+   { "_id" : 1, "grades" : [ 95, 92, 90 ] },
+   { "_id" : 2, "grades" : [ 98, 100, 102 ] },
+   { "_id" : 3, "grades" : [ 95, 110, 100 ] }
+]);
+```
+
+下面操作查询 `grades` 数组中大于等于100的文档。
+
+然后过滤出 `grades` 数组的元素（大于等于100）。
+
+最后将**第一条文档**中数组的元素修改为100。
+
+```javascript
+> db.students.findAndModify({
+...     query: { grades: { $gte: 100 } },
+...     update: { $set: { "grades.$[item]": 100 } },
+...     arrayFilters: [{ "item": { $gte: 100 } }]
+... });
+{ "_id" : 2, "grades" : [ 98, 100, 102 ] }
+```
+
+> 注意：虽然查询结果有多个文档匹配，但是只会更新第一个文档！
+
+该操作更新集合的结果如下：
+
+```javascript
+> db.students.find().pretty();
+{ "_id" : 1, "grades" : [ 95, 92, 90 ] }
+{ "_id" : 2, "grades" : [ 98, 100, 100 ] }	// 更新的文档
+{ "_id" : 3, "grades" : [ 95, 110, 100 ] }
+```
+
+#### 5.2.5. 更新文档数组的指定元素
+
+>  注意：`arrayFilters`不能用于聚合管道的更新。
+
+```javascript
+// students2 集合中有如下文档
+db.students2.insert([
+   {
+      "_id" : 1,
+      "grades" : [
+         { "grade" : 80, "mean" : 75, "std" : 6 },
+         { "grade" : 85, "mean" : 90, "std" : 4 },
+         { "grade" : 85, "mean" : 85, "std" : 6 }
+      ]
+   },
+   {
+      "_id" : 2,
+      "grades" : [
+         { "grade" : 90, "mean" : 75, "std" : 6 },
+         { "grade" : 87, "mean" : 90, "std" : 3 },
+         { "grade" : 85, "mean" : 85, "std" : 4 }
+      ]
+   }
+]);
+```
+
+下面操作虽然查询出了多条文档，但是只更新一条文档。
+
+`grades`数组中文档的`grade`属性值大于等于85就会被更新。
+
+```javascript
+> db.students2.findAndModify({
+...     query: { },
+...     update: { $inc: { "grades.$[item].mean": 10 } },
+...     arrayFilters: [{ "item.grade": { $gte: 85 } }]
+... });
+// 返回被更新的文档
+{
+	"_id" : 1,
+	"grades" : [
+		{
+			"grade" : 80,
+			"mean" : 75,
+			"std" : 6
+		},
+		{
+			"grade" : 85,
+			"mean" : 90,
+			"std" : 4
+		},
+		{
+			"grade" : 85,
+			"mean" : 85,
+			"std" : 6
+		}
+	]
+}
+```
+
+该操作得到的文档结果如下所示：
+
+```javascript
+> db.students2.find();
+{ 
+    "_id" : 1, 
+    "grades" : [ 
+        { "grade" : 80, "mean" : 75, "std" : 6 }, 
+        { "grade" : 85, "mean" : 100, "std" : 4 },   // 更新了
+        { "grade" : 85, "mean" : 95, "std" : 6 }     // 更新了
+    ] 
+}
+{ 
+    "_id" : 2, 
+    "grades" : [ 
+        { "grade" : 90, "mean" : 75, "std" : 6 }, 
+        { "grade" : 87, "mean" : 90, "std" : 3 }, 
+        { "grade" : 85, "mean" : 85, "std" : 4 } 
+    ] 
+}
+```
+
+#### 5.2.6. 使用聚合管道更新
+
+
+
+
+
+
+
+
+
+
+
+
+## 6.Aggregation stage
 
 在 `db.collection.aggregate()` 方法中，这些 stages 都出现在一个数组中。
 
@@ -2910,7 +3511,7 @@ db.students.updateOne(
 db.collection.aggregate( [ { <stage> }, ... ] )
 ```
 
-###  5.1. $addFields
+###  6.1. $addFields
 
 `$addFields`：向文档中添加新字段。它会对流中的每个文档进行重塑（改变文档结构）。
 
@@ -2929,7 +3530,7 @@ db.collection.aggregate( [ { <stage> }, ... ] )
 - 添加一个属性或者多个属性到嵌入式的文档中（包括数组中的文档），使用点表示法。
 - 使用`$addFields`将一个元素添加到现有数组字段，使用`$concatArrays`。
 
-#### 5.1.1. 使用两个$addFields
+#### 6.1.1. 使用两个$addFields
 
 ```json
 // score集合包含以下两个文档
@@ -2997,7 +3598,7 @@ db.score.aggregate([{
 
 
 
-#### 5.1.2. 添加属性到嵌入式文档
+#### 6.1.2. 添加属性到嵌入式文档
 
 使用 "点表示法" 向嵌入式文档中添加新的属性。
 
@@ -3029,7 +3630,7 @@ db.vehicles.aggregate([{ $addFields: { "specs.fuel_type": "unleaded" } }]);
 
 
 
-#### 5.1.3. 重写一个现有的属性
+#### 6.1.3. 重写一个现有的属性
 
 在`$addFields`操作中指定一个现有属性的名字，会导致原有的属性被替换。
 
@@ -3082,7 +3683,7 @@ db.fruit.aggregate([{ $addFields: { _id: "$item", item: "fruit" } }]);
 
 
 
-#### 5.1.4. 添加元素到数组
+#### 6.1.4. 添加元素到数组
 
 ```javascript
 // scores 集合包含以下文档
@@ -3132,7 +3733,7 @@ db.scores.aggregate([
 
 
 
-### 5.2. $bucket
+### 6.2. $bucket
 
 `$bucket`：根据指定的表达式和bucket边界将传入文档分类为组（称为bucket），并为每个bucket输出一个文档。每个输出文档都包含一个 `_id` 字段，其值指定bucket的包含下限。output选项指定每个输出文档中包含的字段。
 
@@ -3165,7 +3766,7 @@ db.scores.aggregate([
 
 
 
-#### 5.2.1. Bucket by Year and Filter by Bucket Results
+#### 6.2.1. Bucket by Year and Filter by Bucket Results
 
 ```javascript
 // artists集合有如下文档
