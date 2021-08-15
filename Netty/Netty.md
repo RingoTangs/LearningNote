@@ -8,13 +8,13 @@ Java 共支持3中网络编程模型：BIO、NIO、AIO。
 
 **Java BIO**：同步并阻塞模型（传统的IO）。服务器实现模式为一个连接一个线程，即：`client` 有连接请求时 `server` 需要启动一个线程进行处理，如果这个连接不做任何事情就会造成不必要的网络开销。
 
-![BIO示意图](D:\software\Typora\images\BIO.33dddvxdvam0.png)
+![BIO示意图](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/Netty/BIO.33dddvxdvam0.png)
 
 
 
 **Java NIO**：同步非阻塞模型。服务器实现模式为一个线程处理多个请求（连接），即：`client` 发送的连接请求都会注册到多路复用器上，多路复用器轮询连接有 `I/O` 请求就进行处理。
 
-![NIO模型](D:\software\Typora\images\NIO.7bug0ag9ero0.png)
+![NIO模型](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/Netty/BIO.33dddvxdvam0.png)
 
 
 
