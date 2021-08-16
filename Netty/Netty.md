@@ -156,10 +156,10 @@ public class BasicBuffer {
 1. 每个 `Channel` 都会对应一个 `Buffer`。
 2. 一个 `Selector` 对应一个线程，一个线程对应多个 `Channel`（通道/通俗理解：连接）。
 3. 下图反应了有2个 `Channel` 注册到了 `Selector`。
-4. 程序切换到哪个 `channel` 是由事件决定的，`Event` 是非常重要的事件。
+4. 程序切换到哪个 `channel` 是由事件决定的，`Event` 是非常重要的概念。
 5. `Selector` 会根据不同的事件，在各个通道上切换。
 6. `Buffer` 是一个内存块，底层是一个数组。
-7. NIO数据的读写是通过 `Buffer`，这个和 BIO 是不同的。BIO 中要么是 InputStream，要么是 OutputStream，不能是双向的。但是 NIO 的读写需要进行切换，调用 `flip()` 方法。
+7. NIO数据的读写是通过 `Buffer`，这个和 BIO 是不同的。BIO 中要么是 InputStream，要么是 OutputStream，不能是双向的。NIO 的读写虽然是双向的，但是需要进行切换，调用 `flip()` 方法。
 8. NIO的 `Channel` 是双向的，可以返回底层操作系统的情况，比如 Linux 底层操作系统通道就是双向的。
 
 ![NIO模型](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/Netty/NIO.3isbc6j6nxc0.png)
