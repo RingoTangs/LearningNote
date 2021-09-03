@@ -128,7 +128,9 @@ public class BasicBuffer {
         IntBuffer intBuffer = IntBuffer.allocate(5);
 
         // 2:向 buffer 中存放数据。
-        intBuffer.put(new int[]{1, 2, 3, 4, 5});
+        for (int i = 1; i <= 5 ; i++) {
+            intBuffer.put(i);
+        }
 
         // 3: 将 buffer 转换（读写切换）
         intBuffer.flip();
@@ -163,4 +165,43 @@ public class BasicBuffer {
 8. NIO的 `Channel` 是双向的，可以返回底层操作系统的情况，比如 Linux 底层操作系统通道就是双向的。
 
 ![NIO模型](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/Netty/NIO.3isbc6j6nxc0.png)
+
+### 4.5. Buffer
+
+`Buffer` 缓冲区本质上是一个可以读写数据的内存块，可以理解成是一个**容器对象（数组）**，该对象提供了一组方法，可以更轻松地使用内存块，缓冲区对象内置了一些机制，能够跟踪和记录缓冲区状态的变化。
+
+注：读写都必须要经过 `Buffer`。
+
+![Buffer](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/Netty/image.43uhk6a3jw40.png)
+
+`Buffer` 类定义了所有缓冲区都具有的四个属性来提供关于其所包含的数据元素的信息。
+
+```java
+// Invariants: mark <= position <= limit <= capacity
+private int mark = -1;
+private int position = 0;
+private int limit;
+private int capacity;
+```
+
+| 属性     | 描述                                                         |
+| :------- | :----------------------------------------------------------- |
+| capacity | 容量，即可以容纳的最大数据量。在缓冲区创建时被指定且不能改变。 |
+| limit    | 表示缓冲区的当前终点，不能对缓冲区超过limit的位置进行读写操作。limit值可以修改。初始化之后，默认 limit = capacity。 |
+| position | 位置。下一个要被读或写的元素的索引，每次读写缓冲区数据时都会改变值，为下次读写做准备。初始化之后，默认 position = 0。 |
+| mark     | 标记（用的很少）。默认 -1。                                  |
+
+### 4.6. Channel
+
+NIO 的 Channel 类似于 Stream，但是有如下区别：
+
+1. Channel 可以同时进行读写，而 Stream 只能读或者**只能**写。
+2. Channel 可以实现异步读写数据。
+3. Channel 可以从 Buffer 读数据，也可以写数据到 Buffer。
+
+BIO 中的 Stream 是单向的，例如 `FileInputStream` 对象只能进行读/写数据的操作，而 NIO 的 Channel 是双向的，可以读和写数据。
+
+Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable`。
+
+
 
