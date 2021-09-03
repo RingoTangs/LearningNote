@@ -59,8 +59,8 @@ sudo yum-config-manager \
     https://download.docker.com/linux/centos/docker-ce.repo # 默认是国外的下载超级慢！
 
 sudo yum-config-manager \
-    --add-repo \   
-    http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo # 阿里云的镜像
+--add-repo \
+http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo # 阿里云的镜像
 
 # 更新yum软件包索引
 yum makecache fast

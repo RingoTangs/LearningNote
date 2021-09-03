@@ -5,6 +5,7 @@
 由此可见`Spring Data repository `是一个很抽象的概念，既可以操作 `MySQL`，又可以操作`NoSQL`。
 
 ```yaml
+# spring-boot 连接 mongo 配置
 # db.auth('admin', '123'); 这种类型登录。
 spring:
   data:
