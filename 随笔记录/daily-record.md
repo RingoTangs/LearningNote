@@ -1,0 +1,103 @@
+# 2021-11-8 Linux磁盘挂载和分区
+
+[参考文档](https://zhuanlan.zhihu.com/p/87595311)
+
+```shell
+# 查看磁盘容量
+df -h
+
+# 卸载磁盘 -v执行时显示详细的信息
+# umount -v /dev/sda1          通过设备名卸载 
+# umount -v /mnt/mymount/      通过挂载点卸载  
+umount -v /home
+
+# 将磁盘重新分配给10G，以前是47G
+lvreduce -L 10G /dev/mapper/centos-home
+
+# 让上面的操作生效
+mkfs.xfs /dev/mapper/centos-home -f
+
+# 挂载磁盘磁盘（这时候只有10G的空间挂载到了 /home）
+# -a：将 /etc/fstab 中定义的所有档案系统挂上。
+mount -a /home
+
+# 重新查看磁盘容量
+df -h
+
+# 整理磁盘，查看空闲容量，里面有free，表示可以挂在到需要扩容的磁盘上面去
+vgdisplay
+
+# 将空闲的放到需要需要扩容的磁盘上面去
+lvextend -L +36G /dev/mapper/centos-root
+
+# 让上面一步生效
+xfs_growfs /dev/mapper/centos-root
+
+# 重新查看磁盘，成功
+df -h
+```
+
+
+
+# 2021-11-9 日期序列化和反序列化
+
+`spring-boot-starter-web` 中依赖了 `spring-boot-starter-json`。
+
+但是，在 spring 配置文件中配置日期的序列化和反序列化只是针对 `Date` 类型有效。
+
+对于 `LocalDateTime` 类型需要手动配置。
+
+
+
+定义 `Jackson2ObjectMapperBuilderCustomizer` 加入到 Spring 容器，实现自定义的日期格式化策略。
+
+当前策略：
+
+- `LocalDateTime` 默认序列化为**时间戳**。
+- 前端传的**时间戳** 反序列化为 `LocalDateTime`。
+
+```java
+@Configuration
+public class JacksonCustomConfiguration {
+
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
+        return builder -> builder
+                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer())
+                .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer());
+    }
+
+    /**
+     * 序列化: {@link LocalDateTime} => timestamp(long)
+     */
+    private static class LocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
+
+        @Override
+        public void serialize(LocalDateTime localDateTime, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            if (localDateTime != null) {
+                long timestamp = localDateTime.toInstant(ZoneOffset.of("+8")).toEpochMilli();
+                gen.writeNumber(timestamp);
+            }
+        }
+    }
+
+    /**
+     * 反序列化: timestamp(long) => {@link LocalDateTime}
+     */
+    private static class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
+
+        @Override
+        public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            long timestamp = p.getValueAsLong();
+            if (timestamp > 0) {
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+            }
+            return null;
+        }
+    }
+
+}
+```
+
+
+
