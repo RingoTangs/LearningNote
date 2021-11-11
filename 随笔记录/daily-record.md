@@ -118,7 +118,7 @@ public class JacksonCustomConfiguration {
 
 实际上，Maven项目打包后，`resources` 文件夹下的文件会打包到 `target/classes` 目录下。
 
-<img src="D:\Typora\images\image.7kten1ye5yc0.png" style="zoom:200%;" />
+![](https://cdn.jsdelivr.net/gh/RingoTangs/image-hosting@master/spring5/image.7kten1ye5yc0.png)
 
 ```properties
 # person.properties
