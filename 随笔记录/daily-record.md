@@ -101,3 +101,46 @@ public class JacksonCustomConfiguration {
 
 
 
+# 2021-11-11 @PropertySource使用
+
+**注意**：`*.yaml` 配置中的内容不能读到。
+
+加载指定的属性文件 `*.properties` 到 Spring 的 Environment 中。
+
+可以配合 `@Value` 和 `@ConfigurationProperties` 使用。
+
+- `@PropertySource` 和 `@Value` 组合使用，可以将自定义属性文件中的属性变量值注入到当前类的使用`@Value` 注解的成员变量中。
+- `@PropertySource `和 `@ConfigurationProperties` 组合使用，可以将属性文件与一个Java类绑定，将属性文件中的变量值注入到该Java类的成员变量中。
+
+
+
+在 `resources` 资源文件夹下添加 `person.properties`。
+
+实际上，Maven项目打包后，`resources` 文件夹下的文件会打包到 `target/classes` 目录下。
+
+<img src="D:\Typora\images\image.7kten1ye5yc0.png" style="zoom:200%;" />
+
+```properties
+# person.properties
+person.name=zs
+person.age=18
+```
+
+
+
+`@PropertySource `和 `@ConfigurationProperties` 组合使用，这样就可以读到指定配置文件中的内容。
+
+```java
+@Component
+@ConfigurationProperties(prefix = "person")
+@PropertySource("classpath:person.properties")
+public class PersonProperties {
+
+    private String name;
+
+    private Integer age;
+	
+    // getter and setter
+}
+```
+
