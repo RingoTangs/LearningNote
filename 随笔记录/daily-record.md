@@ -144,3 +144,46 @@ public class PersonProperties {
 }
 ```
 
+# 2021-11-16 SpringBoot的Jackson配置
+
+配置参考一：https://my.oschina.net/davisky/blog/1814911。
+
+`spring.jackson`配置说明：https://www.chendalei.com/json-properties.html。
+
+功能：Empty字段不返回给前端。
+
+
+
+方式一：
+
+```java
+spring.jackson.default-property-inclusion=non_empty
+```
+
+
+
+
+
+方式二：
+
+```java
+@Configuration
+public class JacksonConfig {
+    @Bean
+    @Primary
+    @ConditionalOnMissingBean(ObjectMapper.class)
+    public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
+        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
+        // 通过该方法对mapper对象进行设置，所有序列化的对象都将按改规则进行系列化
+        // Include.Include.ALWAYS 默认
+        // Include.NON_DEFAULT 属性为默认值不序列化
+        // Include.NON_EMPTY 属性为 空（""） 或者为 NULL 都不序列化，则返回的json是没有这个字段的。这样对移动端会更省流量
+        // Include.NON_NULL 属性为NULL 不序列化,就是为null的字段不参加序列化
+        // 等价于在application.properties中写 spring.jackson.default-property-inclusion=non_empty
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        return objectMapper;
+    }
+}
+```
+
+**使用第二种方式，第一种自动失效**。
