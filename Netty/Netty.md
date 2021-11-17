@@ -195,13 +195,168 @@ private int capacity;
 
 NIO 的 Channel 类似于 Stream，但是有如下区别：
 
-1. Channel 可以同时进行读写，而 Stream 只能读或者**只能**写。
+1. Channel 可以同时进行读写，而 **Stream 只能读或者只能写**。
 2. Channel 可以实现异步读写数据。
 3. Channel 可以从 Buffer 读数据，也可以写数据到 Buffer。
 
 BIO 中的 Stream 是单向的，例如 `FileInputStream` 对象只能进行读/写数据的操作，而 NIO 的 Channel 是双向的，可以读和写数据。
 
+
+
 Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable`。
 
 
 
+常用的 Channel 类：
+
+- `FileChannel`：用于文件数据的读写。
+- `DatagramChannel`：用于UDP数据的读写。
+- `ServerSocketChannel、SocketChannel`：用于TCP数据的读写。
+
+
+
+**数据写入文件**
+
+```java
+String str = "Hello World";
+// 1: 创建文件输出流
+FileOutputStream fos = new FileOutputStream("file01.txt", true);
+// 2: 通过 FileOutputStream 获取对应的 FileChannel
+FileChannel fileChannel = fos.getChannel();
+// 3: 创建一个缓冲区 ByteBuffer
+ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+// 4: 将 str 放入 ByteBuffer
+byteBuffer.put(str.getBytes());
+// 5: 对 ByteBuffer 进行反转
+byteBuffer.flip();
+// 6: ByteBuffer 数据写入到 FileChannel
+fileChannel.write(byteBuffer);
+
+fileChannel.close();
+fos.close();
+```
+
+
+
+**读文件并打印**
+
+```java
+// 1: 创建文件输入流
+FileInputStream fis = new FileInputStream("file01.txt");
+// 2: 通过 FileInputStream 创建对应的 FileChannel
+FileChannel fileChannel = fis.getChannel();
+// 3: 创建一个缓冲区 ByteBuffer
+ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+// 4: FileChannel 数据写入到 ByteBuffer
+fileChannel.read(byteBuffer);
+// 5: 输出 ByteBuffer 中的内容
+System.out.println(new String(byteBuffer.array()));
+
+fileChannel.close();
+fis.close();
+```
+
+
+
+**复制文件**
+
+`FileChannel.read(ByteBuffer bf, long pos)`：
+
+- pos表示从 Channel 中读字节的起始位置。
+- 返回值表示读到的字节字节数，如果全部读完返回 -1。
+
+```java
+final int capacity = 4;
+
+// 1: 创建文件输入流
+FileInputStream fis = new FileInputStream("file01.txt");
+// 2: 通过 FileInputStream 创建对应的 FileChannel
+FileChannel fisFileChannel = fis.getChannel();
+// 3: 创建一个缓冲区 ByteBuffer
+ByteBuffer bf = ByteBuffer.allocate(capacity);
+
+// 4: 创建文件输出流
+FileOutputStream fos = new FileOutputStream("file01-copy.txt");
+// 5: 创建 FileOutputStream 对应的 FileChannel
+FileChannel fosFileChannel = fos.getChannel();
+
+int pos = 0;
+
+// 6: FileChannel 数据写入到 ByteBuffer
+while (fisFileChannel.read(bf, pos) != -1) {
+    // 5: 对 ByteBuffer 进行翻转 ==> 缓冲区由 write 切换为 read
+    bf.flip();
+    // 8: 将 ByteBuffer 的内容写入到 FileChannel
+    fosFileChannel.write(bf);
+
+    pos += capacity;
+    
+    // ByteBuff.clear() 需要重置缓冲区
+    bf.clear();
+}
+
+fosFileChannel.close();
+fisFileChannel.close();
+fos.close();
+fis.close();
+```
+
+
+
+
+
+**只使用 Channel 复制文件**
+
+```java
+// 1: 创建文件输入流
+FileInputStream fis = new FileInputStream("file01.txt");
+// 2: 通过 FileInputStream 创建对应的 FileChannel
+FileChannel fisFileChannel = fis.getChannel();
+
+// 3: 创建文件输出流
+FileOutputStream fos = new FileOutputStream("file01-copy.txt");
+// 4: 创建 FileOutputStream 对应的 FileChannel
+FileChannel fosFileChannel = fos.getChannel();
+// 5: 将 fisFileChannel 的数据转移到 fosFileChannel
+System.out.println(fisFileChannel.transferTo(0, fisFileChannel.size(), fosFileChannel));
+
+fosFileChannel.close();
+fisFileChannel.close();
+fos.close();
+fis.close();
+```
+
+
+
+### 4.7. MappedByteBuffer
+
+```java
+// 所谓动态读取是指从文件的任意位置开始访问文件，而不是必须从文件开始位置读取到文件末尾。
+RandomAccessFile raf = new RandomAccessFile("file01.txt", "rw");
+FileChannel channel = raf.getChannel();
+
+/**
+* mode: FileChannel.MapMode.READ_WRITE 使用的模式
+* position: 可以直接修改内存的起始位置
+* size：映射到内存的大小。即, 将 "file01.txt" 的多个字节映射到内存; 可以直接修改的范围是[0, 5)
+*/
+MappedByteBuffer mbf = channel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
+byte[] bytes = "张".getBytes();
+
+// 这样就可以直接修改文件了
+mbf.put(bytes, 0, bytes.length);
+
+channel.close();
+raf.close();
+```
+
+
+
+### 4.8. Selector
+
+**基本介绍**：
+
+- Java的NIO，用非阻塞的IO方式。可以用一个线程，处理多个客户端连接，就会使用到 Selector（选择器）。
+- Selector 能够检测多个注册的通道上是否有事件发生（注意：多个Channel以事件的方式可以注册到同一个Selector），如果有事件发生，便获取事件然后针对每个事件进行相应的处理。
+- 只有在连接Channel真正有读写事件发生时，才会进行读写，就大大的减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程。
+- 避免了多线程上下文切换导致的开销。
