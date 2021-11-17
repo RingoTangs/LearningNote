@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * {@link FileChannel} 使用示例
@@ -17,7 +18,31 @@ public class FileChannelDemo {
     public static void main(String[] args) throws IOException {
 //        writeFile2Disk();
 //        readFromFile();
-        copyFile();
+//        copyFile();
+        copyFileByTransfer();
+    }
+
+
+    /**
+     * 文件拷贝, 通过 {@link FileChannel#transferTo(long, long, WritableByteChannel)}
+     */
+    public static void copyFileByTransfer() throws IOException {
+        // 1: 创建文件输入流
+        FileInputStream fis = new FileInputStream("file01.txt");
+        // 2: 通过 FileInputStream 创建对应的 FileChannel
+        FileChannel fisFileChannel = fis.getChannel();
+
+        // 3: 创建文件输出流
+        FileOutputStream fos = new FileOutputStream("file01-copy.txt");
+        // 4: 创建 FileOutputStream 对应的 FileChannel
+        FileChannel fosFileChannel = fos.getChannel();
+        // 5: 将 fisFileChannel 的数据转移到 fosFileChannel
+        System.out.println(fisFileChannel.transferTo(0, fisFileChannel.size(), fosFileChannel));
+
+        fosFileChannel.close();
+        fisFileChannel.close();
+        fos.close();
+        fis.close();
     }
 
     /**
