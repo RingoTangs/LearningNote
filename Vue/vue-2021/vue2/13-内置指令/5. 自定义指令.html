@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 
+        需求1: 定义一个 v-big-number 指令, 和 v-text 功能类似, 但会把绑定的数值放大 10 倍。
+        需求2: 定义一个 v-fbind 指令, 和 v-bind 功能类似, 但可以让其所绑定的 input 元素默认获取焦点。
+     -->
+
+    <!-- 
+         自定义指令总结:
+            1. 自定义指令 v-big-number 对应的函数命名:
+                1.1. 'big-number':function(element, binding) {} 或
+                1.2. 'big-number'(element, binding){}
+            2. 注意: 自定义指令函数中的 this 全部都是 window。 
+            3. 在 vm 中定义的 directives 中的指令, 只能在当前 Vue 实例(组件) 中使用。 
+            4. Vue.directive(id, function) 可以定义全局指令
+    -->
+    <div id="app">
+        <h2>当前的 n 值是: <span v-text="n"></span></h2>
+        <h2>方大10倍后的 n 值是: <span v-big-number="n"></span></h2>
+        <button @click="++n">点我n+1</button>
+        <br />
+        <input type="text" v-fbind="n" />
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                n: 1,
+            }
+        },
+        // 自定义指令
+        directives: {
+            // 1. 函数形式
+            // element: 自定义指令绑定的真实 DOM 对象(HTMLElement 对象)
+            // binding: 自定义指令和真实 DOM 绑定的对象
+            // big 函数何时会被调用? 1. 指令与元素成功绑定时(一上来); 2. 指令所在的模板被重新解析时。
+            // 无论是否修改 n 的值, 只要模板重新解析, 都会调用 big 函数。
+            'big-number': function (element, binding) {
+                console.log('big-number', this);
+                element.innerText = binding.value * 10;
+            },
+
+            // 2. 对象形式
+            fbind: {
+                // 指令与元素成功绑定时(一上来), 该函数被调用。
+                bind(element, binding) {
+                    console.log('bind', this);
+                    element.value = binding.value;
+                },
+                // DOM 元素被 Vue 渲染到页面时, 该函数被调用。
+                inserted(element, binding) {
+                    console.log('inserted', this);
+                    element.focus();
+                },
+                // 指令所在的模板被重新解析时, 该函数被调用。
+                update(element, binding) {
+                    console.log('update', this);
+                    element.value = binding.value;
+                }
+            }
+        },
+    });
+</script>
+
+</html>

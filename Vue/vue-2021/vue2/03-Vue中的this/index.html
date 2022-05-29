@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app"></div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    /**
+     * 两个重要的原则:
+     * 1. 被 Vue 管理的函数，最好写成普通函数，这样 this 指向的才是 `vm` 或者 `Vue` 实例。  
+     * 2. 所有不被 Vue 所管理的函数（定时器的回调函数、Ajax的回调函数、Promise的回调函数等），
+     *    最好写成箭头函数，这样 this 的指向才是 `vm` 或 `Vue` 实例。
+     */
+    const vm = new Vue({
+        el: '#app',
+        methods: {
+            // 正常函数中的 this 就是 Vue 实例
+            f1() {
+                console.log(this);
+            },
+            // 箭头函数中没有 this 会向外找, 找的是 Window 对象。
+            f2: () => {
+                console.log(this);
+            },
+            f3() {
+                // 箭头函数中没有 this 会向外找, 找的是 Vue 对象。
+                setTimeout(() => {
+                    console.log(this);
+                }, 1000);
+            },
+            f4() {
+                setTimeout(function () {
+                    console.log(this);
+                }, 1000);
+            }
+        },
+    });
+
+    vm.f1();        // vue 实例
+    vm.f2();        // Window 对象
+    vm.f3();        // vue 实例
+    vm.f4();        // Window 对象
+</script>
+
+</html>

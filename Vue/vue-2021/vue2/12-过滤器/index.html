@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 
+        Filter:
+            1. 定义过滤器:
+                (1) 注册全局过滤器: Vue.filter(filterName, function(value, arg...))
+                (2) 注册局部过滤器: new Vue({filters: {}});
+            2. 使用过滤器:
+                1. 过滤器也可以接收额外参数, 多个过滤器可以串联。
+                2. 过滤器并没有改变原有的数据, 而是产生新的对应的数据。
+                3. {{}} 插值表达式中可以使用过滤器, v-bind 中也可以使用过滤器。
+     -->
+    <div id="app">
+        <h2>显示格式化后的时间</h2>
+        <span>当前时间: {{curTime}}</span>
+        <br />
+        <span>计算属性格式化后的时间: {{formatCurTime}}</span>
+        <br />
+        <span>过滤器格式化后的时间: {{curTime | formatCurTimeFilter}}</span>
+        <br />
+        <span>Vue全局过滤器格式化后的时间: {{curTime | globalFormatCurTimeFilter('YYYY-MM-DD HH-mm-ss')}}</span>
+        <br />
+        <span>多个过滤器之间可以串联: {{curTime | formatCurTimeFilter | globalSliceStr(0, 4)}}</span>
+        <br />
+        <!-- 在 v-bind 中也可以使用过滤器 -->
+        <span :x="'hello' | globalSliceStr(0, 3)"></span>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script src="../js/dayjs.min.js"></script>
+<script>
+    // 注册全局过滤器
+    // 过滤器也可以接收参数
+    Vue.filter('globalFormatCurTimeFilter', (value, formatter = 'YYYY-MM-DD HH/mm/ss') => dayjs(value).add(10, 'day').format(formatter));
+
+    // 截取字符串
+    Vue.filter('globalSliceStr', (value, start = 0, end = 10) => {
+        if (!value) return '';
+        return value.slice(start, end);
+    });
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 时间戳
+                curTime: Date.now(),
+            }
+        },
+        computed: {
+            // 格式化当前时间
+            formatCurTime() {
+                return dayjs(this.curTime).format('YYYY-MM-DD HH:mm:ss');
+            }
+        },
+        filters: {
+            /**
+             * 格式化时间戳
+             * 
+             * @param value 时间戳
+             * @return 指定格式的字符串
+             */
+            formatCurTimeFilter(value) {
+                return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
+            },
+        },
+        methods: {
+            // 定时更新当前时间
+            intervalUpdateCurTime() {
+                setInterval(() => this.curTime = Date.now(), 1000);
+            }
+        },
+        mounted() {
+            this.intervalUpdateCurTime();
+        },
+    });
+
+    console.log(vm);
+</script>
+
+</html>

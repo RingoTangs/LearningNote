@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <button @click="addOldLiu">添加一个老刘</button>
+        <ul>
+            <li v-for="(p, index) in persons" :key="index">
+                <span>{{p.name}}</span>-<span>{{p.age}}</span>
+            </li>
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                persons: [
+                    { id: '001', name: '张三', age: '18' },
+                    { id: '002', name: '李四', age: '18' },
+                    { id: '003', name: '王五', age: '18' },
+                ],
+            }
+        },
+        methods: {
+            addOldLiu(event) {
+                this.persons.unshift({ id: '004', name: '老刘', age: '18' });
+            }
+        },
+    });
+</script>
+
+</html>

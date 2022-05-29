@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <label for="search">
+            搜索: <input type="text" id="search" v-model="keyword" />
+        </label>
+        <button @click="stars.order = 1">年龄升序</button>
+        <button @click="stars.order = -1">年龄降序</button>
+        <button @click="stars.order = 0">原顺序</button>
+        <ul>
+            <li v-for="(star, index) in filteredSortedStarsList" :key="star.id">
+                {{star.name}}-{{star.age}}-{{star.gender}}
+            </li>
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                keyword: '',
+                stars: {
+                    order: 0,  // stars 的顺序. 0: 原顺序; 1: 按年龄升序; -1: 按年龄降序
+                    list: [
+                        { id: '002', name: '温兆伦', age: 20, gender: '男' },
+                        { id: '001', name: '周杰伦', age: 19, gender: '男' },
+                        { id: '003', name: '周冬雨', age: 21, gender: '女' },
+                        { id: '004', name: '马冬梅', age: 22, gender: '女' },
+                    ],
+                }
+            };
+        },
+        computed: {
+            filteredSortedStarsList() {
+                const keyword = this.keyword.trim();
+                // 1. 过滤
+                const filteredList = this.stars.list.filter(star => star.name.indexOf(keyword) !== -1);
+                if (!this.stars.order) {
+                    return filteredList;
+                }
+                // 2. 排序 => 操作的是 filteredList, 不是 data 中的 stars.list
+                return filteredList.sort((a, b) => this.stars.order === 1 ? a.age - b.age : b.age - a.age);
+            }
+        },
+    });
+
+    console.log('vm = ', vm._directInactive);
+</script>
+
+</html>

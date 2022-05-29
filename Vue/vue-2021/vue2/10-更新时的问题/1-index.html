@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <button @click="updateMDM">更新马冬梅</button>
+        <ul>
+            <li v-for="(star, index) in stars" :key="star.id">
+                {{star.name}}-{{star.age}}-{{star.gender}}
+            </li>
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                stars: [
+                    { id: '001', name: '周杰伦', age: 19, gender: '男' },
+                    { id: '002', name: '温兆伦', age: 20, gender: '男' },
+                    { id: '003', name: '周冬雨', age: 21, gender: '女' },
+                    { id: '004', name: '马冬梅', age: 22, gender: '女' },
+                ],
+            }
+        },
+        methods: {
+            updateMDM() {
+                // 这种更新方式失效, vue 并不会感知到修改
+                this.stars.forEach((cur, index, arr) => {
+                    if (cur.name.indexOf('马冬梅') !== -1) {
+                        const id = cur.id;
+                        // 这样直接赋值就不会走数据代理了！没有响应式的效果
+                        // vm.stars 中存的实际上时一个 Observer 对象
+                        arr[index] = { id, name: 'zs', age: '99', gender: '男' };
+                        // Vue.set(arr, index, { id, name: 'zs', age: '99', gender: '男' });
+                        console.log(arr);
+                    }
+                });
+            }
+        },
+    });
+</script>
+
+</html>

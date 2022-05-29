@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <input type="text" placeholder="姓" v-model="firstName" />
+        <input type="text" placeholder="名" v-model="lastName" />
+        <h1>全名: {{fullName}}</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                firstName: '张',
+                lastName: '三'
+            }
+        },
+        computed: {
+            fullName() {
+                return this.firstName + this.lastName;
+            }
+        },
+    });
+
+    // 实际上计算属性最终也是出现在 vm 上
+    // 计算属性数据代理默认只有 getter 函数, 没有 setter 函数
+    // 但是可以在计算属性中补全 getter 和 setter 函数 
+    console.log(vm);
+</script>
+
+</html>

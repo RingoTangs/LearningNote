@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <h1>姓名: {{student.name}}</h1>
+        <h1>年龄: {{student.age}}</h1>
+        <h1>性别: {{student.gender}}</h1>
+        <button @click="++student.age">年龄+1</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    /**
+     * 为了发现对象内部值的变化，可以在选项参数中指定 deep: true。
+     * 注意监听数组的变更不需要这么做。
+     * 
+     * Vue 的 watch 默认不能监听多层级属性的变化, 要想实现这个功能, 必须添加 deep: true。
+     */
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                student: {
+                    name: '张三',
+                    age: 18,
+                    gender: '男',
+                },
+            }
+        },
+
+        // 第一种监视方式
+        watch: {
+            // 对象的深度监听（对象中只要有属性变化就会触发该监听）
+            student: {
+                deep: true,
+                handler(newVal, oldVal) {
+                    console.log('oldVal = ', oldVal, '\n newVal = ', newVal);
+                }
+            },
+            // object.xx 不需要深度监听
+            'student.age': {
+                handler(newVal, oldVal) {
+                    console.log('oldVal = ', oldVal, '\n newVal = ', newVal);
+                }
+            },
+        },
+    });
+
+    // 第二种监视方式
+    
+    // 监听对象内部属性的变化, 结果 newVal 和  oldVal 值是一样的（newVal、oldVal都是对象）。
+    // 因为 newVal、oldVal 中的属性都用到了数据代理, 通过 getter 函数获得 vm data 中的值。
+    // vm.$watch('student', function (newVal, oldVal) {
+    //     console.log('oldVal = ', oldVal, '\n newVal = ', newVal);
+    // }, { deep: true });
+
+    // 监听 student.age 就不需要深度监听
+    // vm.$watch('student.age', function (newVal, oldVal) {
+    //     console.log('oldVal = ', oldVal, '\n newVal = ', newVal);
+    // });
+</script>
+
+</html>

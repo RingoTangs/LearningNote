@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 
+        v-text指令:
+            1. 作用: 向其所在的节点中渲染问本内容。
+            2. 与插值语法的区别: v-text 会替换掉结点中 textContent 全部的内容, {{ Mustache }} 则不会。
+               如果要更新部分的 textContent，需要使用 {{ Mustache }} 插值。
+     -->
+    <div id="app">
+        <div>nihao, {{msg}}</div>
+        <div v-text="msg">nihao, </div>
+        <div v-text="str"></div>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                msg: 'Hello World',
+                str: '<h3>111</h3>',
+            }
+        }
+    });
+</script>
+
+</html>

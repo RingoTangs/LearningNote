@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 只传递 event 就不用加括号 -->
+        <button type="button" @click="showInfo1">按钮1</button>
+        <!-- 传参又要保留 event 就需要使用 $event 占位符 -->
+        <button type="button" @click="showInfo2($event, 66)">按钮2</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        methods: {
+            showInfo1(event) {
+                console.log(event);
+            },
+            showInfo2(event, num) {
+                console.log(event);
+                console.log(num);
+            }
+        },
+    });
+</script>
+
+</html>

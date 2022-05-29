@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    // 定义 student 组件
+    const student = Vue.extend({
+        name: 'StudentComponent',
+        template: `
+            <div>
+                <h2>学生姓名: {{name}}</h2>
+                <h2>学生年龄: {{age}}</h2>
+            </div>
+        `,
+        data() {
+            return {
+                name: '张三',
+                age: 18,
+            }
+        },
+    });
+
+
+    // 自定 school 组件
+    const school = Vue.extend({
+        // 这里修改 name 可以改变 Vue 开发者工具中组件的名字
+        name: 'SchoolComponent',
+        template: `
+            <div>
+                <h2>学校名字: {{name}}</h2>
+                <h2>学校地址: {{address}}</h2>
+                <div style="border-top: 2px solid #000;">
+                    <h2>嵌套组件</h2>
+                    <student></student>
+                </div>
+            </div>
+        `,
+        data() {
+            return {
+                name: 'xxx学校',
+                address: '北京',
+            }
+        },
+        components: {
+            student,
+        }
+    });
+
+    // 定义 hello 组件
+    const hello = Vue.extend({
+        name: 'HelloComponent',
+        template: `
+            <div>
+                <h2>Hello World</h2>
+            </div>
+        `,
+    });
+
+    // 定义 app 组件
+    const app = Vue.extend({
+        name: 'AppComponent',
+        template: `
+            <div>
+                <hello></hello>
+                <school></school>
+            </div>
+        `,
+        components: {
+            school,
+            hello,
+        }
+    })
+
+    const vm = new Vue({
+        // vm 中写 template 会将 id="app" 的 HTML 代码片段完全替换
+        template: `<app></app>`,
+        el: '#app',
+        components: {
+            app,
+        },
+    });
+</script>
+
+</html>

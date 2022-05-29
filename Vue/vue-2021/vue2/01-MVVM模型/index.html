@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- view -->
+    <div id="app">
+        <h1>{{$options}}</h1>
+        <h1>{{_c}}</h1>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script type="text/javascript">
+    // view model
+    const vm = new Vue({
+        el: '#app',
+        // model
+        // data 里的数据最终出现在了 vm 上
+        // vm 上有的属性最终都可以展示在 view 上
+        data() {
+            return {
+
+                name: 'zs',
+                age: 18
+
+            }
+        }
+    });
+
+    console.log(vm);
+</script>
+
+</html>

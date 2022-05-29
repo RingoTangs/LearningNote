@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+
+</body>
+
+<script>
+    // 定义一个构造函数
+    function Demo() {
+        this.a = 1;
+        this.b = 2;
+    }
+
+    // 创建 Demo 的实例对象
+    const d = new Demo();
+
+    console.log("显示原型属性", Demo.prototype); // 显示原型属性
+    console.log("隐式原型属性", d.__proto__); // 隐式原型属性
+    // 显示原型属性 和 隐式原型属性都指向了同一个原型对象
+    console.log(Demo.prototype === d.__proto__); // true
+
+    // 通过显示原型属性操作原型对象, 追加一个 x 属性, 值为 99.
+    Demo.prototype.x = 99;
+    console.log("d.x =", d.x); // 99
+
+    console.log(d);
+</script>
+
+</html>

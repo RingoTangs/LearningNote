@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.title {
+  text-align: center;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+  padding-bottom: 4px;
+}
+
+.form > div {
+    margin-top: 10px;
+}
+
+.form {
+    width: 350px;
+}
+
+.submitArea {
+    text-align: center;
+}
+
+.belongArea {
+    text-align: center;
+}

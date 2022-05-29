@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+
+</body>
+
+<script>
+
+    let data = {
+        name: 'zs',
+        address: '北京',
+    };
+
+    function Observer(obj) {
+        // 拿到对象中所有的 key, 汇总成一个数组
+        const keys = Object.keys(obj);
+        // 遍历
+        keys.forEach(key => {
+            Object.defineProperty(this, key, {
+                get() {
+                    return obj[key];
+                },
+                set(val) {
+                    console.log(`${key} 被修改了`);
+                    obj[key] = val;
+                },
+            })
+        });
+    }
+
+    // 创建一个监视的实例对象, 用于监视 data 中属性的变化
+    const obs = new Observer(data);
+    console.log(obs);
+
+    // 准备一个 vm 实例对象
+    let vm = {};
+    vm._data = obs;
+    console.log(vm);
+</script>
+
+</html>

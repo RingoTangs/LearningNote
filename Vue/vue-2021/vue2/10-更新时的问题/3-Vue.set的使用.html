@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <style>
+        .separator {
+            border-bottom: 2px solid rgba(0, 0, 0, .1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1 style="color:red; border-bottom: 2px solid rgba(0, 0, 0, .3);">
+            注意：Vue.set(target, key, val) API target 不能是 vm, 也不能是 vm.data。
+            （对象不能是 Vue 实例，或者 Vue 实例的根数据对象。）
+        </h1>
+        <h1>Vue.set(target, key, val) 数组添加元素实现响应式</h1>
+        <button @click="addOne">使用数组API添加一个学生</button>
+        <button @click="updateMei">使用Vue.set()修改马冬梅</button>
+        <ul>
+            <li v-for="(star, index) in stars" :key="star.id">
+                {{star.name}}-{{star.age}}-{{star.gender}}
+            </li>
+        </ul>
+        <h2 class="separator"></h2>
+        <h1>Vue.set(target, key, val) 对象添加属性实现响应式</h1>
+        <div>
+            <h3>人物属性：</h3>
+            <ul>
+                <li v-for="(value, name, index) in person" :key="name">
+                    <span>{{name}}</span>: <span>{{value}}</span>
+                </li>
+            </ul>
+        </div>
+        <button @click="addField">增加一个人物属性</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                stars: [
+                    { id: '001', name: '周杰伦', age: 19, gender: '男' },
+                    { id: '002', name: '温兆伦', age: 20, gender: '男' },
+                    { id: '003', name: '周冬雨', age: 21, gender: '女' },
+                    { id: '004', name: '马冬梅', age: 22, gender: '女' },
+                ],
+                person: {
+                    name: 'zs',
+                    age: 18,
+                }
+            }
+        },
+        methods: {
+            addOne(event) {
+                this.stars.push({ id: '005', name: 'zs', age: 12, gender: '男' });
+                console.log(this.stars);
+            },
+            updateMei(event) {
+                this.stars.forEach((cur, index, arr) => {
+                    if (cur.name.indexOf('马冬梅') !== -1) {
+                        Vue.set(arr, index, { id: '004', name: '马冬梅', age: 40, gender: '女' });
+                        console.log(this.stars);
+                    }
+                });
+            },
+
+            addField() {
+                // 这样的话 vue 感知不到
+                // this.person.gender = '女';
+                // 使用 Vue.set() API 就可以了
+                // 可以使用 vm.$set(target, key, val)替换
+                // Vue.set(this.person, 'gender', '女');
+
+                // person 可以使用 vm._data.person 拿到, 也可以使用 vm.person 拿到（数据代理）
+                // this.$set(this._data.person, 'gender', '女')
+                this.$set(this.person, 'gender', '女');
+                console.log(this.person);
+            }
+        },
+    });
+</script>
+
+</html>

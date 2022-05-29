@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index</title>
+  </head>
+  <body>
+    <button onclick="saveData()">点我保存数据</button>
+    <button onclick="readData()">点我读取数据</button>
+    <button onclick="deleteData()">点我删除数据</button>
+  </body>
+  <script>
+    function saveData() {
+      sessionStorage.setItem("a", 66);
+      sessionStorage.setItem("person", JSON.stringify({ name: "zs" }));
+    }
+
+    function readData() {
+      console.log(sessionStorage.getItem("a"));
+      console.log(JSON.parse(sessionStorage.getItem("person")));
+    }
+
+    function deleteData() {
+      sessionStorage.removeItem("a");
+      sessionStorage.removeItem("person");
+    }
+  </script>
+</html>

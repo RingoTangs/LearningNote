@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 
+        常用的生命周期函数:
+            1. mounted(): 发送 ajax 请求、启动定时器、绑定自定义事件、订阅消息等【初始化操作】。
+            2. beforeDestroy(): 清除定时器、解绑自定义事件、取消订阅消息等【收尾工作】。
+
+        关于销毁 Vue 实例:
+            1. 销毁后借助 Vue 开发者工具看不到任何信息。
+            2. 销毁后自定义事件会失效, 但原生 DOM 事件依然有效。
+            3. 一般不会在 beforeDestroy 操作数据, 因为即使操作数据, 也不会再触发更新流程了。
+     -->
+    <div id="app">
+        <h1 :style="{opacity}">hello world</h1>
+        <button @click="stop">stop</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                opacity: 1,
+                state: true,
+            }
+        },
+        methods: {
+            stop(event) {
+                this.$destroy();
+            },
+            change() {
+                this.timer = setInterval(() => {
+                    console.log('setInterval');
+                    if (this.state) {
+                        // 透明度 1 -> 0
+                        this.opacity -= 0.01;
+                        if (this.opacity <= 0) {
+                            this.opacity = 0;
+                            this.state = false;
+                        }
+                    } else {
+                        // 透明度 0 -> 1
+                        this.opacity += 0.01;
+                        if (this.opacity >= 1) {
+                            this.opacity = 1;
+                            this.state = true;
+                        }
+                    }
+                }, 30);
+            }
+        },
+        mounted() {
+            this.change();
+        },
+        beforeDestroy() {
+            console.log('vm 即将销毁');
+            clearInterval(this.timer);
+            console.log('定时器关闭成功');
+        },
+    });
+</script>
+
+</html>

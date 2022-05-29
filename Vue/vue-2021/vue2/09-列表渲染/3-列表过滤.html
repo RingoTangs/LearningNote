@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 用 computed 实现 -->
+    <div id="app1">
+        <h1>用 computed 实现</h1>
+        <label for="searcher">
+            搜索: <input type="text" id="searcher" placeholder="请输入名字" v-model="keyword" />
+        </label>
+        <ul>
+            <li v-for="(star, index) in filteredStars" :key="star.id">
+                {{star.name}}-{{star.age}}-{{star.gender}}
+            </li>
+        </ul>
+    </div>
+
+
+    <!-- 用 watch 实现 -->
+    <div id="app2">
+        <h1>用 watch 实现</h1>
+        <h1>用 computed 实现</h1>
+        <label for="searcher">
+            搜索: <input type="text" id="searcher" placeholder="请输入名字" v-model="keyword" />
+        </label>
+        <ul>
+            <li v-for="(star, index) in filteredStars" :key="star.id">
+                {{star.name}}-{{star.age}}-{{star.gender}}
+            </li>
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    // computed 实现
+    const vm = new Vue({
+        el: '#app1',
+        data() {
+            return {
+                keyword: '',
+                stars: [
+                    { id: '001', name: '周杰伦', age: 19, gender: '男' },
+                    { id: '002', name: '温兆伦', age: 20, gender: '男' },
+                    { id: '003', name: '周冬雨', age: 21, gender: '女' },
+                    { id: '004', name: '马冬梅', age: 22, gender: '女' },
+                ],
+            }
+        },
+        computed: {
+            filteredStars() {
+                let keyword = this.keyword.trim();
+                if (keyword === '') {
+                    return this.stars;
+                }
+                return this.stars.filter(star => {
+                    if (!star.name) return false;
+                    return star.name.indexOf(keyword) != -1;
+                });
+            }
+        },
+    });
+
+
+    // watch 实现
+    const vm1 = new Vue({
+        el: '#app2',
+        data() {
+            return {
+                keyword: '',
+                stars: [
+                    { id: '001', name: '周杰伦', age: 19, gender: '男' },
+                    { id: '002', name: '温兆伦', age: 20, gender: '男' },
+                    { id: '003', name: '周冬雨', age: 21, gender: '女' },
+                    { id: '004', name: '马冬梅', age: 22, gender: '女' },
+                ],
+                filteredStars: [],
+            };
+        },
+        watch: {
+            keyword: {
+                immediate: true,    // 初始化时就调用 handler 函数
+                handler(newVal, oldVal) {
+                    let keyword = newVal.trim();
+                    if (keyword === '') {
+                        this.filteredStars = this.stars;
+                    }
+                    this.filteredStars = this.stars.filter(star => {
+                        if (!star.name) return false;
+                        return star.name.indexOf(keyword) != -1;
+                    });
+                }
+            }
+        },
+    });
+</script>
+
+</html>

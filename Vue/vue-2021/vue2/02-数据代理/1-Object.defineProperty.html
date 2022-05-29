@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+
+</body>
+
+<script>
+    console.log(" ======= Object.defineProperty()的基本使用 ======= ");
+    let person = {
+        name: 'zs',
+    };
+
+    Object.defineProperty(person, 'sex', {
+        value: '男',
+        enumerable: true,     // 控制属性是否可以枚举（遍历）默认 false
+        writable: true,       // 控制属性是否可以被修改 默认 false
+        configurable: true    // 控制属性是否可以被删除 默认 false
+    });
+
+    console.log(person);
+
+    console.log(" ======= Object.defineProperty()的高级使用 ======= ");
+
+
+    let number = 18;
+    
+    let student = {
+        name: 'zs',
+    };
+
+    Object.defineProperty(student, 'age', {
+        // 当读取 person 对象的 age 属性时, get函数(getter)就会被调用
+        get() {
+            // 当把 number 改成 19, person 中的 age 就会变成 19
+            console.log('有人读取 age 属性了');
+            return number;
+        },
+
+        // 当修改 person 对象的 age 属性时, set函数(setter)就会被调用
+        set(age) {
+            console.log('有人修改 age 属性了');
+            number = age;
+        }
+    });
+
+    console.log(student);
+</script>
+
+</html>

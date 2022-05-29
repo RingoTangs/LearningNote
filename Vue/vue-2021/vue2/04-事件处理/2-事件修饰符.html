@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+
+    <style>
+        * {
+            margin-top: 20px;
+        }
+
+        .box1 {
+            padding: 5px;
+            background-color: skyblue;
+        }
+
+        .box2 {
+            padding: 5px;
+            background-color: orange;
+        }
+
+        .list {
+            width: 200px;
+            height: 200px;
+            background-color: peru;
+            list-style: none;
+            padding: 0;
+            overflow: auto;
+        }
+
+        .list li {
+            height: 100px;
+            border: 1px solid red;
+            margin: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <!-- 1. prevent 阻止默认事件 -->
+        <a href="https://www.baidu.com" @click.prevent="showInfo" target="_blank">
+            百度
+        </a>
+
+        <!-- 2. stop 阻止事件冒泡 -->
+        <div @click="showInfo">
+            <button @click.stop="showInfo">点击按钮</button>
+        </div>
+        <!-- event.stopPropagation() 阻止事件冒泡 -->
+        <div @click="showInfo">
+            <button @click="showInfo">点击按钮</button>
+        </div>
+
+        <!-- 3. once 事件只会触发一次 -->
+        <button @click.once="showInfo">点击按钮</button>
+
+        <!-- 4. capture -->
+        <!-- 
+            事件的执行顺序：默认 先捕获 再冒泡
+            捕获（不处理事件）：嵌套关系由外到内
+            冒泡（事件处理）：嵌套关系由内到外
+
+            使用 capture, 在事件捕获阶段就处理事件
+         -->
+        <div class="box1" @click.capture="showMsg(1)">
+            <span>box1</span>
+            <div class="box2" @click="showMsg(2)">box2</div>
+        </div>
+
+        <!-- 5. self -->
+        <!-- 
+            .self 什么意思？
+            当触发点击事件, 并且是由于 div 被点击而引起的事件, 
+            div 上的 @click="showDetails" 才会生效。
+            
+            .self 修饰符一定程度上也能阻止冒泡！
+         -->
+        <div @click.self="showDetails" class="box1">
+            <button type="button" @click="showDetails">.self测试按钮</button>
+        </div>
+
+
+        <!-- 
+            6. passive（移动端用的多）
+            事件的默认行为立即执行，无需等待事件回调执行完毕 
+            scroll: 监听浏览器滚动条事件, 浏览器滚动条到底, 该事件不会触发。
+            wheel: 监听鼠标滚轮事件, 浏览器滚动条到底, 只要滑动鼠标滚轮依然会触发该事件。
+        -->
+        <ul class="list" @wheel.passive="onScroll">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+        </ul>
+
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        methods: {
+            showInfo(event) {
+                // 使用事件也可以阻止冒泡
+                event.stopPropagation();
+                console.log(event);
+            },
+            showMsg(msg) {
+                console.log(msg + '\t 你好！');
+            },
+            showDetails(event) {
+                console.log(event.target);    // <button type="button">.self测试按钮</button>
+            },
+            onScroll(event) {
+                for (let i = 0; i < 10_0000; ++i) {
+                    console.log('#');
+                }
+                console.log('输出完毕');
+            }
+        },
+    });
+</script>
+
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 
+            v-once:
+                只渲染元素和组件一次。
+                随后的重新渲染，元素/组件及其所有的子节点将被视为静态内容并跳过。
+                这可以用于优化更新性能。
+         -->
+        <h2 v-once>初始 n 的值是: {{n}}</h2>
+        <h2>当前 n 的值是: {{n}}</h2>
+        <button @click="++n">点我 n + 1</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                n: 1,
+            }
+        }
+    });
+</script>
+
+</html>

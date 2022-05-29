@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>Index</title>
+</head>
+
+<body>
+    <!--
+        收集表单数据：
+            1. <input type="text" /> 则 v-model 收集的是 value 值, 用户输入的就是 value 值。
+            2. <input type="radio" /> 则 v-model 收集的是 value 值, 需要自己给标签添加 value 值。
+            3. <input type="checkbox" /> 
+                (1) 没有配置 input 的 value 属性: 那么收集的就是 checked 值(true/false)。
+                (2) 配置 input 的 value 属性:
+                    i.  v-model 的初始值是非数组, 那么收集的就是 checked 值(true/false)。
+                    ii. v-model 的初始值是数组, 那么收集的就是 value 组成的数组。
+            4. v-model 其实也有修饰符     
+                (1). v-model.lazy: 只有当用户的input中失去焦点或者用户点击回车按钮时，才会将后台的数据进行修改。
+                (2). v-model.number: 当用户在input中输入数字时，浏览器会默认将输入的数字转化为string类型，使用number修饰符来将输入的数字转为number类型。
+                (3). v-model.trim: 使用trim修饰符来去掉字符串首部或者尾部的所有空格。    
+    -->
+    <div id="app">
+        <h2 class="title">收集表单数据</h2>
+        <form class="form">
+            <!-- 用户名 -->
+            <div>
+                <label for="username">
+                    <span>账号: </span>
+                    <input type="text" id="username" v-model.trim="userInfo.username" />
+                </label>
+            </div>
+            <!-- 密码 -->
+            <div>
+                <label for="password">
+                    <span>密码: </span>
+                    <input type="password" id="password" v-model.trim="userInfo.password" />
+                </label>
+            </div>
+            <!-- 性别 -->
+            <div>
+                <span>性别: </span>
+                <label for="man">
+                    <!-- v-model 只能绑定 value 值 -->
+                    <!-- v-model 其实也有修饰符 -->
+                    <input type="radio" name="gender" id="man" value="1" v-model.number="userInfo.gender">
+                    <span>男</span>
+                </label>
+                <label for="woman">
+                    <input type="radio" name="gender" id="woman" value="0" v-model.number="userInfo.gender">
+                    <span>女</span>
+                </label>
+            </div>
+            <!-- 爱好 -->
+            <div>
+                <span>爱好: </span>
+                <label for="smoke">
+                    <!-- v-model 只能绑定 value 值 -->
+                    <!-- checkbox 用数组来存 -->
+                    <input type="checkbox" name="hobby" id="smoke" value="smoke" v-model="userInfo.hobby" />
+                    <span>抽烟</span>
+                </label>
+                <label for="drink">
+                    <input type="checkbox" name="hobby" id="drink" value="drink" v-model="userInfo.hobby" />
+                    <span>喝酒</span>
+                </label>
+                <label for="hair">
+                    <input type="checkbox" name="hobby" id="hair" value="hair" v-model="userInfo.hobby" />
+                    <span>烫头</span>
+                </label>
+            </div>
+            <!-- 所属校区 -->
+            <div>
+                <span>所属校区: </span>
+                <select class="belongArea" v-model="userInfo.belongArea">
+                    <option value="beijing">北京</option>
+                    <option value="tianjin">天津</option>
+                    <option value="shanghai">上海</option>
+                </select>
+            </div>
+            <!-- 其他信息 -->
+            <div>
+                <label for="otherInfo">
+                    <span>其他信息: </span>
+                    <textarea id="otherInfo" cols="30" rows="10" v-model.lazy="userInfo.otherInfo">
+                    </textarea>
+                </label>
+            </div>
+            <!-- 接受用户协议 -->
+            <div>
+                <label for="agree">
+                    <!-- checkbox类型的input, 如果不写 value 默认绑定的就是 checked（布尔类型）  -->
+                    <input type="checkbox" id="agree" v-model="userInfo.agreed">
+                    <span>阅读并接受 <a href="javascript:void(0)">《用户协议》</a></span>
+                </label>
+            </div>
+            <!-- 提交按钮 -->
+            <div class="submitArea">
+                <button type="button" @click="onSubmit">提交</button>
+            </div>
+        </form>
+    </div>
+</body>
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                userInfo: {
+                    username: '',
+                    password: '',
+                    gender: 1,
+                    hobby: [],
+                    belongArea: 'beijing',
+                    otherInfo: '',
+                    agreed: true
+                },
+            }
+        },
+        methods: {
+            onSubmit(event) {
+                console.log(JSON.stringify(this.userInfo));
+            },
+        },
+    });
+</script>
+
+</html>

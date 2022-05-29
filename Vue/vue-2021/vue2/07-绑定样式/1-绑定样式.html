@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 1. 绑定 class 样式 => 字符串写法, 适用于: 要绑定的样式的类名不确定, 需要动态指定 -->
+        <div class="box" :class="curMood" @click="changeMood">
+            {{text}}
+        </div>
+
+        <!-- 2. 绑定 class 样式 => 数组写法, 适用于：要绑定的样式个数不确定、名字也不确定 -->
+        <div class="box" :class="classArr">
+            {{text}}
+        </div>
+
+        <!-- 3. 绑定 class 样式 => 对象写法, 适用于：要绑定的样式个数确定、名字也确定, 但是需要动态决定用不用 -->
+        <div class="box" :class="classObj">
+            {{text}}
+        </div>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+
+    class utils {
+        // 生成 [m, n] 的伪随机数
+        static randInt(m, n) {
+            return parseInt(Math.random() * (n - m + 1) + m, 10);
+        }
+    }
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                text: 'Hello World',
+                moods: ['normal', 'happy', 'sad'],
+                curMood: 'normal',
+                classArr: ['box-radius', 'text-scale'],
+                classObj: {
+                    'box-radius': false,
+                    'text-scale': true,
+                },
+                show: true
+            }
+        },
+        methods: {
+            // 监听 box 的点击事件
+            changeMood(event) {
+                this.curMood = this.moods[utils.randInt(0, this.moods.length - 1)];
+            },
+        },
+    });
+</script>
+
+</html>

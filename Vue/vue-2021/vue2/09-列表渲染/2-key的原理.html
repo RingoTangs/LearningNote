@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <button @click="addOldLiu">添加一个老刘</button>
+        <ul>
+            <!-- 1. 使用 :key="index" 新增的老刘复用了以前的 input 中的值  -->
+            <!-- <li v-for="(p, index) in persons" :key="index">
+                <span>{{p.name}}</span>-<span>{{p.age}}</span>
+                <input type="text" />
+            </li> -->
+
+            <!-- 
+                2. 使用 :key="p.id" 新增的老刘没有复用以前的 input 中的值。
+                以前 input 中的值依然保留。
+            -->
+            <li v-for="(p, index) in persons" :key="p.id">
+                <span>{{p.name}}</span>-<span>{{p.age}}</span>
+                <input type="text" />
+            </li>
+
+            <!-- 
+                3. :key="p.id" 绑定在 input 上 所有的 input 中的值都不会被复用。
+                    新增老刘之后, 之前 input 中的值都会消失。
+            -->
+            <!-- <li v-for="(p, index) in persons">
+                <span>{{p.name}}</span>-<span>{{p.age}}</span>
+                <input type="text" :key="p.id" />
+            </li> -->
+        </ul>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                id: 4,
+                persons: [
+                    { id: '001', name: '张三', age: '18' },
+                    { id: '002', name: '李四', age: '18' },
+                    { id: '003', name: '王五', age: '18' },
+                ],
+            }
+        },
+        methods: {
+            addOldLiu(event) {
+                this.persons.unshift({
+                    id: this.id++,
+                    name: '老刘',
+                    age: '18',
+                });
+            }
+        },
+    });
+</script>
+
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 
+            template 标签不会渲染到 DOM 结点上。
+            template 上只能添加 v-if, 添加 v-show 会失效
+        -->
+        <template v-if="show">
+            <h1>Hello</h1>
+        </template>
+        <button @click="show = !show">点我切换</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                show: true,
+            }
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <h2 style="color: red;">生命周期函数中的 this 就是 vm</h2>
+        <h2 :style="{opacity}">Hello World</h2>
+        <!-- 
+            注意：一定不能这样写, 因为只要 data 中的数据发生改变, Vue 就会重新解析模板。
+                 而且 m1 函数也在修改 data 中的数据, 那么就会产生无限次的方法调用。
+         -->
+        <!-- {{m1()}} -->
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                opacity: 1,
+                state: true, // 透明度状态. true: 1 -> 0; false: 0 -> 1
+            }
+        },
+        methods: {
+            m1() {
+                this.opacity -= 0.001;
+                if (this.opacity <= 0) this.opacity = 1;
+            }
+        },
+        // Vue 完成模板的解析, 并把初始的真实的 DOM 元素放入页面后调用 mounted.
+        mounted() {
+            setInterval(() => {
+                if (this.state) {
+                    // 透明度 1 -> 0
+                    this.opacity -= 0.01;
+                    if (this.opacity <= 0) {
+                        this.opacity = 0;
+                        this.state = false;
+                    }
+                } else {
+                    // 透明度 0 -> 1
+                    this.opacity += 0.01;
+                    if (this.opacity >= 1) {
+                        this.opacity = 1;
+                        this.state = true;
+                    }
+                }
+            }, 30);
+        },
+    });
+</script>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <h1>message: {{message}}</h1>
+        <h1>今天天气很{{info}}</h1>
+
+        <!-- 小技巧, @click 这里可以简写, 写 vm 中有的属性 -->
+        <button @click="isHot = !isHot">切换天气</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    /*
+        监视属性必须存在, 才能进行监视。
+    */
+
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                isHot: false,
+                message: 'Hello'
+            }
+        },
+        computed: {
+            info() {
+                return this.isHot ? '炎热' : '凉爽';
+            }
+        },
+        // 第一种 watch 方式 
+        // watch: {
+        //     isHot: {
+        //         // isHot 属性被初始化的时候就会调用 handler() 函数
+        //         immediate: true,
+        //         // 当 isHot 发生改变时, handler() 函数被调用
+        //         handler(newVal, oldVal) {
+        //             console.log('oldVal = ' + oldVal + "\t newVal = " + newVal);
+        //         }
+        //     }
+        // },
+    });
+
+    console.log(vm);
+
+
+    // 第二种 watch 方式
+    vm.$watch('isHot', function (newVal, oldVal) {
+        console.log('oldVal = ' + oldVal + "\t newVal = " + newVal);
+        this.message = 'newVal = ' + newVal;
+    }, { immediate: true });
+</script>
+
+</html>

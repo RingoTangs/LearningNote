@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <!-- 
+        关于 VueComponent:
+            1. school 组件本质是一个名为 VueComponent 的构造函数, 且不是程序员定义的, 是 Vue.extend() 生成的。
+            
+            2. 我们只需要写 <school></school>, Vue 解析时会帮我们创建 school 组件的实例对象。
+               即 Vue 帮我们执行的: new VueComponent(options)。
+
+            3. 特别注意: 每次调用 Vue.extend, 返回的都是一个全新的 VueComponent（全新的构造函数）！！！
+
+            4. 关于 this 的指向:
+                (1) 组件配置中:
+                    data 函数、methods 中的函数、watch 中的函数、computed 中的函数 它们的 this 均是 【VueComponent 实例对象】。
+                (2) new Vue({options}) 配置中:
+                    data 函数、methods 中的函数、watch 中的函数、computed 中的函数 它们的 this 均是【Vue 对象实例】。
+
+            5. VueComponent 的实例对象, 以后简称 vc(也可称之为: 组件实例对象)。
+               Vue 的实例对象, 以后简称 vm。 
+            
+            6. vc和vm大部分都一样, 也有区别:
+                (1) vm 是 new Vue({ }) 得到的, 配置对象中能传入 el. vc 是由 Vue.extend({ }) 创造的, 配置项不能传入 el.
+                (2) vc 中的 data 必须是函数, 但是 vm 中的 data 可以是对象。
+                因为组件是可复用的 Vue 实例，所以它们与 new Vue 接收相同的选项，例如 data、computed、watch、methods 以及生命周期钩子等。
+                仅有的例外是像 el 这样根实例特有的选项。
+     -->
+    <div id="app">
+        <school></school>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    // 定义 school 组件
+    const school = Vue.extend({
+        template: `
+            <div>
+                <h2>学校名字: {{name}}</h2>
+                <h2>学校地址: {{address}}</h2>
+                <button @click="showName">点我提示学校名</button>
+            </div>  
+        `,
+        data() {
+            return {
+                // 这些属性最终都会出现在 VueComponent 实例上
+                name: 'xxx学校',
+                address: '北京',
+            }
+        },
+        methods: {
+            // 这些函数最终都会出现在 VueComponent 实例上
+            showName(event) {
+                console.log('showName', this);
+                alert(this.name);
+            }
+        },
+    });
+
+    // 定义 Hello 组件
+    const hello = Vue.extend({
+        name: 'HelloComponent',
+        template: `
+            <div>
+                <h2>Hello World！</h2>
+            </div>
+        `,
+    });
+
+    const vm = new Vue({
+        el: '#app',
+        components: {
+            school,
+        }
+    });
+
+    // 其实, 我们拿到的 school 是个构造函数
+    console.log('typeof(school) =', typeof (school));       //  typeof(school) = function
+
+    // 首字母大写的函数默认被当作构造函数
+    // ƒ VueComponent(options) {
+    //     this._init(options);
+    // }
+    console.log(school);
+    console.log(hello);
+
+    // 每次调用 Vue.extend({ }) 都会返回一个全新的 VueComponent
+    console.log(school === hello);      // false
+
+    // vm 中有 $children 是一个数组, 可以拿到所有的子组件
+    console.log(vm);
+    console.log(vm.$children);
+    console.log(vm.$children[0].name);
+</script>
+
+</html>

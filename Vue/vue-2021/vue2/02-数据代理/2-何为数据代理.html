@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+    let obj1 = { x: 100 };
+    let obj2 = { y: 100 };
+
+    // 当修改 obj1 的 x 值, obj2 中 x 的值会变。
+    // 当修改 obj2 的 x 值, obj1 中 x 的值也会变。
+    Object.defineProperty(obj2, 'x', {
+        get() {
+            return obj1.x;
+        },
+        set(value) {
+            obj1.x = value;
+        }
+    });
+</script>
+
+</html>

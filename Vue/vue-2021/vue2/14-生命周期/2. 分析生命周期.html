@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <h2 v-text="n"></h2>
+        <h2>当前 n 的值是: {{n}} </h2>
+        <button @click="add">点我n+1</button>
+        <button @click="bye">点我销毁vm</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        // 添加 template 配置项会将这里的 HTML 整体替换到 id="app" 上, 根容器就会被替换掉了
+        // template: `
+        //     <div>
+        //         <h2>当前 n 的值是: {{n}} </h2>
+        //     </div>
+        // `,
+        data() {
+            return {
+                n: 1,
+            }
+        },
+        methods: {
+            add(event) {
+                // vm 销毁会清除自定义事件, 但是不会清除绑定原生的 DOM 事件
+                console.log('add');
+                ++this.n;
+            },
+            bye(event) {
+                this.$destroy();
+            }
+        },
+        // 初始化: 生命周期、事件, 但是数据代理还没有开始
+        // beforeCreate() 中无法通过 vm 访问到 data 中的数据、methods 中的方法
+        beforeCreate() {
+            console.log('beforeCreate', this);
+            // debugger;
+        },
+        // 初始化: 数据监测、数据代理
+        // created() 中可以通过 vm 访问到 data 中的数据、methods 中配置的方法
+        created() {
+            console.log('created', this);
+            // debugger;
+        },
+        // 此时: 页面呈现的是未经Vue编译的DOM结构. 所有对 DOM 的操作, 最终都不奏效(会被 vm 覆盖).
+        beforeMount() {
+            console.log('beforeMount', this);
+            // debugger;
+        },
+        // 此时: 页面中呈现的是经过Vue编译的DOM. 对DOM的操作均有效(尽可能避免).
+        // 一般在此进行: 开启定时器、发送网络请求、订阅消息、绑定自定义事件等初始化操作。
+        mounted() {
+            console.log('mounted', this);
+            // this.$el: Vue 实例使用的根 DOM 元素
+            console.log(this.$el instanceof HTMLElement);   // true
+            // debugger;
+        },
+        // 此时: 数据是新的, 但页面是旧的.
+        // 页面和数据尚未保持同步
+        beforeUpdate() {
+            console.log('beforeUpdate', this);
+            // debugger;
+        },
+        // 此时: 数据是新的. 页面也是新的
+        // 页面和数据保持同步
+        updated() {
+            console.log('updated', this);
+            // debugger;
+        },
+        /**
+         * 此时: vm 中所有的 data、methods、directives等等，都处于可用状态,
+         * 马上要执行销毁过程, 一般在此阶段, 关闭定时器、取消消息订阅、解绑自定义事件等收尾内容。
+         */ 
+        beforeDestroy() {
+            console.log('beforeDestroy', this);
+            console.log(this._data);
+        },
+        destroyed() {
+            console.log('destroyed', this);
+        },
+    });
+</script>
+
+</html>

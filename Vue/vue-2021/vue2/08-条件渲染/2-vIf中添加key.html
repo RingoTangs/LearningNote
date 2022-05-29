@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 如果不加 key vue 在渲染 view 的时候就会进行复用 -->
+        <!-- 有不想复用的组件需要加上 key -->
+        <template v-if="switchOption === 'username'">
+            <label for="username">username</label>
+            <!-- 这里添加 key -->
+            <input type="text" id="username" placeholder="please input your username" key="username" />
+        </template>
+        <template v-else>
+            <label for="email">email</label>
+            <!-- 这里添加 key -->
+            <input type="text" id="email" placeholder="please input your email" key="email" />
+        </template>
+        <br />
+        <button @click="++cnt">点我计数器加1</button>
+    </div>
+</body>
+
+<script src="../js/vue.js"></script>
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data() {
+            return {
+                cnt: 0,     // 计数器
+            };
+        },
+        computed: {
+            switchOption() {
+                switch (this.cnt % 2 === 0 ? 1 : 0) {
+                    case 1:
+                        return 'username';
+                    case 0:
+                        return 'email';
+                    default:
+                        return 'username';
+                }
+            }
+        },
+    });
+</script>
+
+</html>
