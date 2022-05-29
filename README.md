@@ -9,3 +9,5 @@
 [Spring Security 自定义校验逻辑，支持图片验证码、短信验证码登录（支持JSON和表单登录）、自动登录](https://gitee.com/RingoTangs/spring-security-login-demo)
 
 [Gitee仓库地址](https://gitee.com/RingoTangs/learning-note)
+
+[智能优化算法](https://github.com/RingoTangs/optimize-samples)
